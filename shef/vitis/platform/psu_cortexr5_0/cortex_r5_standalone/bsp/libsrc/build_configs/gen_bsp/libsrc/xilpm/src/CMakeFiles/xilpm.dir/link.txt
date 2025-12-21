@@ -1,0 +1,2 @@
+armr5-none-eabi-ar qc libxilpm.a CMakeFiles/xilpm.dir/zynqmp/client/common/pm_api_sys.c.obj CMakeFiles/xilpm.dir/zynqmp/client/common/pm_callbacks.c.obj CMakeFiles/xilpm.dir/zynqmp/client/common/pm_clock.c.obj CMakeFiles/xilpm.dir/zynqmp/client/common/pm_cfg_obj.c.obj CMakeFiles/xilpm.dir/zynqmp/client/rpu/pm_client.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/armr5/nt/gcc-arm-none-eabi/bin/armr5-none-eabi-ranlib.exe libxilpm.a

@@ -1,0 +1,8 @@
+//arch = zynqmp; split = false; format = BIN
+the_ROM_image:
+{
+	[bootloader, destination_cpu = r5-0]E:\x\shef\vitis\zynqmp_fsbl\build\zynqmp_fsbl.elf
+	[destination_cpu = pmu]E:\x\shef\vitis\platform\export\platform\sw\boot\pmufw.elf
+	[destination_device = pl]E:\x\shef\vitis\platform\hw\sdt\zynq_mpsoc_wrapper.bit
+	[destination_cpu = r5-0]E:\x\shef\vitis\hello_world\build\hello_world.elf
+}

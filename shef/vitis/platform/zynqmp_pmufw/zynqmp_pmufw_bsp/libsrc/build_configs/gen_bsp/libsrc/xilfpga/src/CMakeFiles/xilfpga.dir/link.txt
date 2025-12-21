@@ -1,0 +1,2 @@
+mb-ar qc libxilfpga.a CMakeFiles/xilfpga.dir/interface/zynqmp/xilfpga_pcap.c.obj CMakeFiles/xilfpga.dir/xilfpga.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/microblaze/nt/bin/mb-ranlib.exe libxilfpga.a

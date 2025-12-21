@@ -1,0 +1,87 @@
+{
+  "name": "platform",
+  "type": "PLATFORM",
+  "configuration": {
+    "description": "",
+    "xsa": "E:\\x\\shef\\vitis\\zynq_mpsoc_wrapper.xsa",
+    "xsaPathInPlatform": "platform\\hw\\zynq_mpsoc_wrapper.xsa",
+    "emulationXsa": "",
+    "emulationXsaPathInPlatform": "",
+    "isCustomFSBL": false,
+    "fsblPath": "",
+    "pmufwElf": "",
+    "flow": "EMBEDDED",
+    "processorsMap": {
+      "psu_cortexa53_0": "psu_cortexa53",
+      "psu_cortexa53_1": "psu_cortexa53",
+      "psu_cortexr5_0": "psu_cortexr5",
+      "psu_cortexr5_1": "psu_cortexr5",
+      "psu_pmu_0": "psu_pmu"
+    },
+    "supportedFamily": "zynquplus",
+    "outOfSync": false,
+    "componentType": "PLATFORM",
+    "domains": [
+      {
+        "name": "zynqmp_fsbl",
+        "displayName": "zynqmp_fsbl",
+        "processor": "psu_cortexr5_0",
+        "cpuType": "cortex-r5",
+        "cpuInstance": "psu_cortexr5_0",
+        "os": "standalone",
+        "appTemplate": "zynqmp_fsbl",
+        "isBootDomain": true,
+        "qemuData": "E:\\x\\shef\\vitis\\platform\\resources\\zynqmp_fsbl\\qemu",
+        "qemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\zynqmp_fsbl\\qemu\\qemu_args.txt",
+        "pmcQemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\zynqmp_fsbl\\qemu\\pmu_args.txt",
+        "isBSPGenReq": false
+      },
+      {
+        "name": "zynqmp_pmufw",
+        "displayName": "zynqmp_pmufw",
+        "processor": "psu_pmu_0",
+        "cpuType": "psu_pmu",
+        "cpuInstance": "psu_pmu_0",
+        "os": "standalone",
+        "appTemplate": "zynqmp_pmufw",
+        "isBootDomain": true,
+        "qemuData": "E:\\x\\shef\\vitis\\platform\\resources\\zynqmp_pmufw\\qemu",
+        "qemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\zynqmp_pmufw\\qemu\\qemu_args.txt",
+        "pmcQemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\zynqmp_pmufw\\qemu\\pmu_args.txt",
+        "isBSPGenReq": false
+      },
+      {
+        "name": "standalone_psu_cortexa53_0",
+        "displayName": "standalone_psu_cortexa53_0",
+        "processor": "psu_cortexa53_0",
+        "cpuType": "cortex-a53",
+        "cpuInstance": "psu_cortexa53_0",
+        "os": "standalone",
+        "appTemplate": "empty_application",
+        "isBootDomain": false,
+        "qemuData": "E:\\x\\shef\\vitis\\platform\\resources\\standalone_psu_cortexa53_0\\qemu",
+        "qemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\standalone_psu_cortexa53_0\\qemu\\qemu_args.txt",
+        "pmcQemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\standalone_psu_cortexa53_0\\qemu\\pmu_args.txt",
+        "isBSPGenReq": false
+      },
+      {
+        "name": "cortex_r5_standalone",
+        "displayName": "cortex_r5_standalone",
+        "processor": "psu_cortexr5_0",
+        "cpuType": "cortex-r5",
+        "cpuInstance": "psu_cortexr5_0",
+        "os": "standalone",
+        "appTemplate": "zynqmp_fsbl",
+        "isBootDomain": false,
+        "qemuData": "E:\\x\\shef\\vitis\\platform\\resources\\cortex_r5_standalone\\qemu",
+        "qemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\cortex_r5_standalone\\qemu\\qemu_args.txt",
+        "pmcQemuArgsFile": "E:\\x\\shef\\vitis\\platform\\resources\\cortex_r5_standalone\\qemu\\pmu_args.txt",
+        "isBSPGenReq": false
+      }
+    ],
+    "emptyToolchainConfiguration": []
+  },
+  "previousBuildStatusMap": {
+    "export": "SUCCESS"
+  }
+}

@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/asm_vectors.S
+
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/boot.S
+xparameters.h
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/xparameters.h
+bspconfig.h
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/bspconfig.h
+
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/cpu_init.S
+
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/xil-crt0.S
+xparameters.h
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/xparameters.h
+bspconfig.h
+E:/x/shef/vitis/platform/zynqmp_fsbl/zynqmp_fsbl_bsp/libsrc/standalone/src/arm/cortexr5/gcc/bspconfig.h
+
+include/bspconfig.h
+xmem_config.h
+include/xmem_config.h
+xparameters_ps.h
+include/xparameters_ps.h
+
+include/xmem_config.h
+
+include/xparameters_ps.h
+

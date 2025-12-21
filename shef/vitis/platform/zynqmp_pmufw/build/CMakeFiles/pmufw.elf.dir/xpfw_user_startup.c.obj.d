@@ -1,0 +1,64 @@
+CMakeFiles/pmufw.elf.dir/xpfw_user_startup.c.obj: \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_user_startup.c \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_config.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_core.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_module.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_default.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_util.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_debug.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/pmu_local.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/pmu_iomodule.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/pmu_global.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/ipi.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/uart0.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/uart1.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/crl_apb.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/lpd_slcr.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/rtc.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_scheduler.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_events.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_user_startup.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_dap.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_legacy.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_em.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_pm.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_rtc.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_sched.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_stl.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_wdt.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_common.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_ultra96.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_rpu.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_extwdt.h \
+ E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_overtemp.h
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_config.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_core.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_module.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_default.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_util.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_debug.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/pmu_local.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/pmu_iomodule.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/pmu_global.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/ipi.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/uart0.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/uart1.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/crl_apb.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/lpd_slcr.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/rtc.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_scheduler.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_events.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_user_startup.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_dap.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_legacy.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_em.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_pm.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_rtc.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_sched.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_stl.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_wdt.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_common.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_ultra96.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_rpu.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_extwdt.h:
+E:/x/shef/vitis/platform/zynqmp_pmufw/xpfw_mod_overtemp.h:
