@@ -1,0 +1,2 @@
+mb-ar qc libwdtps.a CMakeFiles/wdtps.dir/xwdtps_selftest.c.obj CMakeFiles/wdtps.dir/xwdtps_g.c.obj CMakeFiles/wdtps.dir/xwdtps_sinit.c.obj CMakeFiles/wdtps.dir/xwdtps.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/microblaze/nt/bin/mb-ranlib.exe libwdtps.a

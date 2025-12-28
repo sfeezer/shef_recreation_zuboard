@@ -1,0 +1,18 @@
+{
+  "name": "pmufw",
+  "type": "HOST",
+  "platform": "E:\\x\\shef\\vitis\\platform\\export\\platform\\platform.xpfm",
+  "domain": "pmufw",
+  "cpuInstance": "psu_pmu_0",
+  "cpuType": "psu_pmu",
+  "os": "standalone",
+  "configuration": {
+    "componentType": "HOST",
+    "hostToolchainConfigurations": []
+  },
+  "domainRealName": "pmufw",
+  "applicationFlow": "EMBEDDED",
+  "previousBuildStatusMap": {
+    "hw": "SUCCESS"
+  }
+}

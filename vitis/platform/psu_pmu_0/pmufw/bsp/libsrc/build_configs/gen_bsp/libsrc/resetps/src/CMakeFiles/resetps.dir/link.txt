@@ -1,0 +1,2 @@
+mb-ar qc libresetps.a CMakeFiles/resetps.dir/xresetps_g.c.obj CMakeFiles/resetps.dir/xresetps.c.obj CMakeFiles/resetps.dir/xresetps_sinit.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/microblaze/nt/bin/mb-ranlib.exe libresetps.a

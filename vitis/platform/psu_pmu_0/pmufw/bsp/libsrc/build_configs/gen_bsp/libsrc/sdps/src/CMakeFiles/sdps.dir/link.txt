@@ -1,0 +1,2 @@
+mb-ar qc libsdps.a CMakeFiles/sdps.dir/xsdps_host.c.obj CMakeFiles/sdps.dir/xsdps_options.c.obj CMakeFiles/sdps.dir/xsdps_card.c.obj CMakeFiles/sdps.dir/xsdps_sinit.c.obj CMakeFiles/sdps.dir/xsdps.c.obj CMakeFiles/sdps.dir/xsdps_g.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/microblaze/nt/bin/mb-ranlib.exe libsdps.a
