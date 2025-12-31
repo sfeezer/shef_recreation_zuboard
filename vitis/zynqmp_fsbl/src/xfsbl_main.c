@@ -35,6 +35,9 @@
 #include "xfsbl_hw.h"
 #include "xfsbl_main.h"
 #include "bspconfig.h"
+#include "xsecure_sha.h"
+#include "dev_key.h"
+#include "xfsbl_authentication.h"
 
 /************************** Constant Definitions *****************************/
 
@@ -49,6 +52,7 @@ static void XFsbl_MarkUsedRPUCores(XFsblPs *FsblInstPtr, u32 PartitionNum);
 
 /************************** Variable Definitions *****************************/
 XFsblPs FsblInstance = {0x3U, XFSBL_SUCCESS, 0U, 0U, 0U, 0U};
+static XSecure_Sha3 csu_sha3;
 
 /*****************************************************************************/
 /** This is the FSBL main function and is implemented stage wise.
@@ -243,6 +247,113 @@ int main(void )
 						FsblStage = XFSBL_STAGE4;
 						EarlyHandoff = FsblStatus;
 
+						/* Hash the security kernel partition */
+						/* TODO: Verify these partition indices (4, 5, 6) match your BOOT.BIN layout! */
+						// u8 kernel_hash[XFSBL_HASH_TYPE_SHA3] __attribute__ ((aligned (4))) = {0};
+
+						// u32 kernel_length;
+						// const XFsblPs_PartitionHeader * partition_header;
+						// UINTPTR kernel_load_addr;
+
+						//Partition in ATCM (Example Index 4)
+						//Verify if your SK is here. If not, adjust index.
+						/*
+						partition_header = &FsblInstance.ImageHeader.PartitionHeader[4];
+						kernel_length = partition_header->TotalDataWordLength * 4U;
+						kernel_load_addr = ((UINTPTR)(partition_header->DestinationLoadAddress)) + XFSBL_R50_HIGH_ATCM_START_ADDRESS;
+
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+
+						XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
+						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+						*/
+
+						//Partition in OCM (Example Index 5)
+						/*
+						partition_header = &FsblInstance.ImageHeader.PartitionHeader[5];
+						kernel_length = partition_header ->TotalDataWordLength * 4U;
+						kernel_load_addr = ((UINTPTR)(partition_header->DestinationLoadAddress));
+
+
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+
+						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+						*/
+
+						//Partition in DDR (Example Index 6)
+						/*
+						partition_header = &FsblInstance.ImageHeader.PartitionHeader[6];
+						kernel_length = partition_header ->TotalDataWordLength * 4U;
+						kernel_load_addr = ((UINTPTR)(partition_header->DestinationLoadAddress));
+
+
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+
+						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+
+						XSecure_Sha3Finish(&csu_sha3, kernel_hash);
+						*/
+
+						/*
+						//Write the kernel hash to OCM
+						XFsbl_Printf(DEBUG_GENERAL,"Kernel Hash: ");
+						int i;
+						for (i = 0; i < XFSBL_HASH_TYPE_SHA3; i++){
+							XFsbl_Printf(DEBUG_GENERAL, "%02x", kernel_hash[i]);
+							Xil_Out8(OCM_SEC_BUFFER_ADDRESS + i, kernel_hash[i]);
+						}
+
+						//Generate the keygen seed using the kernel hash and the device key
+						XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
+						XSecure_Sha3Update(&csu_sha3, kernel_hash, XFSBL_HASH_TYPE_SHA3);
+						XSecure_Sha3Update(&csu_sha3, root_sk, 512);
+						XSecure_Sha3Update(&csu_sha3, root_mod, 512);
+
+
+						XSecure_Sha3Finish(&csu_sha3, kernel_hash);
+
+						XFsbl_Printf(DEBUG_GENERAL,"\r\nKeygen Seed: ");
+
+						//Truncate the SHA3-384 output to SHA3-256
+						for (i = 0; i < 32; i++){
+							XFsbl_Printf(DEBUG_GENERAL, "%02x", kernel_hash[i]);
+							Xil_Out8(OCM_SEC_BUFFER_ADDRESS + XFSBL_HASH_TYPE_SHA3 + i, kernel_hash[i]);
+						}
+						*/
+
+						                        /* ShEF: HASHING THE HELLO_WORLD APPLICATION */
+												{
+													u8 app_hash[XFSBL_HASH_TYPE_SHA3] __attribute__ ((aligned (4))) = {0};
+													XFsblPs_PartitionHeader * AppPartitionHdr;
+													UINTPTR AppLoadAddr;
+													u32 AppLength;
+													int j;
+						
+													XFsbl_Printf(DEBUG_PRINT_ALWAYS, "\r\n--- ShEF: Hashing hello_world Partition ---\r\n");
+						
+													// Target Partition 3 for hello_world.elf, which is in ATCM
+													AppPartitionHdr = &FsblInstance.ImageHeader.PartitionHeader[3];
+													AppLoadAddr = ((UINTPTR)(AppPartitionHdr->DestinationLoadAddress)) + XFSBL_R50_HIGH_ATCM_START_ADDRESS;
+													AppLength = AppPartitionHdr->TotalDataWordLength * 4U;
+													
+													XFsbl_Printf(DEBUG_PRINT_ALWAYS, "ShEF: Target Partition: 3\r\n");
+													XFsbl_Printf(DEBUG_PRINT_ALWAYS, "ShEF: Physical Load Address for Hashing: 0x%08lx\r\n", AppLoadAddr);
+													XFsbl_Printf(DEBUG_PRINT_ALWAYS, "ShEF: Hashing Length (from Partition Header): %d bytes\r\n", AppLength);
+													// Perform the hash
+													XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
+													XSecure_Sha3Update(&csu_sha3, (u8*)AppLoadAddr, AppLength);
+													XSecure_Sha3Finish(&csu_sha3, app_hash);
+						
+													// Print the resulting hash
+													XFsbl_Printf(DEBUG_PRINT_ALWAYS,"ShEF: Calculated Hash: ");
+													for (j = 0; j < XFSBL_HASH_TYPE_SHA3; j++){
+														XFsbl_Printf(DEBUG_GENERAL, "%02x", app_hash[j]);
+													}
+													XFsbl_Printf(DEBUG_PRINT_ALWAYS, "\r\n--- ShEF: Hashing Complete ---\r\n\r\n");
+												}
 					}
 				} /* End of else loop for Load Success */
 			} break;
@@ -344,7 +455,7 @@ void XFsbl_PrintFsblBanner(void )
 #if !defined(XFSBL_PERF) || defined(FSBL_DEBUG) || defined(FSBL_DEBUG_INFO) \
 			|| defined(FSBL_DEBUG_DETAILED)
 	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
-                 "Zynq MP First Stage Boot Loader \n\r");
+                 "\n\rZynq MP First Stage Boot Loader \n\r");
 	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
                  "Release %d.%d   %s  -  %s\r\n",
                  SDK_RELEASE_YEAR, SDK_RELEASE_QUARTER,__DATE__,__TIME__);
