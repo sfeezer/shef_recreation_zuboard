@@ -1016,9 +1016,6 @@ extern "C" {
 #define XFSBL_OCM_START_ADDRESS			(0xFFFEA000U)
 #define XFSBL_OCM_END_ADDRESS			(0xFFFFFFFFU)
 
-#define OCM_SEC_BUFFER_ADDRESS		(0xFFFFFE00)
-#define SEC_BUFFER_SIZE 512
-
 /* Different Memory types */
 #define XFSBL_R5_0_TCM		(0x1U)
 #define XFSBL_R5_1_TCM		(0x2U)
