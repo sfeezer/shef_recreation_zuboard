@@ -1,0 +1,2488 @@
+Chapter 11
+Boot and Configuration
+Introduction
+The system boot-up process is managed and carried out by the platform management unit
+(PMU) and configuration security unit (CSU).
+The boot-up process consists of three functional stages.
+• Pre-configuration stage
+The pre-configuration stage is controlled by the platform management unit that
+executes PMU ROM code to setup the system. The PMU handles all reset and wake-up
+processes. Power-on reset is used to reset the CSU and PMU because they are
+responsible for debug, system, and software reset. There are other reset methods such
+as SRST and SLCR.
+• Configuration stage
+In the configuration stage, the BootROM (part of the CSU ROM code) interprets the
+boot header to configure the system and load the processing system’s (PS) first-stage
+boot loader (FSBL) code into the on-chip RAM (OCM) in both secure and non-secure
+boot modes. The boot head defines many boot parameters including the security mode
+and the processor MPCore to execute the FSBL. The boot header parameters are listed
+in Table 11-4. During boot, the CSU also loads the PMU user firmware (PMU FW) into the
+PMU RAM to provide platform management services in conjunction with the PMU ROM.
+The PMU FW must be present in most systems for the AMD-based FSBL and system
+software.
+• Post-configuration stage
+After a FSBL execution starts, the CSU ROM code enters the post-configuration stage,
+which is responsible for system tamper response. The CSU hardware provides ongoing
+hardware support to authenticate files, configure the PL via PCAP, store and manage
+secure keys, and decrypt files.
+Send FeedbackZynq UltraScale+ Device TRM 220
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Boot Flow
+The PMU performs a number of mandatory and optional security operations, including the
+following.
+• Optional function: zeroize low power domain (LPD) registers. When the LPD_SC eFUSEs
+are programmed, the PMU zeroizes all registers in the LPD.
+• Optional function: zeroize full power domain (FPD) registers. When the FPD_SC eFUSEs
+are programmed, the PMU zeroizes all registers in the FPD.
+• Zeroize PMU RAM: the PMU RAM has zeros written to it and read back to confirm the
+write was successful.
+• Zeroize the PMU processor's TLB memory.
+• Voltage checks: the PMU checks the supply voltage of the LPD, AUX, and dedicated I/O
+to confirm that the voltages are within specification.
+• Zeroize memories: the PMU zeroizes memories located in the CSU, LPD, and FPDs.
+Once these security operations are complete, the PMU sends the CSU immutable ROM code
+through the SHA-3/384 engine and compares the calculated cryptographic checksum to the
+golden copy stored in the device. If the cryptographic checksums enabled in the bif file
+match, the integrity of the CSU ROM is validated and the reset to the CSU is released.
+The PMU is responsible for handling the primary pre-boot tasks and management of the PS
+for reliable power up/power down of system resources. The power-on reset (POR) initiates
+the PMU operation which directly or indirectly releases resets to any other blocks that are
+expected to be powered up. In this paradigm, the PMU requires ROM code to hold the
+initial power-up sequence. The PMU is running even after the boot-up process and is
+responsible for handling various system resets. It is also used while changing the power
+state of the system (like power-up, sleep, and wake-up).
+During initial boot, the PMU is brought out of reset by the POR, which is then followed by
+PMU ROM execution. The following describes the sequence of operations done by the PMU
+processor by executing PMU ROM pre-boot code after a POR reset.
+1. Initialize the PS SYSMON unit and the PLL required for boot.
+2. Clear the PMU RAM and CSU RAM (external POR only).
+3. Validate the PLL locks.
+4. Validate the LPD, AUX, and I/O supply ranges using the PS SYSMON unit.
+5. Clear the low-power and full-power domains.
+6. If there is no error in the previous steps, the PMU releases the CSU reset and enters the
+PMU service mode. If not, generate and flag a boot error.
+Note: When PMUFW is not used PMU goes to sleep state after boot-up.
+Send FeedbackZynq UltraScale+ Device TRM 221
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+When the CSU reset is released, it performs following sequence.
+1. Initialize OCM.
+2. Determines the boot mode by reading the boot mode register from the captured boot
+mode state PMU FW, at the POR.
+3. The CSU continues by loading the FSBL in OCM for execution by either the RPU or the
+APU. The CSU then loads the PMU user firmware (PMU FW) into the PMU RAM for
+execution by the PMU firmware.
+The PMU FW provides platform management services in conjunction with the PMU ROM
+code. The PMU FW is required in most systems and must be present for the AMD-based
+FSBL and system software. The PMU is described in Chapter 6, Platform Management
+Unit.
+The CSU is the central configuration processor that manages secure and non-secure
+system-level configuration. Triple redundancy and built-in ECC (in the embedded processor
+and surrounding logic) is for system reliability and strong SEU resilience. The CSU also
+contains the key management unit, crypto accelerators, and the PS/PL programming
+interface.
+The CSU is composed of two main blocks:
+• A triple-redundant secure processor. It contains the triple-redundant embedded
+processor(s), associated ROM, a small private RAM for security sensitive data storage,
+and the necessary control/status registers required to support all secure operations.
+• A crypto interface contains AES-GCM, a key vault for key storage, DMA, SHA3, RSA, and
+the processor configuration-access port (PCAP) interface.
+Send FeedbackZynq UltraScale+ Device TRM 222
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Boot Modes
+The BootROM can boot the system from Quad-SPI, SD, eMMC, USB 2.0 controller 0, or
+NAND external boot devices.
+Note: The flash memory devices for boot are listed in Answer Record 65463. For SD and eMMC
+devices, the JEDEC interface specified in Chapter 26, SD/SDIO/eMMC Controller is supported. For
+Quad-SPI and NAND, specific devices are tested and supported.
+IMPORTANT: If you use NAND as the primary boot device, only use NAND devices from a vendor that
+guarantees screening for zero data corruption on the first parameter page.
+Table 11-1 describes various boot modes. All modes can be non-secure. All modes can be
+secure and signed except PS JTAG and PJTAG.
+Quad-SPI (24b/32b): The BootROM code can boot Quad-SPI using 24- or 32-bit
+addressing using the configurations shown in Table 24-1.
+The QSPI boot mode size limit and image search limit are listed in Table 11-2. Image search
+for multi-boot is supported in this boot mode. The QSPI boot mode also supports x1, x2
+and x4 read modes for single Quad-SPI memory and x8 for a dual QSPI. This is the only boot
+mode that supports execute-in-place (XIP).
+Table 11-1: Boot Modes
+Boot Mode Mode Pins
+[3:0] Pin Location CSU Mode Description
+PS JTAG 0000 JTAG Slave PSJTAG interface, PS dedicated pins.
+Quad-SPI (24b) 0001 MIO[12:0] Master 24-bit addressing (QSPI24).
+Quad-SPI (32b) 0010 MIO[12:0] Master 32-bit addressing (QSPI32).
+SD0 (2.0) 0011 MIO[25:21, 16:13] Master SD 2.0.
+NAND 0100 MIO[25:09] Master Requires 8-bit data bus width.
+SD1 (2.0) 0101 MIO[51:43] Master SD 2.0.
+eMMC (1.8V) 0110 MIO[22:13] Master eMMC version 4.5 at 1.8V.
+USB0 (2.0) 0111 MIO[52:63] Slave USB 2.0 only.
+PJTAG (MIO #0) 1000 MIO[29:26] Slave PJTAG connection 0 option.
+PJTAG (MIO #1) 1001 MIO[15:12] Slave PJTAG connection 1 option.
+SD1 LS (3.0) 1110 MIO[51:39] Master SD 3.0 with a required SD 3.0 compliant
+voltage level shifter.
+Send FeedbackZynq UltraScale+ Device TRM 223
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Table 11-2 shows the boot modes supporting image search along with the search offset
+limit.
+RECOMMENDED: AMD recommends using the QSPI 32-bit boot mode for flash sizes larger than 16 MB
+and when the flash supports 32-bit addressing.
+RECOMMENDED: AMD recommends that verifying the QSPI commands supported by a specific flash
+memory. The CSU ROM supports the QSPI commands listed in Table 11-3.
+NAND: The NAND boot mode only supports 8-bit widths for reading the boot images.
+Image search for multi-boot is supported. Boot mode image search limits are listed in
+Table 11-2.
+SD0/SD1: These boot modes support FAT 16/32 file systems for reading the boot images.
+Image search for multi-boot is supported. The maximum number of files that can be
+searched as part of an image search for multi-boot are 8,191. The SD supported version is
+2.0, which only supports 3.3V for the I/Os and up to 4 bits of data interface.
+SD1(LS): The SD1-LS boot mode is the same as SD0/SD1 with additional support of the
+SD 3.0 (with an SD 3.0 compliant voltage level shifter).
+eMMC(18): This boot mode is the same as the SD boot mode except it only supports 1.8V
+for the I/Os and up to 8 bits of data interface. The eMMC mode is used for eMMC
+Table 11-2: Boot Image Search Limits
+Boot Mode Search Offset Limit
+QSPI: 24-bit single 16 MB
+QSPI: 24-bit dual parallel 32 MB
+QSPI: 32 bit 256 MB
+QSPI: 32-bit dual parallel 512 MB
+NAND 128 MB
+SD/eMMC 8,191 files
+USB 1 file
+Table 11-3: QSPI Command Codes
+Quad-SPI Data Interface Read Mode Command Code
+24-bit single Normal read 0x03
+24-bit dual Output fast read 0x3B
+24-bit quad Output fast read 0x6B
+32-bit boot Normal read 0x13
+32-bit dual Output fast read 0x3C
+32-bit quad Output fast read 0x6C
+Send FeedbackZynq UltraScale+ Device TRM 224
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+interfacing and the SD0/1 mode is used for SD card only. The application must switch to the
+high-speed modes.
+TIP: For SD and eMMC boot modes, the boot image file should be at the root of first partition of the SD
+card (not inside any directory).
+USB0: The USB boot mode configures USB controller 0 into device mode and uses the
+Device Firmware Upgrade (DFU) protocol to communicate with an attached host. See the
+“Boot Sequence for USB Boot Mode” section in Zynq UltraScale+ MPSoC: Embedded Design
+Tutorial (UG1209) [Ref 17] for more information.
+The USB host contains the FSBL boot image (e.g., boot.bin) that is loaded into OCM memory
+for the CSU BootROM code and an all encompassing boot image file (e.g., boota53_all.bin)
+that is loaded into DDR memory.
+The size of these files are limited by the size of the OCM and DDR memories. The USB boot
+mode does not support multi-boot, image fallback, or XIP.
+Note: USB Timeout Condition - When the Zynq UltraScale+ MPSoC powers up in the USB boot
+mode, the USB host can download the boot image to the Zynq UltraScale+ MPSoC memory through
+the USB interface in DFU protocol. However during a time out of approximately five minutes in CSU
+ROM code, no image is downloaded and the host will not able to locate the DFU device with DFU
+utility.
+Golden Image Search
+The BootROM can search for a valid boot header to load and run a boot image. To validate
+a boot header, the BootROM looks for the identification string XLNX. When a valid
+identification string is found in the boot header, the checksum for the boot header is
+checked. If the checksum is valid, the rest of the boot header and the rest of the boot image
+(including the FSBL) are loaded into the RPU or APU memory for further processing.
+Boot images can be located every 32 KB in the boot memory device, which allows for more
+than one boot image to be in the memory device.
+If an image header is invalid, the BootROM increments the image header address register
+by 32 KB and tries again. The boot image search mechanism is only available for the
+Quad-SPI, NAND, SD, and eMMC boot modes.
+If a boot header is valid, but the FSBL determines the boot image is corrupt, the FSBL can
+recover by writing the location of another boot header into the CSU.csu_multi_boot register
+and issuing a system reset (not a POR). Figure 11-1 illustrates the image search mechanism.
+Send FeedbackZynq UltraScale+ Device TRM 225
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Boot header
+valid?
+MultiBoot offset less than
+device offset limit?
+Convert the offset value into string
+and concatenate it with boot.bin to
+get a new file name. Read the boot
+header from 0x0 to 0x48 using
+this new file name.
+Increment the
+MultiBoot
+offset by 1
+MultiBoot offset = 0 or
+boot mode = SD, eMMC, NAND,
+Quad-SPI?
+Yes
+No
+No
+Yes
+No
+Lock
+Down Boot mode
+Yes SD or eMMC?
+From the given
+offset, read the boot
+header from
+0x0 to 0x48
+No
+Load the boot image
+(with the boot image
+header) into the
+OCM RAM.
+Yes
+Lock
+Down
+X15313-100517
+X-Ref Target - Figure 11-1
+Figure 11-1: Image Search Flowchart
+Send FeedbackZynq UltraScale+ Device TRM 226
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Fallback
+Using the FSBL, a fallback boot image can be loaded by loading the address of another boot
+header into the CSU.csu_multi_boot register and issuing a system reset (not a POR).
+After the system reset, the boot header is fetched from the address location equal to the
+value of csu_multi_boot register times 32,768.
+If the fallback boot header is invalid, the CSU continues normally with its boot image search
+function if the boot device supports image search. The BootROM header is described in
+Table 11-4.
+Fallback and MultiBoot Flow In the Zynq UltraScale+ MPSoC device, the CSU bootROM
+supports MultiBoot and fallback boot image search where the configuration security unit
+CSU ROM or bootROM searches through the boot device looking for a valid image to load.
+The sequence is as follows:
+• BootROM searches for a valid image identification string (as image ID) at offsets of 32
+KB in the flash.
+• After finding a valid identification value, validates the checksum for the header.
+• If the checksum is valid, the bootROM loads the image.
+This allows for more than one image in the flash. In MultiBoot:
+• CSU ROM or FSBL or the user application must initiate the boot image search to choose
+a different image from which to boot.
+• To initiate this image search, CSU ROM or FSBL updates the MultiBoot offset to point to
+the intended boot image and generates a soft reset by writing into the CRL_APB
+register.
+Send FeedbackZynq UltraScale+ Device TRM 227
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Figure 11-2: MultiBoot Flow
+Note: The same flow is applicable to both Secure and non-secure boot methods.
+In the example fallback boot flow figure, the following sequence occurs:
+• The CSU bootROM loads the boot image found at 0x000_0000.
+• If this image is found to be corrupted or the decryption and authentication fails, CSU
+bootROM increments the MultiBoot offset by 1 and searches for a valid boot image at
+0x000_8000 (32 KB offset).
+• If the CSU bootROM does not find the valid identification value, it increments the
+MultiBoot offset by 1 again and searches for a valid boot image at the next 32 KB
+aligned address.
+• The CSU bootROM repeats this until a valid boot image is found or the image search
+limit is reached. In this example flow, the next image is shown at 0x002_0000
+corresponding to a MultiBoot offset value of 4.
+Boot Header 1
+Image 1
+.....
+Boot Header 2
+Image 2
+0x100_0000
+0x002_0000
+0x000_0000
+....
+0x001_0000
+0x000_8000
+0x001_8000
+Multi-Boot
+Offset=1
+Multi-Boot
+Offset=2
+Multi-Boot
+Offset=3
+Multi-Boot
+Offset=4
+X14936-071217
+Send FeedbackZynq UltraScale+ Device TRM 228
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+• I In Figure 11-2, the MutiBoot offset is updated to 4 by FSBL/CSU-ROM to load the
+second image at the address 0x002_0000. When the MultiBoot offset is updated, soft
+reset the system.
+Table 11-2 shows the MultiBoot image search range for different booting devices.
+Boot Image Format
+Because the CSU ROM supports the MultiBoot option, there can be more than one boot
+image in a boot device. The boot image consists of a boot header and partitions for
+different images along with a partition header. Figure 11-3 shows the simplest form of a
+boot image with only a mandatory image partition (FSBL) with associated mandatory
+headers. A detailed secure image format is illustrated in Table 12-17.
+With secure boot, the authentication certificate follows the FSBL image. Both the boot
+header and partition header are always in plain text.
+The boot header format is shown in Table 11-4. This is a plain-text header associated with
+each boot image that indicates various characteristics, attributes (Table 11-5), and other
+details about that boot image.
+X-Ref Target - Figure 11-3
+Figure 11-3: Boot Image Format with FSBL and PMU Firmware
+Boot Header
+Partition Header
+Your design defines the partition information.
+Used by the FSBL.
+PMU Firmware (PMU FW) Image
+FSBL Image
+If PMU FW is present in the boot image, then
+it is always assumed that the FSBL is
+appended at the end of PMU FW.
+2,232 bytes
+.%
+.%
+;
+Send FeedbackZynq UltraScale+ Device TRM 229
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Table 11-4: Boot Header Format
+Offset Description Details
+0x000 - 0x01C Reserved for interrupts
+This field is used in case of XIP boot mode when the default
+0x01F interrupt vectors are changed in the LQSPI address
+space.
+0x020 Width detection Quad-SPI width description.
+0x024 Image identification Boot image identification string.
+0x028 Encryption status
+This field is used to identify the AES key source.
+0000_0000h: Unencrypted.
+3A5C_3C5Ah: Red key in BBRAM.
+A35C_7CA5h: Obfuscated key in boot header.
+A35C_7C53h: Black key in boot header.
+A5C3_C5A3h: Red key in eFUSE.
+A5C3_C5A5h: Black key in eFUSE (PUF key).
+A5C3_C5A7h: eFUSE (Gray key).
+A3A5_C3C5h: User key.
+Note: The user key is only used with single partition boot images.
+0x02C FSBL execution address FSBL execution start address.
+0x030 Source offset PMU FW and FSBL source start address.
+0x034 PMU FW image length PMU FW original image length.
+0x038
+Total PMU FW image
+length
+PMU FW total image length. This includes the complete PMU
+firmware image block size, AES key, AES IV, and GCM tag (in
+case of an encrypted image). This field size must be 128 KB.
+0x03C FSBL image length FSBL original image length.
+0x040 Total FSBL image length Total FSBL image length.
+0x044 Image attributes Image attributes are described in Table 11-5.
+0x048 Header checksum Header checksum from 0x20 to 0x44.
+0x04C–0x068 Obfuscated key 256-bit obfuscated key. Only valid when 0x028 (encryption
+status) is A35C_7CA5h.
+0x06C Reserved
+0x070–0x09C FSBL/User defined
+How to use the FSBL/user defined areas is explained in the
+Zynq UltraScale+ MPSoC Software Developer’s Guide (UG1137)
+[Ref 3].
+0x0A0–0x0A8
+Secure header
+initialization vector
+Initialization vector for a secure header for both PMU FW and
+FSBL.
+0x0AC–0x0B4
+Obfuscated or black key
+initialization vector Initialization vector used when decrypting the obfuscated key.
+0x0B8–0x8B4 Register initialization Store register write pairs for system register initialization.
+0x8B8-0xEC0 PUF helper data Store the PUF helper data. The helper data is used only when
+the image attribute PUF HD location = 0x3.
+Send FeedbackZynq UltraScale+ Device TRM 230
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+I/O Configuration Detection
+The BootROM can detect the intended I/O width of the Quad-SPI interface using the width
+detection parameter value (0xAA995566) and the image identification parameter value
+(0x584C4E58) in a 8- bit parallel configuration.
+4-bit I/O Detection
+During the Quad-SPI boot process, the BootROM configures the controller with 4-bit I/O.
+This configuration includes a single device and the dual 4-bit stacked case. The BootROM
+reads the first (or only) Quad-SPI device in x1 mode and reads the width detection
+parameter in the BootROM Header. If the width detection parameter is equal to
+0xAA995566, then the BootROM assumes it found a valid header that is requesting a 4-bit
+I/O configuration. It might be one device or it might be a dual 4-bit stacked configuration.
+In the latter case, the second device is always ignored by the BootROM, but it might be
+accessed by user code. After reading the width detection parameter in x1 mode, the
+BootROM attempts to read the parameter in x4 mode. If x4 mode fails, it tries x2 mode.
+After this, the BootROM uses the widest supported I/O bus width to access the Quad-SPI
+device.
+8-bit I/O Detection
+The BootROM also looks for the dual device, 8-bit parallel configuration. In this case, the
+BootROM only reads the even bits of the BootROM header because it is only accessing the
+first device and the header is split across both devices. The BootROM forms a 32-bit word
+that includes the even bits of the width detection (0x20) and image identification (0x24)
+parameter values. When the BootROM detects this condition, it assumes the system uses
+the 8-bit parallel configuration and programs the controller for the x8 operating mode. This
+mode is used for the rest of the boot process.
+Table 11-5: Image Attributes Offset Definition
+Field Name Bit Offset Width Default Value Description
+Reserved 31:16 16 0x0
+Bhdr RSA 15:14 2 0x0
+0x3: If the RSA_EN eFUSEs are not programmed, RSA
+authentication of the boot image is done, excluding
+verification of PPK hash and SPK ID.
+If the RSA_EN eFUSEs are programmed, then an error is
+generated.
+All others: RSA authentication is decided based on the
+RSA_EN eFUSEs
+SHA2 select 13:12 2 0x0
+0x3: While doing RSA authentication, SHA2 is used in
+place of SHA3.(1)
+All others: SHA3 is used while doing RSA authentication.
+Send FeedbackZynq UltraScale+ Device TRM 231
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Functional Units
+Figure 12-1 describes the CSU. The CSU consists of processor, security blocks, CSU DMA,
+secure stream switch, and PCAP. The CSU processor and security blocks are described in
+Chapter 12, Security.
+Secure Stream Switch
+The secure-stream switch (SSS) allows data movement between multiple sources and
+destinations. During boot, the secure-stream switch is exclusively controlled by the CSU.
+After boot, any system master can control the configuration of the secure-stream switch.
+Table 11-6 lists the possible connections in the secure stream switch.
+The JTAG PS TAP controller is accessible via the dedicated PS pins. The AXI DMA is in the
+CSU.
+CPU select 11:10 2 0x0
+0x0: Cortex-R5F single (split mode).
+0x1: Cortex-A53 single 32-bit.
+0x2: Cortex-A53 single 64-bit.
+0x3: Cortex-R5F dual (lock-step mode).
+Hashing select 9:8 2 0x0
+0x0, 0x1: No integrity check.
+0x2: SHA2 is used as a hash function to do boot image
+integrity check.(1)
+0x3: SHA3 is used as a hash function to do boot image
+integrity check.
+Note: This option should not be selected if authentication
+(RSA) is used. If the RSA_EN eFUSEs are programmed and this
+option is set, an error occurs.
+PUF HD
+location 7:6 2 0x0 0x3: PUF HD is part of the boot header.
+All others: Means PUF HD is in eFUSE.
+Authenticate
+only 5:4 2 0x0
+0x3: Boot image is only RSA signed, do not decrypt the
+image even if 0x28 offset is non-zero.
+All others: Means if 0x28 is non-zero, then decrypt the
+boot image.
+OP key 3:2 2 0x0
+0x3: Secure header contains operational key for block 0
+decryption.
+All others: Means that the root device key is used for
+block 0 decryption.
+Reserved 1:0 2 0x0
+Notes:
+1. AMD recommends using SHA3 only. SHA2 will be deprecated in 2019.1.
+Table 11-5: Image Attributes Offset Definition (Cont’d)
+Field Name Bit Offset Width Default Value Description
+Send FeedbackZynq UltraScale+ Device TRM 232
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+The secure-stream switch is configured using a single SSS configuration register
+(csu_sss_cfg). Some common configurations for the secure stream switch are listed in
+Table 11-7.
+CSU DMA
+The CSU DMA allows the CSU to move data efficiently between the memory and the CSU
+stream peripherals (AES, SHA, PCAP), using the secure stream switch. The CSU DMA can
+access the OCM, TCM, and DDR memory. The CSU DMA is a two-channel, simple DMA,
+allowing separate control of the SRC (read) channel and DST (write) channel with a
+128 x 32-bit data FIFO for each channel. The DMA is effectively able to transfer data.
+• From the PS-side to the secure stream switch (SSS) side (SRC DMA only).
+• From the SSS-side to the PS-side (DST DMA only).
+• Simultaneously from the PS-side to the SSS-side and from the SSS-side to the PS-side.
+The APB interface allows for control and monitoring of the CSU DMA module’s functions. A
+single interrupt output port is sent to the CSU. It is combined with other interrupt sources
+before being sent out to the interrupt controller on a single interrupt pin.
+Two clocks are provided, one for the main CSU DMA operation and one for the APB
+interface. Along with these clocks, there are two-reset inputs. These reset pins are
+synchronized to the respective clock domains by the CSU before sending them to the CSU
+DMA.
+Table 11-6: Secure Stream Switch
+Destinations
+AXI DMA JTAG AES-GCM PCAP SHA
+Sources
+AXI DMA X X X X
+JTAG X X
+AES-GCM X X
+PCAP X X
+ROM X
+Table 11-7: Secure Stream Switch Configurations
+Secure Stream Switch Setup Description CSU_SSS_CFG Setting
+DMA to DMA DMA loopback. 0x00000050
+DMA to PCAP PL configuration. 0x00000005
+DMA to AES, AES to DMA Secure PS configuration. 0x000005A0
+DMA to AES, AES to PCAP Secure PL configuration. 0x0000050A
+DMA to DMA, DMA to SHA PS image load with simultaneous SHA
+calculation. 0x00005050
+Send FeedbackZynq UltraScale+ Device TRM 233
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+The DMA interfaces with a secure-stream switch through two sets of handshake signals; one
+for the DMA SRC (memory to stream) direction and the other for the DMA DST
+(stream-to-memory) direction.
+The DMA has a DST_FIFO that is sized to hold a minimum of one PL configuration frame.
+Although overflow is not anticipated, an interrupt register (FIFO_OVERFLOW) is provided in
+cases where an overflow occurs.
+Loopback Mode
+Loopback is implemented in the secure-stream switch hardware. It is not internal to the CSU
+DMA. The CSUDMA.CSUDMA_DST_CTRL [SSS_FIFOTHRESH] bit field controls the level of
+the DST FIFO to result in asserting the data_out_fifo_level_hit signal on the DST interface.
+This can be used to flow control data between the SRC and DST FIFOs in loopback mode. If
+loopback mode is used, where SRC data is looped around in the secure-stream switch and
+presented to the DST channel, the software should always start the DST channel before
+starting the SRC channel. This ensures that the DST channel is always ready once the first
+piece of data present at its secure-stream switch interface. Refer to the Programming the
+CSU DMA section for details on the CSU DMA programming sequence.
+PL Configuration
+The processor configuration access port (PCAP) is used to configure the programmable
+logic (PL) from the PS. The PCAP is the only interface used to configure the PL during
+normal operating conditions. The PCAP bus is 32 bits wide. During debug, the JTAG
+interface can be used to configure the PL. The PS is connected to the PCAP through the
+secure-stream switch. Bitstream data can be sent to the PL using either the CSU DMA or the
+AES path.
+PCAP Isolation Wall Control
+Software should disable the PS-PL isolation wall before the PL is configured with its
+bitstream.
+CSU BootROM Error Codes
+Any error from the CSU while in the boot process is recorded in the
+PMU_GLOBAL.CSU_BR_ERR register. This register also determines the boot success or
+failure. On failure or error condition, the 16-bit error code is recorded in the CSU_BR_ERR
+register.
+A configuration BootROM error code is 8 bits long. This means that with an allocation of 16
+bits, two error codes are stored. Error bits [15-8] correspond to the first image error code
+and error bits [7-0] indicate the most recent image error code (Table 11-8).
+Send FeedbackZynq UltraScale+ Device TRM 234
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Table 11-8 describes the configuration BootROM(CBR) error codes.
+Table 11-9 describes the configuration bootRAM (CBR) error codes.
+Table 11-8: BootROM Error Bits
+15 8 7 0
+First Image Error Last Image Error
+Table 11-9: BootROM Error Codes
+Error Code Description Solution
+0x10 Secure processor voting has failed during boot. Ensure LPD power supply is correct and power
+on reset (POR) the chip.
+0x11
+Secure processor is unable to power up the
+OCM.
+Ensure LPD power supply is correct and POR
+the chip.
+0x12
+An error occurred while initializing the OCM
+with 0xDEADBEEF value.
+Ensure LPD power supply is correct and POR
+the chip.
+0x14
+eFUSE is not properly loaded by hardware.
+There is a parity error in eFUSE values.
+Ensure LPD power supply is correct and (POR)
+the chip.
+0x15
+The TBITs in eFUSE are not properly written. For
+a successful boot, TBITS in eFUSE should have
+either all zeros or a 1010b pattern.
+Check the TBITS values and POR the chip.
+0x16
+DMA transfer timeout error during the OCM
+initialization.
+Ensure LPD power supply is correct and (POR)
+the chip.
+0x17
+eFUSE controller is unable to load the eFUSE
+values to the cache registers.
+Ensure LPD power supply is correct and (POR)
+the chip.
+0x20
+eFUSE RSA bits read from eFUSE has a
+mismatch.
+0x23(1) Error occurred during QSPI 24 boot mode
+initialization.
+Check that the Quad-SPI device is properly
+connected to the QSPI MIO pins.
+Ensure the width detection word is set equal to
+the data pattern 0xAA995566 and that the
+image identification word has x584C4E58,
+'XLNX'.
+Ensure that the device content is not blank in
+single device applications.
+0x24
+Error occurred during QSPI 32 boot mode
+initialization.
+Check that the Quad-SPI device is properly
+connected to the QSPI MIO pins.
+Ensure the width detection word is set equal to
+the data pattern 0xAA995566 and that the
+image identification word has x584C4E58,
+'XLNX'.
+Ensure that the device content is not blank.
+Send FeedbackZynq UltraScale+ Device TRM 235
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x25
+Error occurred during NAND boot mode
+initialization.
+Check that the NAND device is properly
+connected to the NAND MIO pins.
+Ensure the width detection word is set equal to
+the data pattern 0xAA995566 and that the
+image identification word has x584C4E58,
+'XLNX'.
+Ensure that the device content is not blank.
+0x26
+Error occurred during SD boot mode
+initialization.
+Check that the SD device is properly connected
+to the SD MIO pins.
+Ensure SD card is formatted properly with
+FAT32/FAT16 file system.
+0x27
+Error occurred during eMMC boot mode
+initialization.
+Check that the eMMC device is properly
+connected to the eMMC MIO pins.
+Ensure that the MMC card is formatted
+properly with the FAT32/FAT16 file system.
+0x2A
+Invalid boot mode is selected in the boot mode
+setting. Ensure the boot mode pins values are valid.
+0x30 Boot header does not have an XLNX string. Ensure that the Image Identification word has
+x584C4E58, 'XLNX' in the Boot header.
+0x31
+Boot header checksum is wrong or boot header
+fields are not length aligned.
+Ensure that the boot header checksum is
+correctly calculated and written to flash device.
+Also, ensure all the length fields are word
+aligned.
+0x32
+Boot header encryption status value is not
+valid. Key selected is not a valid key source.
+Ensure that the key source value in Encryption
+Status field is valid.
+0x33
+Boot header attributes value is not valid.
+Reserved fields in image attributes are not
+zero.
+Ensure that the reserved field is ZERO in the
+Image attributes.
+0x34
+Either of the boot header PMU firmware length
+and total PMU firmware length fields are not
+valid.
+Ensure the PMU firmware length fields are in
+valid range.
+Ensure PMU firmware length is more than the
+total PMU firmware length.
+0x35
+Either of the boot header FSBL and total FSBL
+length fields are not valid.
+Ensure the FSBL length fields are in valid range.
+Ensure the FSBL length is more than the total
+FSBL length.
+0x36 Selected does not support the XIP mode.
+Ensure the boot mode pins are set QSPI.
+Only non-secure images are allowed in XIP
+mode. Ensure image is non-secure.
+0x37
+FSBL execution address is not in the OCM
+address range.
+Ensure the FSBL execution address in the OCM
+256K region.
+0x38
+Source offset is not valid. It is beyond the flash
+image search limit.
+Check if the offset in the flash is beyond the
+flash image search limit. The offset is
+calculated from the multi boot register value
+and source offset field in boot header.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 236
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x39 Black Key was used without Authentication Ensure that an authenticated boot is used
+when using a black key.
+0x3A
+Authentication only is selected, but no key
+source is selected (for selecting the device key
+source) or authentication only is selected, but
+no authentication is selected in eFUSE or the
+boot header.
+To use the authentication only feature, the
+encryption key shall be selected so that ROM
+can unlock that key. Authentication of the
+image is mandatory. Enable eFUSE or boot
+header authentication.
+0x3B Reading failed from the selected boot device. Ensure the boot device is properly connected
+and right boot mode is selected.
+0x3D Selected CPU is disabled in the eFUSE. Ensure A53 CPU is enabled for the chip when
+A53-0 is selected as a hand off CPU.
+0x3E
+Time out occurred while calculating the PPK
+hash.
+Ensure power supply are proper and POR the
+chip.
+0x3F(2) Boot with boot header helper data is not
+allowed until eFUSE helper data is invalidated.
+To use the PUF helper data it is necessary to set
+the SYN_INVALID bit in eFUSE.
+0x40
+Boot header and eFUSE RSA are enabled at the
+same time, which is not allowed.
+The boot header and eFUSE RSA should not be
+enabled at the same time. Ensure the RSA
+eFUSE is not blown when boot header RSA is
+selected.
+0x41 Selected PPK value in boot header is not valid. ROM supports 2 PPK keys. Ensure the proper
+key value is used in the Boot header.
+0x42 Selected PPK is revoked. Ensure the selected PPK is not revoked in
+eFUSE.
+0x43 All PPK in the device are revoked.
+All PPK present inside the chip are revoked.
+Authentication cannot be performed on this
+chip.
+0x44
+Mismatch in the PPK hash calculated from Boot
+header and PPK hash in eFUSE
+Ensure the correct PPK is burned inside the
+eFUSEs.
+Ensure the PPK keys used to create boot image
+match the RSA public key that is present inside
+the chip.
+0x45 SPK signature verification is failed
+Ensure the SPK signature is created with the
+PPK that is present in the authentication
+certificate.
+Ensure the SPK ID present in the boot header is
+same as eFUSE SPK ID.
+0x46
+Selected SPK ID is not matching with the eFUSE
+SPK ID.
+Ensure the SPK ID present in the boot header is
+same as the eFUSE SPK ID.
+0x47 Boot header signature is failed.
+Ensure the boot header signature is created
+with the SPK that is present in the
+authentication certificate.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 237
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x48
+Selected boot mode does not support the
+golden image search.
+Golden Image search is supported only by
+QSPI, NAND, and SD boot modes. For all other
+boot modes, the multi boot register value
+should be zero.
+0x49
+No image found in QSPI after searching the
+allowed address range.
+ROM reached end of the image search limit for
+a QSPI device and no other good image is
+found.
+Ensure image in the QSPI is valid.
+0x4A
+No image found in NAND after searching the
+allowed address range.
+ROM reached end of the image search limit for
+a NAND device and no other good image is
+found.
+Ensure the image in the NAND is valid.
+0x4B
+No image found in the SD/eMMC after
+searching the allowed number of files.
+ROM reached end of the file limit for a
+SD/eMMC device and no other good image is
+found.
+Ensure the boot file is valid in the SD/eMMC
+FAT file system.
+0x4D
+Time out error while calculating the SPK SHA
+hash.
+Ensure the LPD power supply is correct and
+POR the chip.
+0x4E
+Time out error while calculating the boot
+header SHA hash.
+Ensure the LPD power supply is correct and
+POR the chip.
+0x50 Mismatch while writing to the secure registers. Ensure the LPD power supply is correct and
+POR the chip.
+0x51
+Changing the state of the device from secure to
+non-secure is not allowed.
+After POR, if first image is secure then
+subsequent images are secure.
+0x52
+Changing the key source is not allowed while in
+the secure state.
+Ensure the key source is the same across
+multiple images used for boot in POR and
+SRST.
+0x53
+Changing the state from non-secure to secure
+is not allowed.
+Ensure the key source is the same across
+multiple images used for boot in POR and
+SRST.
+0x54
+BBRAM key is disabled in eFUSE but the key
+source selected is BBRAM.
+Ensure the BBRAM_DIS eFUSE bit is not set
+when BBRAM is selected as a key source.
+0x55
+Only encrypted boots with the eFUSE key
+source are allowed.
+When ENC_ONLY eFUSE bit is set, no other key
+sources are allowed apart from eFUSE.
+0x60
+One of the register addresses in the boot
+header is not allowed.
+Ensure the register addresses in the boot
+header are in the valid address range allowed
+by ROM.
+0x61
+Copying from selected boot device failed after
+register initialization.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 238
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x62
+Boot header read after register initialization is
+mismatched with the original boot header.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct. Data read after
+register initialization does not match the
+previous values.
+0x70 Error occurred while copying the PMU FW.
+Ensure the boot device is connected correctly.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct.
+0x71 Error occurred while copying the FSBL.
+Ensure the boot device is connected correctly.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct.
+0x72 Time out occurred while loading the key. Ensure LPD power supply is correct and POR
+the chip.
+0x73
+Time out occurred while using the CSU DMA in
+image processing for AES/SHA.
+Ensure LPD power supply is correct and POR
+the chip.
+0x74 Time out occurred for the PMU to go to sleep.
+0x75
+Time out occurred while calculating the SHA
+during boot image signature verification.
+Ensure LPD power supply is correct and POR
+the chip.
+0x76
+Time out occurred while calculating the SHA
+for boot image during the integrity check.
+Ensure LPD power supply is correct and POR
+the chip.
+0x78 Boot image signature mismatch occurred.
+Ensure the boot image signature is created
+with the SPK that is present in authentication
+certificate.
+0x79
+Error occurred while decrypting the PMU
+firmware.
+Ensure same keys are used as present in the
+chip for encrypting the Boot image.
+Ensure the right key source is used for
+encrypting the image.
+0x7A Error occurred while decrypting the FSBL.
+Ensure the same keys are used as present in the
+chip for encrypting the Boot image.
+Ensure right key source is used for encrypting
+the image.
+0x7B
+Mismatch in the hash while checking for the
+boot image integrity.
+Ensure the SHA3 is used while creating the
+boot image integrity.
+0x80 Unable to power up the selected CPU. Ensure the power rail is ON for the selected
+CPU. FPD in case of A53.
+0x81
+Unable to wake up the PMU after loading the
+PMU firmware.
+Ensure the PMU Firmware is running properly
+and set FW_IS_PRESENT bit after completing
+initialization.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 239
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+PL Bitstream
+The PL bitstream contains configuration data for the device's Programmable Logic (PL). This
+configuration data can be loaded and read back from the PS using the PCAP interface. The
+FSBL can handle loading of the initial configuration of the PL using a bitstream stored in the
+boot image. Alternatively, the PL bitstream can also be loaded at a later time by application
+code, including using software such as U-Boot or Linux. The XilFPGA software library
+provides an API that facilitates the loading and read back of configuration data to and from
+the PL. More information on the XilFPGA library can be found in the Zynq
+UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3]. The PL bitstream length
+and composition depend on the device. Table 11-10 lists the attributes and values of the
+bitstream for device type. Although bitstream options such as compression
+(BITSTREAM.GENERAL.COMPRESS) can alter the required bitstream length and Since
+compressed bitstreams can change in size between design iterations, adequate memory
+should be reserved for the full uncompressed bitstream.
+0x90
+Tamper event that is detected while in post
+boot. Every tamper event is stored in an error
+register with 0x90 + Index. Index is the tamper
+event ID according to the CSU tamper register.
+This is tamper detection by ROM during post
+boot.
+Ensure all voltages are in range.
+Ensure JTAG is not toggled when it is disabled.
+0xA0
+Error when selected boot mode does not
+support fallback.
+Ensure no error is present in the first image
+during USB boot mode.
+0xB0 Error when exceptions occurs while booting. Ensure the LPD power supply is proper and
+POR the chip.
+0xB1
+Error when exceptions occurs while in post
+boot.
+Ensure the LPD power supply is proper and
+POR the chip.
+Notes:
+1. To use QSPI32 boot mode for flash sizes greater than 16 MB.
+2. Once the SYN_INVALID bit is set in eFUSE, the system does not allow to boot with eFUSE PUF helper data.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Table 11-10: PL Bitstream Length
+Device
+Configuration
+Bitstream
+Length
+(bits)
+Minimum Configuration
+Flash Memory Size
+(Mb)
+Configuration
+Frames
+Frame
+Length
+in Words
+Configuration
+Array Size
+in Words
+Configuration
+Overhead
+in Words
+ZU1 23,748,480 32 7980 93 742,140 515
+ZU2 44,549,344 64 14,964 93 1,391,652 515
+ZU3 44,549,344 64 14,964 93 1,391,652 515
+ZU4 61,269,888 64 20,956 93 1,948,939 515
+ZU5 61,269,888 64 20,956 93 1,948,939 515
+Send FeedbackZynq UltraScale+ Device TRM 240
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Note: Compressed bitstreams can be also encrypted and authenticated.
+The allowed register accesses depend on the boot mode and are listed in Table 11-11.
+ZU6 212,086,240 256 71,260 93 6,627,180 515
+ZU7 154,488,736 256 51,906 93 4,827,258 515
+ZU9 212,086,240 256 71,260 93 6,627,180 515
+ZU11 188,647,264 256 63,384 93 5,894,712 515
+ZU15 229,605,952 256 77,147 93 7,174,671 515
+ZU17 290,744,896 512 97,691 93 9,085,263 515
+ZU19 290,744,896 512 97,691 93 9,085,263 515
+ZU21 275,498,848 512 92,568 93 8,608,824 515
+ZU25 275,498,848 512 92,568 93 8,608,824 515
+ZU27 275,498,848 512 92,568 93 8,608,824 515
+ZU28 275,498,848 512 92,568 93 8,608,824 515
+ZU29 275,498,848 512 92,568 93 8,608,824 515
+ZU39 275,498,848 512 92,568 93 8,608,824 515
+ZU42 166,864,320 256 56070 93 5,214,510 515
+ZU43 275,498,848 512 92,568 93 8,608,824 515
+ZU46 275,498,848 512 92,568 93 8,608,824 515
+ZU47 275,498,848 512 92,568 93 8,608,824 515
+ZU48 275,498,848 512 92,568 93 8,608,824 515
+ZU49 275,498,848 512 92,568 93 8,608,824 515
+ZU63 166,864,320 256 56070 93 5,214,510 515
+ZU64 166,864,320 256 56070 93 5,214,510 515
+ZU65 166,864,320 256 56070 93 5,214,510 515
+ZU67 166,864,320 256 56070 93 5,214,510 515
+ZU3T 41,665,600 64 13,995 93 1,301,535 515
+Table 11-10: PL Bitstream Length (Cont’d)
+Device
+Configuration
+Bitstream
+Length
+(bits)
+Minimum Configuration
+Flash Memory Size
+(Mb)
+Configuration
+Frames
+Frame
+Length
+in Words
+Configuration
+Array Size
+in Words
+Configuration
+Overhead
+in Words
+Table 11-11: Register Access Range and Boot Mode
+Control Register Ranges Secure Boot
+Mode
+ACPU_GIC 0xF9000000 to 0xF900FFFC Yes
+SATA 0xFD070000 to 0xFD0C00FC Yes
+PCIE 0xFD0E0000 to 0xFD0EFFFC Yes
+Send FeedbackZynq UltraScale+ Device TRM 241
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+CRF_APB 0xFD1A0000 to 0xFD1A001C Yes
+CRF_APB 0xFD1A0048 to 0xFD1A00F8 Yes
+AFIFM_DP 0xFD360000 to 0xFD4AFFFC Yes
+APU 0xFD5C0000 to 0xFD5CFFFC Yes
+CCI_REG 0xFD5E0000 to 0xFD5EFFFC Yes
+FPD_SLCR 0xFD610000 to 0xFD61FFFC Yes
+FPD_GPV 0xFD6E0000 to 0xFD70FFFC Yes
+IOU_GPV 0xFE000000 to 0xFE10FFFC Yes
+LPD_GPV 0xFE000000 to 0xFE10FFFC Yes
+DPROM 0xFE800000 to 0xFF05FFFC Yes
+SPI 0xFE800000 to 0xFF05FFFC Yes
+GPIO 0xFF0A0000 to 0xFF0AFFFC Yes
+QSPI 0xFF0F0000 to 0xFF0F01FC Yes
+NAND 0 0xFF100000 to 0xFF100020 Yes
+NAND 1 0xFF100028 to 0xFF10004C Yes
+NAND 2 0xFF10005C to 0xFF10006C Yes
+TTC1 to TTC4 0xFF110000 to 0xFF14FFFC Yes
+SDIO 0 0xFF160004 to 0xFF160054 Yes
+SDIO 0 0xFF160060 to 0xFF160100 Yes
+SDIO1 0xFF170004 to 0xFF170054 Yes
+SDIO1 0xFF170060 to 0xFF170100 Yes
+IOU_SLCR 0xFF180000 to 0xFF18FFFC Yes
+LPD_SLCR 0xFF250000 to 0xFF41FFFC Yes
+CRL_APB 0xFF5E0000 to 0xFF5E009C Yes
+CRL_APB 0xFF5E00A4 to 0xFF5E01DC Yes
+RPU - AFIFM 0xFF9A0000 to 0xFF9BFFFC Yes
+APM – RTC 0xFFA00000 to 0xFFA6FFFC Yes
+MBISTJTAG 0xFFCF0000 to 0xFFCFFFFC Yes
+Table 11-11: Register Access Range and Boot Mode (Cont’d)
+Control Register Ranges Secure Boot
+Mode
+Send FeedbackZynq UltraScale+ Device TRM 242
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Register Overview
+Access to some CSU registers is restricted (black list) unless a #define is set, see the Zynq
+UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3].
+Table 11-12: CSU Register Summary
+Register Type Register Name Description
+Configuration
+security unit
+control
+csu_status CSU status.
+csu_ctrl CSU control.
+csu_sss_cfg CSU secure stream switch configuration.
+csu_dma_reset CSU DMA reset.
+csu_multi_boot MultiBoot address.
+csu_tamper_trig CSU secure lockdown.
+csu_ft_status CSU fault tolerant status.
+csu_isr CSU interrupt status.
+csu_imr CSU interrupt mask.
+csu_ier CSU interrupt enable.
+csu_idr CSU interrupt disable.
+jtag_chain_status JTAG chain configuration status.
+jtag_sec JTAG security.
+jtag_dap_cfg DAP configuration.
+idcode Device IDCODE.
+version PS version.
+ROM SHA digest csu_rom_digest_{0:11} CSU ROM SHA-3 digest 0 to 11.
+AES control
+aes_status AES status.
+aes_key_src AES key source.
+aes_key_load AES key load.
+aes_start_msg AES start message.
+aes_reset AES reset.
+aes_key_clear AES key clear.
+aes_kup_wr AES KUP write control.
+aes_kup_{0:7} AES key update 0 to 7.
+aes_iv_{0:3} AES initialization vector 0 to 3.
+Send FeedbackZynq UltraScale+ Device TRM 243
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+SHA control
+sha_start SHA start message.
+sha_reset SHA reset.
+sha_done SHA done.
+sha_digest_{0:11} SHA digest 0 to 11.
+PCAP control
+pcap_prog PCAP PROGRAM_B control.
+pcap_rdwr PCAP read/write control.
+pcap_ctrl PCAP control.
+pcap_reset PCAP reset.
+pcap_status PCAP status.
+Tamper response
+tamper_status Tamper response status.
+csu_tamper_{0:12} CSU tamper response 0 to 12.
+Table 11-13: CSU DMA Register Summary
+Register Type Register Name Description
+CSU DMA source
+csudma_src_addr Source memory address (LSBs) for
+DMA memory  stream data transfer.
+csudma_src_size DMA transfer payload for DMA memory  stream
+data transfer.
+csudma_src_sts General source DMA status.
+csudma_src_ctrl General source DMA control register 1.
+csudma_src_crc Source DMA pseudo CRC.
+csudma_src_i_sts Source DMA interrupt status.
+csudma_src_i_en Source DMA interrupt enable.
+csudma_src_i_dis Source DMA interrupt disable.
+csudma_src_i_mask Source DMA interrupt mask.
+csudma_src_ctrl2 General source DMA control register 2.
+csudma_src_addr_msb Source memory address (MSBs) for DMA
+memory  stream data transfer.
+Table 11-12: CSU Register Summary (Cont’d)
+Register Type Register Name Description
+Send FeedbackZynq UltraScale+ Device TRM 244
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Configuration Programming Model
+Load the PL Bitstream
+After executing CSU ROM code, the CSU hands off the control to the first-stage boot loader
+(FSBL). The FSBL uses the PCAP interface to configure the PL with the bitstream. Use the
+following steps to load the PL bitstream.
+1. Initialize PCAP Interface.
+2. Write a Bitstream Through the PCAP.
+3. Wait for the PL Done Status.
+The following section explains each of these steps.
+Initialize PCAP Interface
+1. Take the PCAP out of reset. Write 1 to the csu.pcap_reset[reset] bit.
+2. Configure the PCAP in write mode.
+a. Select the PCAP mode. Write 1 to the csu.pcap_ctrl[pcap_pr] bit.
+b. Select write mode. Write 0 to the csu.pcap_rdwr[pcap_rdwr_b] bit.
+CSU DMA
+destination
+csudma_dst_addr Destination memory address (LSBs) for DMA
+stream  memory data transfer.
+csudma_dst_size DMA transfer payload for DMA stream  memory
+data transfer.
+csudma_dst_sts General destination DMA status.
+csudma_dst_ctrl General destination DMA control.
+csudma_dst_i_sts Destination DMA interrupt status.
+csudma_dst_i_en Destination DMA interrupt enable.
+csudma_dst_i_dis Destination DMA interrupt disable.
+csudma_dst_i_mask Destination DMA interrupt mask.
+csudma_dst_ctrl2 General Destination DMA control register 2.
+csudma_dst_addr_msb Destination memory address (MSBs) for DMA
+stream  memory data transfer.
+Safety csudma_safety_chk Safety endpoint connectivity check register
+Table 11-13: CSU DMA Register Summary (Cont’d)
+Register Type Register Name Description
+Send FeedbackZynq UltraScale+ Device TRM 245
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+3. Power up the PL, if needed. Read the csu.pcap_status [pl_gpwrdwn_b]. If Off, then
+trigger a request to the PMU to power up the PL using the pmu_global.req_pwrup_trig
+[PL] bit.
+4. Reset the PL.
+a. Assert the PL reset. Write 0 to the csu.pcap_prog [pcfg_prog_b] bit.
+b. Wait for at least 250 ns.
+c. Deassert the PL reset. Write 1 to the csu.pcap_prog [pcfg_prog_b] bit.
+Write a Bitstream Through the PCAP
+1. Set the secure stream switch configuration to receive from DMA source: Set the
+csu.csu_sss_cfg[pcap_sss] to 0x5.
+2. Configure and set the CSU_DMA to establish channel and transfer. Use the following for
+CSU DMA programming (see the Programming the CSU DMA section for details).
+a. Channel type is DMA_SRC.
+b. Source address is the address of the bitstream.
+c. Size is bitstream size in words.
+3. Wait for the CSU DMA operation to finish. on the source channel (see the Programming
+the CSU DMA section for details).
+4. Clear the CSU_DMA interrupts and acknowledge the transfer is completed: Set the
+csudma.csudma_src_i_sts[done] bit.
+5. Wait for PCAP done: Poll while the csu.pcap_status[pcap_wr_idle] bit is cleared.
+Wait for the PL Done Status
+Wait for the PL done status before doing anything else. This indicates the bitstream is
+programmed properly, as described in the following steps.
+1. Wait for the PL done status: Poll while the csu.pcap_status[pl_done] bit is clear.
+2. Once it is done, reset the PCAP interface: Set the csu.pcap_reset[reset] bit.
+Programming the CSU DMA
+During execution of the CSU ROM code, the CSU uses the CSU DMA for boot-image
+transfer. The FSBL also uses the CSU DMA for PL programming (through PCAP) and also for
+image transfers. The CSU DMA can be used after bringing it out of reset, followed by
+programing the appropriate transfer channel. To bring the CSU DMA out of reset, clear the
+csu.csu_dma_reset[reset] bit, as described in the following steps.
+Send FeedbackZynq UltraScale+ Device TRM 246
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Trigger a CSU DMA Transfer
+A CSU DMA transfer is triggered after writing the size value for a DMA source channel. In
+the case of PL programming, there is only source channel. In the case of loopback, a DMA
+destination channel is configured first and then the source channel is configured.
+The following steps are used to initiate a CSU DMA transfer.
+1. Decide the channel type to be configured and set the address appropriately.
+a. To configure the source channel, set the source address:
+- Set the csudma.csudma_src_addr[addr] =
+<LSB 30-bit source address (ignore the last 2 bits)>.
+- Set the csudma.csudma_src_addr_msb[addr_msb] =
+<MSB 16-bit source address>.
+b. Else, set the destination address.
+- Set the csudma.csudma_dst_addr[addr] =
+<LSB 30-bit destination address (ignore last 2 bits)>.
+- Set the csudma.csudma_src_addr_msb[addr_msb] =
+<MSB 16-bit destination address>
+2. Configure the source/destination size.
+a. To configure the source channel:
+Set the csudma.csudma_src_size[size] = <size of source buffer>.
+b. Else,
+Set csudma.csudma_dst_size[size] = <size of destination buffer>
+Wait for CSU DMA Done
+1. CSU DMA done can be verified by polling the done bit of the status register.
+a. To poll the source channel:
+Poll while the csudma.csudma_src_i_sts[done] is not set.
+b. Else,
+Poll while the csudma.csudma_dst_i_sts[done] is not set.
+DMA done can be acknowledge by clearing the same bit of the status register.
+Send FeedbackZynq UltraScale+ Device TRM 247
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Figure 11-4 describes a CSU DMA transfer.
+X-Ref Target - Figure 11-4
+Figure 11-4: CSU DMA TransfeZynq UltraScale+ Device TRM 220
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Boot Flow
+The PMU performs a number of mandatory and optional security operations, including the
+following.
+• Optional function: zeroize low power domain (LPD) registers. When the LPD_SC eFUSEs
+are programmed, the PMU zeroizes all registers in the LPD.
+• Optional function: zeroize full power domain (FPD) registers. When the FPD_SC eFUSEs
+are programmed, the PMU zeroizes all registers in the FPD.
+• Zeroize PMU RAM: the PMU RAM has zeros written to it and read back to confirm the
+write was successful.
+• Zeroize the PMU processor's TLB memory.
+• Voltage checks: the PMU checks the supply voltage of the LPD, AUX, and dedicated I/O
+to confirm that the voltages are within specification.
+• Zeroize memories: the PMU zeroizes memories located in the CSU, LPD, and FPDs.
+Once these security operations are complete, the PMU sends the CSU immutable ROM code
+through the SHA-3/384 engine and compares the calculated cryptographic checksum to the
+golden copy stored in the device. If the cryptographic checksums enabled in the bif file
+match, the integrity of the CSU ROM is validated and the reset to the CSU is released.
+The PMU is responsible for handling the primary pre-boot tasks and management of the PS
+for reliable power up/power down of system resources. The power-on reset (POR) initiates
+the PMU operation which directly or indirectly releases resets to any other blocks that are
+expected to be powered up. In this paradigm, the PMU requires ROM code to hold the
+initial power-up sequence. The PMU is running even after the boot-up process and is
+responsible for handling various system resets. It is also used while changing the power
+state of the system (like power-up, sleep, and wake-up).
+During initial boot, the PMU is brought out of reset by the POR, which is then followed by
+PMU ROM execution. The following describes the sequence of operations done by the PMU
+processor by executing PMU ROM pre-boot code after a POR reset.
+1. Initialize the PS SYSMON unit and the PLL required for boot.
+2. Clear the PMU RAM and CSU RAM (external POR only).
+3. Validate the PLL locks.
+4. Validate the LPD, AUX, and I/O supply ranges using the PS SYSMON unit.
+5. Clear the low-power and full-power domains.
+6. If there is no error in the previous steps, the PMU releases the CSU reset and enters the
+PMU service mode. If not, generate and flag a boot error.
+Note: When PMUFW is not used PMU goes to sleep state after boot-up.
+Send FeedbackZynq UltraScale+ Device TRM 221
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+When the CSU reset is released, it performs following sequence.
+1. Initialize OCM.
+2. Determines the boot mode by reading the boot mode register from the captured boot
+mode state PMU FW, at the POR.
+3. The CSU continues by loading the FSBL in OCM for execution by either the RPU or the
+APU. The CSU then loads the PMU user firmware (PMU FW) into the PMU RAM for
+execution by the PMU firmware.
+The PMU FW provides platform management services in conjunction with the PMU ROM
+code. The PMU FW is required in most systems and must be present for the AMD-based
+FSBL and system software. The PMU is described in Chapter 6, Platform Management
+Unit.
+The CSU is the central configuration processor that manages secure and non-secure
+system-level configuration. Triple redundancy and built-in ECC (in the embedded processor
+and surrounding logic) is for system reliability and strong SEU resilience. The CSU also
+contains the key management unit, crypto accelerators, and the PS/PL programming
+interface.
+The CSU is composed of two main blocks:
+• A triple-redundant secure processor. It contains the triple-redundant embedded
+processor(s), associated ROM, a small private RAM for security sensitive data storage,
+and the necessary control/status registers required to support all secure operations.
+• A crypto interface contains AES-GCM, a key vault for key storage, DMA, SHA3, RSA, and
+the processor configuration-access port (PCAP) interface.
+Send FeedbackZynq UltraScale+ Device TRM 222
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Boot Modes
+The BootROM can boot the system from Quad-SPI, SD, eMMC, USB 2.0 controller 0, or
+NAND external boot devices.
+Note: The flash memory devices for boot are listed in Answer Record 65463. For SD and eMMC
+devices, the JEDEC interface specified in Chapter 26, SD/SDIO/eMMC Controller is supported. For
+Quad-SPI and NAND, specific devices are tested and supported.
+IMPORTANT: If you use NAND as the primary boot device, only use NAND devices from a vendor that
+guarantees screening for zero data corruption on the first parameter page.
+Table 11-1 describes various boot modes. All modes can be non-secure. All modes can be
+secure and signed except PS JTAG and PJTAG.
+Quad-SPI (24b/32b): The BootROM code can boot Quad-SPI using 24- or 32-bit
+addressing using the configurations shown in Table 24-1.
+The QSPI boot mode size limit and image search limit are listed in Table 11-2. Image search
+for multi-boot is supported in this boot mode. The QSPI boot mode also supports x1, x2
+and x4 read modes for single Quad-SPI memory and x8 for a dual QSPI. This is the only boot
+mode that supports execute-in-place (XIP).
+Table 11-1: Boot Modes
+Boot Mode Mode Pins
+[3:0] Pin Location CSU Mode Description
+PS JTAG 0000 JTAG Slave PSJTAG interface, PS dedicated pins.
+Quad-SPI (24b) 0001 MIO[12:0] Master 24-bit addressing (QSPI24).
+Quad-SPI (32b) 0010 MIO[12:0] Master 32-bit addressing (QSPI32).
+SD0 (2.0) 0011 MIO[25:21, 16:13] Master SD 2.0.
+NAND 0100 MIO[25:09] Master Requires 8-bit data bus width.
+SD1 (2.0) 0101 MIO[51:43] Master SD 2.0.
+eMMC (1.8V) 0110 MIO[22:13] Master eMMC version 4.5 at 1.8V.
+USB0 (2.0) 0111 MIO[52:63] Slave USB 2.0 only.
+PJTAG (MIO #0) 1000 MIO[29:26] Slave PJTAG connection 0 option.
+PJTAG (MIO #1) 1001 MIO[15:12] Slave PJTAG connection 1 option.
+SD1 LS (3.0) 1110 MIO[51:39] Master SD 3.0 with a required SD 3.0 compliant
+voltage level shifter.
+Send FeedbackZynq UltraScale+ Device TRM 223
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Table 11-2 shows the boot modes supporting image search along with the search offset
+limit.
+RECOMMENDED: AMD recommends using the QSPI 32-bit boot mode for flash sizes larger than 16 MB
+and when the flash supports 32-bit addressing.
+RECOMMENDED: AMD recommends that verifying the QSPI commands supported by a specific flash
+memory. The CSU ROM supports the QSPI commands listed in Table 11-3.
+NAND: The NAND boot mode only supports 8-bit widths for reading the boot images.
+Image search for multi-boot is supported. Boot mode image search limits are listed in
+Table 11-2.
+SD0/SD1: These boot modes support FAT 16/32 file systems for reading the boot images.
+Image search for multi-boot is supported. The maximum number of files that can be
+searched as part of an image search for multi-boot are 8,191. The SD supported version is
+2.0, which only supports 3.3V for the I/Os and up to 4 bits of data interface.
+SD1(LS): The SD1-LS boot mode is the same as SD0/SD1 with additional support of the
+SD 3.0 (with an SD 3.0 compliant voltage level shifter).
+eMMC(18): This boot mode is the same as the SD boot mode except it only supports 1.8V
+for the I/Os and up to 8 bits of data interface. The eMMC mode is used for eMMC
+Table 11-2: Boot Image Search Limits
+Boot Mode Search Offset Limit
+QSPI: 24-bit single 16 MB
+QSPI: 24-bit dual parallel 32 MB
+QSPI: 32 bit 256 MB
+QSPI: 32-bit dual parallel 512 MB
+NAND 128 MB
+SD/eMMC 8,191 files
+USB 1 file
+Table 11-3: QSPI Command Codes
+Quad-SPI Data Interface Read Mode Command Code
+24-bit single Normal read 0x03
+24-bit dual Output fast read 0x3B
+24-bit quad Output fast read 0x6B
+32-bit boot Normal read 0x13
+32-bit dual Output fast read 0x3C
+32-bit quad Output fast read 0x6C
+Send FeedbackZynq UltraScale+ Device TRM 224
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+interfacing and the SD0/1 mode is used for SD card only. The application must switch to the
+high-speed modes.
+TIP: For SD and eMMC boot modes, the boot image file should be at the root of first partition of the SD
+card (not inside any directory).
+USB0: The USB boot mode configures USB controller 0 into device mode and uses the
+Device Firmware Upgrade (DFU) protocol to communicate with an attached host. See the
+“Boot Sequence for USB Boot Mode” section in Zynq UltraScale+ MPSoC: Embedded Design
+Tutorial (UG1209) [Ref 17] for more information.
+The USB host contains the FSBL boot image (e.g., boot.bin) that is loaded into OCM memory
+for the CSU BootROM code and an all encompassing boot image file (e.g., boota53_all.bin)
+that is loaded into DDR memory.
+The size of these files are limited by the size of the OCM and DDR memories. The USB boot
+mode does not support multi-boot, image fallback, or XIP.
+Note: USB Timeout Condition - When the Zynq UltraScale+ MPSoC powers up in the USB boot
+mode, the USB host can download the boot image to the Zynq UltraScale+ MPSoC memory through
+the USB interface in DFU protocol. However during a time out of approximately five minutes in CSU
+ROM code, no image is downloaded and the host will not able to locate the DFU device with DFU
+utility.
+Golden Image Search
+The BootROM can search for a valid boot header to load and run a boot image. To validate
+a boot header, the BootROM looks for the identification string XLNX. When a valid
+identification string is found in the boot header, the checksum for the boot header is
+checked. If the checksum is valid, the rest of the boot header and the rest of the boot image
+(including the FSBL) are loaded into the RPU or APU memory for further processing.
+Boot images can be located every 32 KB in the boot memory device, which allows for more
+than one boot image to be in the memory device.
+If an image header is invalid, the BootROM increments the image header address register
+by 32 KB and tries again. The boot image search mechanism is only available for the
+Quad-SPI, NAND, SD, and eMMC boot modes.
+If a boot header is valid, but the FSBL determines the boot image is corrupt, the FSBL can
+recover by writing the location of another boot header into the CSU.csu_multi_boot register
+and issuing a system reset (not a POR). Figure 11-1 illustrates the image search mechanism.
+Send FeedbackZynq UltraScale+ Device TRM 225
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Boot header
+valid?
+MultiBoot offset less than
+device offset limit?
+Convert the offset value into string
+and concatenate it with boot.bin to
+get a new file name. Read the boot
+header from 0x0 to 0x48 using
+this new file name.
+Increment the
+MultiBoot
+offset by 1
+MultiBoot offset = 0 or
+boot mode = SD, eMMC, NAND,
+Quad-SPI?
+Yes
+No
+No
+Yes
+No
+Lock
+Down Boot mode
+Yes SD or eMMC?
+From the given
+offset, read the boot
+header from
+0x0 to 0x48
+No
+Load the boot image
+(with the boot image
+header) into the
+OCM RAM.
+Yes
+Lock
+Down
+X15313-100517
+X-Ref Target - Figure 11-1
+Figure 11-1: Image Search Flowchart
+Send FeedbackZynq UltraScale+ Device TRM 226
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Fallback
+Using the FSBL, a fallback boot image can be loaded by loading the address of another boot
+header into the CSU.csu_multi_boot register and issuing a system reset (not a POR).
+After the system reset, the boot header is fetched from the address location equal to the
+value of csu_multi_boot register times 32,768.
+If the fallback boot header is invalid, the CSU continues normally with its boot image search
+function if the boot device supports image search. The BootROM header is described in
+Table 11-4.
+Fallback and MultiBoot Flow In the Zynq UltraScale+ MPSoC device, the CSU bootROM
+supports MultiBoot and fallback boot image search where the configuration security unit
+CSU ROM or bootROM searches through the boot device looking for a valid image to load.
+The sequence is as follows:
+• BootROM searches for a valid image identification string (as image ID) at offsets of 32
+KB in the flash.
+• After finding a valid identification value, validates the checksum for the header.
+• If the checksum is valid, the bootROM loads the image.
+This allows for more than one image in the flash. In MultiBoot:
+• CSU ROM or FSBL or the user application must initiate the boot image search to choose
+a different image from which to boot.
+• To initiate this image search, CSU ROM or FSBL updates the MultiBoot offset to point to
+the intended boot image and generates a soft reset by writing into the CRL_APB
+register.
+Send FeedbackZynq UltraScale+ Device TRM 227
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Figure 11-2: MultiBoot Flow
+Note: The same flow is applicable to both Secure and non-secure boot methods.
+In the example fallback boot flow figure, the following sequence occurs:
+• The CSU bootROM loads the boot image found at 0x000_0000.
+• If this image is found to be corrupted or the decryption and authentication fails, CSU
+bootROM increments the MultiBoot offset by 1 and searches for a valid boot image at
+0x000_8000 (32 KB offset).
+• If the CSU bootROM does not find the valid identification value, it increments the
+MultiBoot offset by 1 again and searches for a valid boot image at the next 32 KB
+aligned address.
+• The CSU bootROM repeats this until a valid boot image is found or the image search
+limit is reached. In this example flow, the next image is shown at 0x002_0000
+corresponding to a MultiBoot offset value of 4.
+Boot Header 1
+Image 1
+.....
+Boot Header 2
+Image 2
+0x100_0000
+0x002_0000
+0x000_0000
+....
+0x001_0000
+0x000_8000
+0x001_8000
+Multi-Boot
+Offset=1
+Multi-Boot
+Offset=2
+Multi-Boot
+Offset=3
+Multi-Boot
+Offset=4
+X14936-071217
+Send FeedbackZynq UltraScale+ Device TRM 228
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+• I In Figure 11-2, the MutiBoot offset is updated to 4 by FSBL/CSU-ROM to load the
+second image at the address 0x002_0000. When the MultiBoot offset is updated, soft
+reset the system.
+Table 11-2 shows the MultiBoot image search range for different booting devices.
+Boot Image Format
+Because the CSU ROM supports the MultiBoot option, there can be more than one boot
+image in a boot device. The boot image consists of a boot header and partitions for
+different images along with a partition header. Figure 11-3 shows the simplest form of a
+boot image with only a mandatory image partition (FSBL) with associated mandatory
+headers. A detailed secure image format is illustrated in Table 12-17.
+With secure boot, the authentication certificate follows the FSBL image. Both the boot
+header and partition header are always in plain text.
+The boot header format is shown in Table 11-4. This is a plain-text header associated with
+each boot image that indicates various characteristics, attributes (Table 11-5), and other
+details about that boot image.
+X-Ref Target - Figure 11-3
+Figure 11-3: Boot Image Format with FSBL and PMU Firmware
+Boot Header
+Partition Header
+Your design defines the partition information.
+Used by the FSBL.
+PMU Firmware (PMU FW) Image
+FSBL Image
+If PMU FW is present in the boot image, then
+it is always assumed that the FSBL is
+appended at the end of PMU FW.
+2,232 bytes
+.%
+.%
+;
+Send FeedbackZynq UltraScale+ Device TRM 229
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Table 11-4: Boot Header Format
+Offset Description Details
+0x000 - 0x01C Reserved for interrupts
+This field is used in case of XIP boot mode when the default
+0x01F interrupt vectors are changed in the LQSPI address
+space.
+0x020 Width detection Quad-SPI width description.
+0x024 Image identification Boot image identification string.
+0x028 Encryption status
+This field is used to identify the AES key source.
+0000_0000h: Unencrypted.
+3A5C_3C5Ah: Red key in BBRAM.
+A35C_7CA5h: Obfuscated key in boot header.
+A35C_7C53h: Black key in boot header.
+A5C3_C5A3h: Red key in eFUSE.
+A5C3_C5A5h: Black key in eFUSE (PUF key).
+A5C3_C5A7h: eFUSE (Gray key).
+A3A5_C3C5h: User key.
+Note: The user key is only used with single partition boot images.
+0x02C FSBL execution address FSBL execution start address.
+0x030 Source offset PMU FW and FSBL source start address.
+0x034 PMU FW image length PMU FW original image length.
+0x038
+Total PMU FW image
+length
+PMU FW total image length. This includes the complete PMU
+firmware image block size, AES key, AES IV, and GCM tag (in
+case of an encrypted image). This field size must be 128 KB.
+0x03C FSBL image length FSBL original image length.
+0x040 Total FSBL image length Total FSBL image length.
+0x044 Image attributes Image attributes are described in Table 11-5.
+0x048 Header checksum Header checksum from 0x20 to 0x44.
+0x04C–0x068 Obfuscated key 256-bit obfuscated key. Only valid when 0x028 (encryption
+status) is A35C_7CA5h.
+0x06C Reserved
+0x070–0x09C FSBL/User defined
+How to use the FSBL/user defined areas is explained in the
+Zynq UltraScale+ MPSoC Software Developer’s Guide (UG1137)
+[Ref 3].
+0x0A0–0x0A8
+Secure header
+initialization vector
+Initialization vector for a secure header for both PMU FW and
+FSBL.
+0x0AC–0x0B4
+Obfuscated or black key
+initialization vector Initialization vector used when decrypting the obfuscated key.
+0x0B8–0x8B4 Register initialization Store register write pairs for system register initialization.
+0x8B8-0xEC0 PUF helper data Store the PUF helper data. The helper data is used only when
+the image attribute PUF HD location = 0x3.
+Send FeedbackZynq UltraScale+ Device TRM 230
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+I/O Configuration Detection
+The BootROM can detect the intended I/O width of the Quad-SPI interface using the width
+detection parameter value (0xAA995566) and the image identification parameter value
+(0x584C4E58) in a 8- bit parallel configuration.
+4-bit I/O Detection
+During the Quad-SPI boot process, the BootROM configures the controller with 4-bit I/O.
+This configuration includes a single device and the dual 4-bit stacked case. The BootROM
+reads the first (or only) Quad-SPI device in x1 mode and reads the width detection
+parameter in the BootROM Header. If the width detection parameter is equal to
+0xAA995566, then the BootROM assumes it found a valid header that is requesting a 4-bit
+I/O configuration. It might be one device or it might be a dual 4-bit stacked configuration.
+In the latter case, the second device is always ignored by the BootROM, but it might be
+accessed by user code. After reading the width detection parameter in x1 mode, the
+BootROM attempts to read the parameter in x4 mode. If x4 mode fails, it tries x2 mode.
+After this, the BootROM uses the widest supported I/O bus width to access the Quad-SPI
+device.
+8-bit I/O Detection
+The BootROM also looks for the dual device, 8-bit parallel configuration. In this case, the
+BootROM only reads the even bits of the BootROM header because it is only accessing the
+first device and the header is split across both devices. The BootROM forms a 32-bit word
+that includes the even bits of the width detection (0x20) and image identification (0x24)
+parameter values. When the BootROM detects this condition, it assumes the system uses
+the 8-bit parallel configuration and programs the controller for the x8 operating mode. This
+mode is used for the rest of the boot process.
+Table 11-5: Image Attributes Offset Definition
+Field Name Bit Offset Width Default Value Description
+Reserved 31:16 16 0x0
+Bhdr RSA 15:14 2 0x0
+0x3: If the RSA_EN eFUSEs are not programmed, RSA
+authentication of the boot image is done, excluding
+verification of PPK hash and SPK ID.
+If the RSA_EN eFUSEs are programmed, then an error is
+generated.
+All others: RSA authentication is decided based on the
+RSA_EN eFUSEs
+SHA2 select 13:12 2 0x0
+0x3: While doing RSA authentication, SHA2 is used in
+place of SHA3.(1)
+All others: SHA3 is used while doing RSA authentication.
+Send FeedbackZynq UltraScale+ Device TRM 231
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Functional Units
+Figure 12-1 describes the CSU. The CSU consists of processor, security blocks, CSU DMA,
+secure stream switch, and PCAP. The CSU processor and security blocks are described in
+Chapter 12, Security.
+Secure Stream Switch
+The secure-stream switch (SSS) allows data movement between multiple sources and
+destinations. During boot, the secure-stream switch is exclusively controlled by the CSU.
+After boot, any system master can control the configuration of the secure-stream switch.
+Table 11-6 lists the possible connections in the secure stream switch.
+The JTAG PS TAP controller is accessible via the dedicated PS pins. The AXI DMA is in the
+CSU.
+CPU select 11:10 2 0x0
+0x0: Cortex-R5F single (split mode).
+0x1: Cortex-A53 single 32-bit.
+0x2: Cortex-A53 single 64-bit.
+0x3: Cortex-R5F dual (lock-step mode).
+Hashing select 9:8 2 0x0
+0x0, 0x1: No integrity check.
+0x2: SHA2 is used as a hash function to do boot image
+integrity check.(1)
+0x3: SHA3 is used as a hash function to do boot image
+integrity check.
+Note: This option should not be selected if authentication
+(RSA) is used. If the RSA_EN eFUSEs are programmed and this
+option is set, an error occurs.
+PUF HD
+location 7:6 2 0x0 0x3: PUF HD is part of the boot header.
+All others: Means PUF HD is in eFUSE.
+Authenticate
+only 5:4 2 0x0
+0x3: Boot image is only RSA signed, do not decrypt the
+image even if 0x28 offset is non-zero.
+All others: Means if 0x28 is non-zero, then decrypt the
+boot image.
+OP key 3:2 2 0x0
+0x3: Secure header contains operational key for block 0
+decryption.
+All others: Means that the root device key is used for
+block 0 decryption.
+Reserved 1:0 2 0x0
+Notes:
+1. AMD recommends using SHA3 only. SHA2 will be deprecated in 2019.1.
+Table 11-5: Image Attributes Offset Definition (Cont’d)
+Field Name Bit Offset Width Default Value Description
+Send FeedbackZynq UltraScale+ Device TRM 232
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+The secure-stream switch is configured using a single SSS configuration register
+(csu_sss_cfg). Some common configurations for the secure stream switch are listed in
+Table 11-7.
+CSU DMA
+The CSU DMA allows the CSU to move data efficiently between the memory and the CSU
+stream peripherals (AES, SHA, PCAP), using the secure stream switch. The CSU DMA can
+access the OCM, TCM, and DDR memory. The CSU DMA is a two-channel, simple DMA,
+allowing separate control of the SRC (read) channel and DST (write) channel with a
+128 x 32-bit data FIFO for each channel. The DMA is effectively able to transfer data.
+• From the PS-side to the secure stream switch (SSS) side (SRC DMA only).
+• From the SSS-side to the PS-side (DST DMA only).
+• Simultaneously from the PS-side to the SSS-side and from the SSS-side to the PS-side.
+The APB interface allows for control and monitoring of the CSU DMA module’s functions. A
+single interrupt output port is sent to the CSU. It is combined with other interrupt sources
+before being sent out to the interrupt controller on a single interrupt pin.
+Two clocks are provided, one for the main CSU DMA operation and one for the APB
+interface. Along with these clocks, there are two-reset inputs. These reset pins are
+synchronized to the respective clock domains by the CSU before sending them to the CSU
+DMA.
+Table 11-6: Secure Stream Switch
+Destinations
+AXI DMA JTAG AES-GCM PCAP SHA
+Sources
+AXI DMA X X X X
+JTAG X X
+AES-GCM X X
+PCAP X X
+ROM X
+Table 11-7: Secure Stream Switch Configurations
+Secure Stream Switch Setup Description CSU_SSS_CFG Setting
+DMA to DMA DMA loopback. 0x00000050
+DMA to PCAP PL configuration. 0x00000005
+DMA to AES, AES to DMA Secure PS configuration. 0x000005A0
+DMA to AES, AES to PCAP Secure PL configuration. 0x0000050A
+DMA to DMA, DMA to SHA PS image load with simultaneous SHA
+calculation. 0x00005050
+Send FeedbackZynq UltraScale+ Device TRM 233
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+The DMA interfaces with a secure-stream switch through two sets of handshake signals; one
+for the DMA SRC (memory to stream) direction and the other for the DMA DST
+(stream-to-memory) direction.
+The DMA has a DST_FIFO that is sized to hold a minimum of one PL configuration frame.
+Although overflow is not anticipated, an interrupt register (FIFO_OVERFLOW) is provided in
+cases where an overflow occurs.
+Loopback Mode
+Loopback is implemented in the secure-stream switch hardware. It is not internal to the CSU
+DMA. The CSUDMA.CSUDMA_DST_CTRL [SSS_FIFOTHRESH] bit field controls the level of
+the DST FIFO to result in asserting the data_out_fifo_level_hit signal on the DST interface.
+This can be used to flow control data between the SRC and DST FIFOs in loopback mode. If
+loopback mode is used, where SRC data is looped around in the secure-stream switch and
+presented to the DST channel, the software should always start the DST channel before
+starting the SRC channel. This ensures that the DST channel is always ready once the first
+piece of data present at its secure-stream switch interface. Refer to the Programming the
+CSU DMA section for details on the CSU DMA programming sequence.
+PL Configuration
+The processor configuration access port (PCAP) is used to configure the programmable
+logic (PL) from the PS. The PCAP is the only interface used to configure the PL during
+normal operating conditions. The PCAP bus is 32 bits wide. During debug, the JTAG
+interface can be used to configure the PL. The PS is connected to the PCAP through the
+secure-stream switch. Bitstream data can be sent to the PL using either the CSU DMA or the
+AES path.
+PCAP Isolation Wall Control
+Software should disable the PS-PL isolation wall before the PL is configured with its
+bitstream.
+CSU BootROM Error Codes
+Any error from the CSU while in the boot process is recorded in the
+PMU_GLOBAL.CSU_BR_ERR register. This register also determines the boot success or
+failure. On failure or error condition, the 16-bit error code is recorded in the CSU_BR_ERR
+register.
+A configuration BootROM error code is 8 bits long. This means that with an allocation of 16
+bits, two error codes are stored. Error bits [15-8] correspond to the first image error code
+and error bits [7-0] indicate the most recent image error code (Table 11-8).
+Send FeedbackZynq UltraScale+ Device TRM 234
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Table 11-8 describes the configuration BootROM(CBR) error codes.
+Table 11-9 describes the configuration bootRAM (CBR) error codes.
+Table 11-8: BootROM Error Bits
+15 8 7 0
+First Image Error Last Image Error
+Table 11-9: BootROM Error Codes
+Error Code Description Solution
+0x10 Secure processor voting has failed during boot. Ensure LPD power supply is correct and power
+on reset (POR) the chip.
+0x11
+Secure processor is unable to power up the
+OCM.
+Ensure LPD power supply is correct and POR
+the chip.
+0x12
+An error occurred while initializing the OCM
+with 0xDEADBEEF value.
+Ensure LPD power supply is correct and POR
+the chip.
+0x14
+eFUSE is not properly loaded by hardware.
+There is a parity error in eFUSE values.
+Ensure LPD power supply is correct and (POR)
+the chip.
+0x15
+The TBITs in eFUSE are not properly written. For
+a successful boot, TBITS in eFUSE should have
+either all zeros or a 1010b pattern.
+Check the TBITS values and POR the chip.
+0x16
+DMA transfer timeout error during the OCM
+initialization.
+Ensure LPD power supply is correct and (POR)
+the chip.
+0x17
+eFUSE controller is unable to load the eFUSE
+values to the cache registers.
+Ensure LPD power supply is correct and (POR)
+the chip.
+0x20
+eFUSE RSA bits read from eFUSE has a
+mismatch.
+0x23(1) Error occurred during QSPI 24 boot mode
+initialization.
+Check that the Quad-SPI device is properly
+connected to the QSPI MIO pins.
+Ensure the width detection word is set equal to
+the data pattern 0xAA995566 and that the
+image identification word has x584C4E58,
+'XLNX'.
+Ensure that the device content is not blank in
+single device applications.
+0x24
+Error occurred during QSPI 32 boot mode
+initialization.
+Check that the Quad-SPI device is properly
+connected to the QSPI MIO pins.
+Ensure the width detection word is set equal to
+the data pattern 0xAA995566 and that the
+image identification word has x584C4E58,
+'XLNX'.
+Ensure that the device content is not blank.
+Send FeedbackZynq UltraScale+ Device TRM 235
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x25
+Error occurred during NAND boot mode
+initialization.
+Check that the NAND device is properly
+connected to the NAND MIO pins.
+Ensure the width detection word is set equal to
+the data pattern 0xAA995566 and that the
+image identification word has x584C4E58,
+'XLNX'.
+Ensure that the device content is not blank.
+0x26
+Error occurred during SD boot mode
+initialization.
+Check that the SD device is properly connected
+to the SD MIO pins.
+Ensure SD card is formatted properly with
+FAT32/FAT16 file system.
+0x27
+Error occurred during eMMC boot mode
+initialization.
+Check that the eMMC device is properly
+connected to the eMMC MIO pins.
+Ensure that the MMC card is formatted
+properly with the FAT32/FAT16 file system.
+0x2A
+Invalid boot mode is selected in the boot mode
+setting. Ensure the boot mode pins values are valid.
+0x30 Boot header does not have an XLNX string. Ensure that the Image Identification word has
+x584C4E58, 'XLNX' in the Boot header.
+0x31
+Boot header checksum is wrong or boot header
+fields are not length aligned.
+Ensure that the boot header checksum is
+correctly calculated and written to flash device.
+Also, ensure all the length fields are word
+aligned.
+0x32
+Boot header encryption status value is not
+valid. Key selected is not a valid key source.
+Ensure that the key source value in Encryption
+Status field is valid.
+0x33
+Boot header attributes value is not valid.
+Reserved fields in image attributes are not
+zero.
+Ensure that the reserved field is ZERO in the
+Image attributes.
+0x34
+Either of the boot header PMU firmware length
+and total PMU firmware length fields are not
+valid.
+Ensure the PMU firmware length fields are in
+valid range.
+Ensure PMU firmware length is more than the
+total PMU firmware length.
+0x35
+Either of the boot header FSBL and total FSBL
+length fields are not valid.
+Ensure the FSBL length fields are in valid range.
+Ensure the FSBL length is more than the total
+FSBL length.
+0x36 Selected does not support the XIP mode.
+Ensure the boot mode pins are set QSPI.
+Only non-secure images are allowed in XIP
+mode. Ensure image is non-secure.
+0x37
+FSBL execution address is not in the OCM
+address range.
+Ensure the FSBL execution address in the OCM
+256K region.
+0x38
+Source offset is not valid. It is beyond the flash
+image search limit.
+Check if the offset in the flash is beyond the
+flash image search limit. The offset is
+calculated from the multi boot register value
+and source offset field in boot header.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 236
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x39 Black Key was used without Authentication Ensure that an authenticated boot is used
+when using a black key.
+0x3A
+Authentication only is selected, but no key
+source is selected (for selecting the device key
+source) or authentication only is selected, but
+no authentication is selected in eFUSE or the
+boot header.
+To use the authentication only feature, the
+encryption key shall be selected so that ROM
+can unlock that key. Authentication of the
+image is mandatory. Enable eFUSE or boot
+header authentication.
+0x3B Reading failed from the selected boot device. Ensure the boot device is properly connected
+and right boot mode is selected.
+0x3D Selected CPU is disabled in the eFUSE. Ensure A53 CPU is enabled for the chip when
+A53-0 is selected as a hand off CPU.
+0x3E
+Time out occurred while calculating the PPK
+hash.
+Ensure power supply are proper and POR the
+chip.
+0x3F(2) Boot with boot header helper data is not
+allowed until eFUSE helper data is invalidated.
+To use the PUF helper data it is necessary to set
+the SYN_INVALID bit in eFUSE.
+0x40
+Boot header and eFUSE RSA are enabled at the
+same time, which is not allowed.
+The boot header and eFUSE RSA should not be
+enabled at the same time. Ensure the RSA
+eFUSE is not blown when boot header RSA is
+selected.
+0x41 Selected PPK value in boot header is not valid. ROM supports 2 PPK keys. Ensure the proper
+key value is used in the Boot header.
+0x42 Selected PPK is revoked. Ensure the selected PPK is not revoked in
+eFUSE.
+0x43 All PPK in the device are revoked.
+All PPK present inside the chip are revoked.
+Authentication cannot be performed on this
+chip.
+0x44
+Mismatch in the PPK hash calculated from Boot
+header and PPK hash in eFUSE
+Ensure the correct PPK is burned inside the
+eFUSEs.
+Ensure the PPK keys used to create boot image
+match the RSA public key that is present inside
+the chip.
+0x45 SPK signature verification is failed
+Ensure the SPK signature is created with the
+PPK that is present in the authentication
+certificate.
+Ensure the SPK ID present in the boot header is
+same as eFUSE SPK ID.
+0x46
+Selected SPK ID is not matching with the eFUSE
+SPK ID.
+Ensure the SPK ID present in the boot header is
+same as the eFUSE SPK ID.
+0x47 Boot header signature is failed.
+Ensure the boot header signature is created
+with the SPK that is present in the
+authentication certificate.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 237
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x48
+Selected boot mode does not support the
+golden image search.
+Golden Image search is supported only by
+QSPI, NAND, and SD boot modes. For all other
+boot modes, the multi boot register value
+should be zero.
+0x49
+No image found in QSPI after searching the
+allowed address range.
+ROM reached end of the image search limit for
+a QSPI device and no other good image is
+found.
+Ensure image in the QSPI is valid.
+0x4A
+No image found in NAND after searching the
+allowed address range.
+ROM reached end of the image search limit for
+a NAND device and no other good image is
+found.
+Ensure the image in the NAND is valid.
+0x4B
+No image found in the SD/eMMC after
+searching the allowed number of files.
+ROM reached end of the file limit for a
+SD/eMMC device and no other good image is
+found.
+Ensure the boot file is valid in the SD/eMMC
+FAT file system.
+0x4D
+Time out error while calculating the SPK SHA
+hash.
+Ensure the LPD power supply is correct and
+POR the chip.
+0x4E
+Time out error while calculating the boot
+header SHA hash.
+Ensure the LPD power supply is correct and
+POR the chip.
+0x50 Mismatch while writing to the secure registers. Ensure the LPD power supply is correct and
+POR the chip.
+0x51
+Changing the state of the device from secure to
+non-secure is not allowed.
+After POR, if first image is secure then
+subsequent images are secure.
+0x52
+Changing the key source is not allowed while in
+the secure state.
+Ensure the key source is the same across
+multiple images used for boot in POR and
+SRST.
+0x53
+Changing the state from non-secure to secure
+is not allowed.
+Ensure the key source is the same across
+multiple images used for boot in POR and
+SRST.
+0x54
+BBRAM key is disabled in eFUSE but the key
+source selected is BBRAM.
+Ensure the BBRAM_DIS eFUSE bit is not set
+when BBRAM is selected as a key source.
+0x55
+Only encrypted boots with the eFUSE key
+source are allowed.
+When ENC_ONLY eFUSE bit is set, no other key
+sources are allowed apart from eFUSE.
+0x60
+One of the register addresses in the boot
+header is not allowed.
+Ensure the register addresses in the boot
+header are in the valid address range allowed
+by ROM.
+0x61
+Copying from selected boot device failed after
+register initialization.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 238
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+0x62
+Boot header read after register initialization is
+mismatched with the original boot header.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct. Data read after
+register initialization does not match the
+previous values.
+0x70 Error occurred while copying the PMU FW.
+Ensure the boot device is connected correctly.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct.
+0x71 Error occurred while copying the FSBL.
+Ensure the boot device is connected correctly.
+Ensure the frequencies or any modifications
+done to boot devices through register
+initialization are correct.
+0x72 Time out occurred while loading the key. Ensure LPD power supply is correct and POR
+the chip.
+0x73
+Time out occurred while using the CSU DMA in
+image processing for AES/SHA.
+Ensure LPD power supply is correct and POR
+the chip.
+0x74 Time out occurred for the PMU to go to sleep.
+0x75
+Time out occurred while calculating the SHA
+during boot image signature verification.
+Ensure LPD power supply is correct and POR
+the chip.
+0x76
+Time out occurred while calculating the SHA
+for boot image during the integrity check.
+Ensure LPD power supply is correct and POR
+the chip.
+0x78 Boot image signature mismatch occurred.
+Ensure the boot image signature is created
+with the SPK that is present in authentication
+certificate.
+0x79
+Error occurred while decrypting the PMU
+firmware.
+Ensure same keys are used as present in the
+chip for encrypting the Boot image.
+Ensure the right key source is used for
+encrypting the image.
+0x7A Error occurred while decrypting the FSBL.
+Ensure the same keys are used as present in the
+chip for encrypting the Boot image.
+Ensure right key source is used for encrypting
+the image.
+0x7B
+Mismatch in the hash while checking for the
+boot image integrity.
+Ensure the SHA3 is used while creating the
+boot image integrity.
+0x80 Unable to power up the selected CPU. Ensure the power rail is ON for the selected
+CPU. FPD in case of A53.
+0x81
+Unable to wake up the PMU after loading the
+PMU firmware.
+Ensure the PMU Firmware is running properly
+and set FW_IS_PRESENT bit after completing
+initialization.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Send FeedbackZynq UltraScale+ Device TRM 239
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+PL Bitstream
+The PL bitstream contains configuration data for the device's Programmable Logic (PL). This
+configuration data can be loaded and read back from the PS using the PCAP interface. The
+FSBL can handle loading of the initial configuration of the PL using a bitstream stored in the
+boot image. Alternatively, the PL bitstream can also be loaded at a later time by application
+code, including using software such as U-Boot or Linux. The XilFPGA software library
+provides an API that facilitates the loading and read back of configuration data to and from
+the PL. More information on the XilFPGA library can be found in the Zynq
+UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3]. The PL bitstream length
+and composition depend on the device. Table 11-10 lists the attributes and values of the
+bitstream for device type. Although bitstream options such as compression
+(BITSTREAM.GENERAL.COMPRESS) can alter the required bitstream length and Since
+compressed bitstreams can change in size between design iterations, adequate memory
+should be reserved for the full uncompressed bitstream.
+0x90
+Tamper event that is detected while in post
+boot. Every tamper event is stored in an error
+register with 0x90 + Index. Index is the tamper
+event ID according to the CSU tamper register.
+This is tamper detection by ROM during post
+boot.
+Ensure all voltages are in range.
+Ensure JTAG is not toggled when it is disabled.
+0xA0
+Error when selected boot mode does not
+support fallback.
+Ensure no error is present in the first image
+during USB boot mode.
+0xB0 Error when exceptions occurs while booting. Ensure the LPD power supply is proper and
+POR the chip.
+0xB1
+Error when exceptions occurs while in post
+boot.
+Ensure the LPD power supply is proper and
+POR the chip.
+Notes:
+1. To use QSPI32 boot mode for flash sizes greater than 16 MB.
+2. Once the SYN_INVALID bit is set in eFUSE, the system does not allow to boot with eFUSE PUF helper data.
+Table 11-9: BootROM Error Codes (Cont’d)
+Error Code Description Solution
+Table 11-10: PL Bitstream Length
+Device
+Configuration
+Bitstream
+Length
+(bits)
+Minimum Configuration
+Flash Memory Size
+(Mb)
+Configuration
+Frames
+Frame
+Length
+in Words
+Configuration
+Array Size
+in Words
+Configuration
+Overhead
+in Words
+ZU1 23,748,480 32 7980 93 742,140 515
+ZU2 44,549,344 64 14,964 93 1,391,652 515
+ZU3 44,549,344 64 14,964 93 1,391,652 515
+ZU4 61,269,888 64 20,956 93 1,948,939 515
+ZU5 61,269,888 64 20,956 93 1,948,939 515
+Send FeedbackZynq UltraScale+ Device TRM 240
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Note: Compressed bitstreams can be also encrypted and authenticated.
+The allowed register accesses depend on the boot mode and are listed in Table 11-11.
+ZU6 212,086,240 256 71,260 93 6,627,180 515
+ZU7 154,488,736 256 51,906 93 4,827,258 515
+ZU9 212,086,240 256 71,260 93 6,627,180 515
+ZU11 188,647,264 256 63,384 93 5,894,712 515
+ZU15 229,605,952 256 77,147 93 7,174,671 515
+ZU17 290,744,896 512 97,691 93 9,085,263 515
+ZU19 290,744,896 512 97,691 93 9,085,263 515
+ZU21 275,498,848 512 92,568 93 8,608,824 515
+ZU25 275,498,848 512 92,568 93 8,608,824 515
+ZU27 275,498,848 512 92,568 93 8,608,824 515
+ZU28 275,498,848 512 92,568 93 8,608,824 515
+ZU29 275,498,848 512 92,568 93 8,608,824 515
+ZU39 275,498,848 512 92,568 93 8,608,824 515
+ZU42 166,864,320 256 56070 93 5,214,510 515
+ZU43 275,498,848 512 92,568 93 8,608,824 515
+ZU46 275,498,848 512 92,568 93 8,608,824 515
+ZU47 275,498,848 512 92,568 93 8,608,824 515
+ZU48 275,498,848 512 92,568 93 8,608,824 515
+ZU49 275,498,848 512 92,568 93 8,608,824 515
+ZU63 166,864,320 256 56070 93 5,214,510 515
+ZU64 166,864,320 256 56070 93 5,214,510 515
+ZU65 166,864,320 256 56070 93 5,214,510 515
+ZU67 166,864,320 256 56070 93 5,214,510 515
+ZU3T 41,665,600 64 13,995 93 1,301,535 515
+Table 11-10: PL Bitstream Length (Cont’d)
+Device
+Configuration
+Bitstream
+Length
+(bits)
+Minimum Configuration
+Flash Memory Size
+(Mb)
+Configuration
+Frames
+Frame
+Length
+in Words
+Configuration
+Array Size
+in Words
+Configuration
+Overhead
+in Words
+Table 11-11: Register Access Range and Boot Mode
+Control Register Ranges Secure Boot
+Mode
+ACPU_GIC 0xF9000000 to 0xF900FFFC Yes
+SATA 0xFD070000 to 0xFD0C00FC Yes
+PCIE 0xFD0E0000 to 0xFD0EFFFC Yes
+Send FeedbackZynq UltraScale+ Device TRM 241
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+CRF_APB 0xFD1A0000 to 0xFD1A001C Yes
+CRF_APB 0xFD1A0048 to 0xFD1A00F8 Yes
+AFIFM_DP 0xFD360000 to 0xFD4AFFFC Yes
+APU 0xFD5C0000 to 0xFD5CFFFC Yes
+CCI_REG 0xFD5E0000 to 0xFD5EFFFC Yes
+FPD_SLCR 0xFD610000 to 0xFD61FFFC Yes
+FPD_GPV 0xFD6E0000 to 0xFD70FFFC Yes
+IOU_GPV 0xFE000000 to 0xFE10FFFC Yes
+LPD_GPV 0xFE000000 to 0xFE10FFFC Yes
+DPROM 0xFE800000 to 0xFF05FFFC Yes
+SPI 0xFE800000 to 0xFF05FFFC Yes
+GPIO 0xFF0A0000 to 0xFF0AFFFC Yes
+QSPI 0xFF0F0000 to 0xFF0F01FC Yes
+NAND 0 0xFF100000 to 0xFF100020 Yes
+NAND 1 0xFF100028 to 0xFF10004C Yes
+NAND 2 0xFF10005C to 0xFF10006C Yes
+TTC1 to TTC4 0xFF110000 to 0xFF14FFFC Yes
+SDIO 0 0xFF160004 to 0xFF160054 Yes
+SDIO 0 0xFF160060 to 0xFF160100 Yes
+SDIO1 0xFF170004 to 0xFF170054 Yes
+SDIO1 0xFF170060 to 0xFF170100 Yes
+IOU_SLCR 0xFF180000 to 0xFF18FFFC Yes
+LPD_SLCR 0xFF250000 to 0xFF41FFFC Yes
+CRL_APB 0xFF5E0000 to 0xFF5E009C Yes
+CRL_APB 0xFF5E00A4 to 0xFF5E01DC Yes
+RPU - AFIFM 0xFF9A0000 to 0xFF9BFFFC Yes
+APM – RTC 0xFFA00000 to 0xFFA6FFFC Yes
+MBISTJTAG 0xFFCF0000 to 0xFFCFFFFC Yes
+Table 11-11: Register Access Range and Boot Mode (Cont’d)
+Control Register Ranges Secure Boot
+Mode
+Send FeedbackZynq UltraScale+ Device TRM 242
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Register Overview
+Access to some CSU registers is restricted (black list) unless a #define is set, see the Zynq
+UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3].
+Table 11-12: CSU Register Summary
+Register Type Register Name Description
+Configuration
+security unit
+control
+csu_status CSU status.
+csu_ctrl CSU control.
+csu_sss_cfg CSU secure stream switch configuration.
+csu_dma_reset CSU DMA reset.
+csu_multi_boot MultiBoot address.
+csu_tamper_trig CSU secure lockdown.
+csu_ft_status CSU fault tolerant status.
+csu_isr CSU interrupt status.
+csu_imr CSU interrupt mask.
+csu_ier CSU interrupt enable.
+csu_idr CSU interrupt disable.
+jtag_chain_status JTAG chain configuration status.
+jtag_sec JTAG security.
+jtag_dap_cfg DAP configuration.
+idcode Device IDCODE.
+version PS version.
+ROM SHA digest csu_rom_digest_{0:11} CSU ROM SHA-3 digest 0 to 11.
+AES control
+aes_status AES status.
+aes_key_src AES key source.
+aes_key_load AES key load.
+aes_start_msg AES start message.
+aes_reset AES reset.
+aes_key_clear AES key clear.
+aes_kup_wr AES KUP write control.
+aes_kup_{0:7} AES key update 0 to 7.
+aes_iv_{0:3} AES initialization vector 0 to 3.
+Send FeedbackZynq UltraScale+ Device TRM 243
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+SHA control
+sha_start SHA start message.
+sha_reset SHA reset.
+sha_done SHA done.
+sha_digest_{0:11} SHA digest 0 to 11.
+PCAP control
+pcap_prog PCAP PROGRAM_B control.
+pcap_rdwr PCAP read/write control.
+pcap_ctrl PCAP control.
+pcap_reset PCAP reset.
+pcap_status PCAP status.
+Tamper response
+tamper_status Tamper response status.
+csu_tamper_{0:12} CSU tamper response 0 to 12.
+Table 11-13: CSU DMA Register Summary
+Register Type Register Name Description
+CSU DMA source
+csudma_src_addr Source memory address (LSBs) for
+DMA memory  stream data transfer.
+csudma_src_size DMA transfer payload for DMA memory  stream
+data transfer.
+csudma_src_sts General source DMA status.
+csudma_src_ctrl General source DMA control register 1.
+csudma_src_crc Source DMA pseudo CRC.
+csudma_src_i_sts Source DMA interrupt status.
+csudma_src_i_en Source DMA interrupt enable.
+csudma_src_i_dis Source DMA interrupt disable.
+csudma_src_i_mask Source DMA interrupt mask.
+csudma_src_ctrl2 General source DMA control register 2.
+csudma_src_addr_msb Source memory address (MSBs) for DMA
+memory  stream data transfer.
+Table 11-12: CSU Register Summary (Cont’d)
+Register Type Register Name Description
+Send FeedbackZynq UltraScale+ Device TRM 244
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Configuration Programming Model
+Load the PL Bitstream
+After executing CSU ROM code, the CSU hands off the control to the first-stage boot loader
+(FSBL). The FSBL uses the PCAP interface to configure the PL with the bitstream. Use the
+following steps to load the PL bitstream.
+1. Initialize PCAP Interface.
+2. Write a Bitstream Through the PCAP.
+3. Wait for the PL Done Status.
+The following section explains each of these steps.
+Initialize PCAP Interface
+1. Take the PCAP out of reset. Write 1 to the csu.pcap_reset[reset] bit.
+2. Configure the PCAP in write mode.
+a. Select the PCAP mode. Write 1 to the csu.pcap_ctrl[pcap_pr] bit.
+b. Select write mode. Write 0 to the csu.pcap_rdwr[pcap_rdwr_b] bit.
+CSU DMA
+destination
+csudma_dst_addr Destination memory address (LSBs) for DMA
+stream  memory data transfer.
+csudma_dst_size DMA transfer payload for DMA stream  memory
+data transfer.
+csudma_dst_sts General destination DMA status.
+csudma_dst_ctrl General destination DMA control.
+csudma_dst_i_sts Destination DMA interrupt status.
+csudma_dst_i_en Destination DMA interrupt enable.
+csudma_dst_i_dis Destination DMA interrupt disable.
+csudma_dst_i_mask Destination DMA interrupt mask.
+csudma_dst_ctrl2 General Destination DMA control register 2.
+csudma_dst_addr_msb Destination memory address (MSBs) for DMA
+stream  memory data transfer.
+Safety csudma_safety_chk Safety endpoint connectivity check register
+Table 11-13: CSU DMA Register Summary (Cont’d)
+Register Type Register Name Description
+Send FeedbackZynq UltraScale+ Device TRM 245
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+3. Power up the PL, if needed. Read the csu.pcap_status [pl_gpwrdwn_b]. If Off, then
+trigger a request to the PMU to power up the PL using the pmu_global.req_pwrup_trig
+[PL] bit.
+4. Reset the PL.
+a. Assert the PL reset. Write 0 to the csu.pcap_prog [pcfg_prog_b] bit.
+b. Wait for at least 250 ns.
+c. Deassert the PL reset. Write 1 to the csu.pcap_prog [pcfg_prog_b] bit.
+Write a Bitstream Through the PCAP
+1. Set the secure stream switch configuration to receive from DMA source: Set the
+csu.csu_sss_cfg[pcap_sss] to 0x5.
+2. Configure and set the CSU_DMA to establish channel and transfer. Use the following for
+CSU DMA programming (see the Programming the CSU DMA section for details).
+a. Channel type is DMA_SRC.
+b. Source address is the address of the bitstream.
+c. Size is bitstream size in words.
+3. Wait for the CSU DMA operation to finish. on the source channel (see the Programming
+the CSU DMA section for details).
+4. Clear the CSU_DMA interrupts and acknowledge the transfer is completed: Set the
+csudma.csudma_src_i_sts[done] bit.
+5. Wait for PCAP done: Poll while the csu.pcap_status[pcap_wr_idle] bit is cleared.
+Wait for the PL Done Status
+Wait for the PL done status before doing anything else. This indicates the bitstream is
+programmed properly, as described in the following steps.
+1. Wait for the PL done status: Poll while the csu.pcap_status[pl_done] bit is clear.
+2. Once it is done, reset the PCAP interface: Set the csu.pcap_reset[reset] bit.
+Programming the CSU DMA
+During execution of the CSU ROM code, the CSU uses the CSU DMA for boot-image
+transfer. The FSBL also uses the CSU DMA for PL programming (through PCAP) and also for
+image transfers. The CSU DMA can be used after bringing it out of reset, followed by
+programing the appropriate transfer channel. To bring the CSU DMA out of reset, clear the
+csu.csu_dma_reset[reset] bit, as described in the following steps.
+Send FeedbackZynq UltraScale+ Device TRM 246
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Trigger a CSU DMA Transfer
+A CSU DMA transfer is triggered after writing the size value for a DMA source channel. In
+the case of PL programming, there is only source channel. In the case of loopback, a DMA
+destination channel is configured first and then the source channel is configured.
+The following steps are used to initiate a CSU DMA transfer.
+1. Decide the channel type to be configured and set the address appropriately.
+a. To configure the source channel, set the source address:
+- Set the csudma.csudma_src_addr[addr] =
+<LSB 30-bit source address (ignore the last 2 bits)>.
+- Set the csudma.csudma_src_addr_msb[addr_msb] =
+<MSB 16-bit source address>.
+b. Else, set the destination address.
+- Set the csudma.csudma_dst_addr[addr] =
+<LSB 30-bit destination address (ignore last 2 bits)>.
+- Set the csudma.csudma_src_addr_msb[addr_msb] =
+<MSB 16-bit destination address>
+2. Configure the source/destination size.
+a. To configure the source channel:
+Set the csudma.csudma_src_size[size] = <size of source buffer>.
+b. Else,
+Set csudma.csudma_dst_size[size] = <size of destination buffer>
+Wait for CSU DMA Done
+1. CSU DMA done can be verified by polling the done bit of the status register.
+a. To poll the source channel:
+Poll while the csudma.csudma_src_i_sts[done] is not set.
+b. Else,
+Poll while the csudma.csudma_dst_i_sts[done] is not set.
+DMA done can be acknowledge by clearing the same bit of the status register.
+Send FeedbackZynq UltraScale+ Device TRM 247
+UG1085 (v2.5) March 21, 2025
+Chapter 11: Boot and Configuration
+Figure 11-4 describes a CSU DMA transfer.
+X-Ref Target - Figure 11-4
+Figure 11-4: CSU DMA Transfer

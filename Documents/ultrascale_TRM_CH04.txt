@@ -1,0 +1,681 @@
+Chapter 4
+Real-time Processing Unit
+Introduction
+The AMD Zynq™ UltraScale+™ MPSoC includes a pair of Cortex®-R5F processors for
+real-time processing based on the Cortex-R5F MP processor core from Arm®. The
+Cortex-R5F processor implements the Arm v7-R architecture and includes a floating-point
+unit that implements the Arm VFPv3 instruction set.
+In the Cortex-R5F processor, interrupt latency is kept low by interrupting and restarting
+load-store multiple instructions. This is achieved by having a dedicated peripheral port that
+provides low latency access to the interrupt controller and by having tightly coupled
+memory ports for low latency and deterministic accesses to local RAM.
+The Cortex-R5F processor is used for many safety-critical applications.
+Real-time Processing Unit Features
+• Integer unit implementing the Arm v7-R instruction set.
+• Single and double precision FPU with VFPv3 instructions.
+• Arm v7-R architecture memory protection unit (MPU).
+• 64-bit master AXI3 interface for accessing memory and shared peripherals.
+• 64-bit slave AXI3 interface for DMA access to the TCMs.
+• Dynamic branch prediction with a global history buffer and a 4-entry return stack.
+• Separate 128KB TCM memory banks with ECC protection for each TCM.
+• 32KB instruction and data L1 caches with ECC protection.
+• Independent Cortex-R5F processors or dual-redundant configuration.
+• 32-bit master advanced eXtensible interface (AXI) peripheral interface on each
+processor for direct low-latency device memory type access to the interrupt controller.
+• Debug APB interface to a CoreSight™ debug access port (DAP).
+• Low interrupt latency and non-maskable fast interrupts.
+• Performance monitoring unit.
+Send FeedbackZynq UltraScale+ Device TRM 69
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+• Exception handling and memory protection.
+• ECC detection/correction on level-1 memories.
+• Lock-step (redundant CPU) configuration is available to mitigate random faults in CPU
+registers and gates.
+• Built-in self-test (BIST) to detect random faults in hardware (probably) caused by
+permanent failure.
+• Watchdog to detect both systematic and random failures causing program flow errors.
+Cortex-R5F Processor Functional Description
+The Cortex-R5F processor is a mid-range CPU for use in deeply-embedded, real-time
+systems. It implements the Arm v7-R architecture, and includes Thumb-2 technology for
+optimum code density and processing throughput. The pipeline has a single arithmetic
+logic unit (ALU), but implements limited dual-issuing of instructions for efficient utilization
+of other resources such as the register file. Interrupt latency is kept low by interrupting and
+restarting load-store multiple instructions, and by use of a dedicated peripheral port that
+enables low-latency access to an interrupt controller. The processor has tightly-coupled
+memory (TCM) ports for low-latency and deterministic accesses to local RAM, in addition to
+caches for higher performance to general memory. Error checking and correction (ECC) is
+used on the Cortex-R5F processor ports and in Level 1 (L1) memories to provide improved
+reliability and address safety-critical applications. Figure 4-1 shows the system view of the
+real-time processing unit.
+Send FeedbackZynq UltraScale+ Device TRM 70
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+X-Ref Target - Figure 4-1
+Figure 4-1: System View of RPU
+Note: The switches have been combined in Figure 4-1 for more details refer to Figure 15-1.
+32-bit
+TCM-A
+64KB
+GIC
+Cortex-R5
+32 KB I/D Cache
+64-bit
+TCM-B0
+64-bit 32KB
+64-bit
+LLPP
+FPU
+64-bit
+64-bit
+64-bit
+TCM-A
+64KB
+TCM-B0
+32KB
+LPD
+Inbound
+Switch
+(2x1)
+IOU
+QSPI
+GEM
+NAND
+SDIO
+UART
+SPI
+CAN
+I2C
+32-bit PMU 32-bit
+2 x 32-bit CSU 3x32-bit
+64-bit USB0 32-bit
+64-bit USB1 32-bit
+64-bit LPD DMA 32-bit
+64-bit DAP 32-bit
+AMS
+eFUSE
+LPD
+SLCR
+IPI
+RTC
+Others
+32-bit
+XPPU
+64-bit From
+FPD
+64-bit
+64-bit
+Cortex-R5
+32 KB I/D Cache
+LLPP
+FPU
+TCM-B1
+32KB
+TCM-B1
+32KB
+From FPD 128-bit
+128-bit
+OCM
+256 KB with 64-bit ECC
+Exclusive Monitors
+64K 64K 64K 64K
+XMPU
+64-bit 64-bit
+To PL2 128-bit
+128-bit
+To FPD
+128-bit
+From
+FPI-LP
+128-bit
+To
+64-bit DDRC
+64-bit
+128-bit
+32-bit
+64-bit
+64-bit
+32-bit
+RPU Clock
+OCM Clock
+Interconnect
+64-bit
+X15294-051518
+Send FeedbackZynq UltraScale+ Device TRM 71
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+RPU Pin Configuration
+The following table describes the real-time processor configuration signals.
+Table 4-1: RPU Pin Configuration
+Note: For more information on Configuration Signals, see the ARM Cortex-R5F and Cortex-R5F
+Technical Reference Manual [Ref 47].
+Pins Selection Description
+VINITHIm SLCR configurable (default 1) Reset V-bit value. When High indicates HIVECS mode
+at reset.
+CFGEE SLCR configurable (default 0) Data endianness at reset.
+CFGIE SLCR configurable (default 0) Instruction fetch endianness.
+TEINIT SLCR configurable (default 0) Arm or fetch at reset. 0 = Arm.
+CFGNMFIm SLCR configurable (default 0) Non-maskable FIQ. 0 = maskable.
+INITPPXm 0x1 AXI peripheral interface enabled at reset.
+SLBTCMSBm SLCR configurable (default 0) B0TCM and B1TCM interleaving by addr[3].
+INITRAMAm 0x0 Enable ATCM.
+INITRAMBm 0x1 Enable BTCM.
+ENTCM1IFm 0x1 Enable B1TCM interface.
+LOCZRAMAm 0x1 When High indicates ATCM initial base address is
+zero.
+PPXBASEm Based on global address map Base address of AXI peripheral interface. Must be size
+aligned.
+PPXSIZEm 16 MB Size of AXI peripheral interface.
+PPVBASEm Same as PPXBASEm Base address of virtual-AXI peripheral interface.
+PPVSIZEm 8 KB Size of virtual-AXI peripheral interface.
+GROUPID[3:0] 0x1 ID of the Cortex-R5F processor group.
+DBGNOCLKSTOP default (0) Clock control when entering standby.
+SLSPLIT default (0) Processor mode
+SLCLAMP default (1) Output clamps for redundant processor.
+TCM_COMB default (1) Combine TCMs of RPU0 and RPU1.
+TCM_WAIT default (0) Insert wait states in TCM access.
+TCM_CLK_CNTL default (0) TCM clock disable (all TCMs, both RPU processors).
+GIC_AXPROT default (0) GIC access security setting. This bit is equivalent to
+AxPROT[1] on AXI bus.
+Send FeedbackZynq UltraScale+ Device TRM 72
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+RPU CPU Configuration
+The RPU MPCore has two Cortex-R5F processors that can operate independently or in
+lock-step together. This section describes the CPU arrangements supported and the
+functionality of each arrangement.
+Split/Lock
+Two CPUs are included in this configuration. The processor group can operate in one of two
+modes.
+• Split mode operates as a twin-CPU configuration. Also known as performance mode.
+• Locked mode operates as a redundant CPU configuration. Also known as safety mode.
+Lock-Step Operation
+When the Cortex-R5F processors are configured to operate in the lock configuration, only
+one set of CPU interfaces are used. Because the Cortex-R5F processor only supports the
+static split/lock configuration, switching between these modes is only permitted right after
+the processor group is brought out of reset. The input signals SLCLAMP and SLSPLIT control
+the mode of the processor group. These signals control the multiplex and clamp logic in the
+locked configuration. When the Cortex-R5F processors are in the lock-step mode
+(Figure 4-2), there should be code in the reset handler to ensure that the distributor within
+the generic interrupt controller (GIC) dispatches interrupts only to CPU0.
+IMPORTANT: During the lock-step operation, the TCMs that are associated with the redundant
+processor become available to the lock-step processor. The size of each ATCM and BTCM becomes
+128 KB with BTCM interleaved accesses from the processor and AXI slave interface.
+X-Ref Target - Figure 4-2
+Figure 4-2: RPU Cortex-R5 Processor Lock-step Mode
+TCMs Associated
+with CPU1
+TCM A
+TCM B
+TCMs Associated
+with CPU0
+TCM A
+TCM B
+Shim Shim
+GIC
+Cortex-R5
+CPU0
+Cortex-R5
+CPU1
+Caches Associated
+with CPU0
+D-Cache
+I-Cache
+Comparison and Synchronization Logic
+X15295-092916
+Send FeedbackZynq UltraScale+ Device TRM 73
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Error Correction and Detection
+The Cortex-R5F processor supports error checking and correction (ECC) data schemes. For
+each aligned data set, a number of redundant code bits are computed and stored with the
+data. This enables the processor to detect up to two errors in the data set or its code bits,
+and correct any single error in the data set or its associated code bits. This is sometimes
+referred to as a single-error correction, double-error detection (SEC-DED) ECC scheme.
+Interrupt Injection Mechanism
+The RPU implements an interrupt injection function to inject interrupts into the generic
+interrupt controller’s shared peripheral interrupts (SPI). The RPU GIC has 160 SPIs. Software
+can inject an interrupt on each of 160 interrupt lines using this mechanism. The 160 SPIs are
+divided into five, 32-bit APB registers. The RPU implements an interrupt register and an
+interrupt mask register. The logic in Figure 4-3 is replicated on each interrupt going to the
+SPI of the RPU’s GIC. If the interrupt mask corresponding to the interrupt is set in the
+RPU_INTR_MASK register, the RPU passes the APB register version of the interrupt to the
+GIC.
+X-Ref Target - Figure 4-3
+Figure 4-3: RPU Interrupt Injection
+SPI from System
+SPI from APB
+RPU_INTR_0/1/2/3/4
+SPI to GIC
+Interrupt Mask from APB
+RPU_INTR_MASK
+X17684-092916
+Send FeedbackZynq UltraScale+ Device TRM 74
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Table 4-2 lists the mapping of the SPI bits.
+Level2 AXI Interfaces
+There are three distinct advanced eXtensible interfaces (AXI) to the rest of the MPSoC. The
+first is the AXI master interface. There is also a separate AXI peripheral interface that
+connects to the GIC and an AXI slave port provided to allow external masters to access
+ICACHE, DCACHE, and TCM RAMs. Access from the AXI slave port to the caches is only
+provided for use during debug. The L2 AXI interfaces enable the L1 memory system to have
+access to peripherals and to external memory using an AXI master and AXI slave port and
+the peripheral ports.
+Memory Protection Unit
+The memory protection unit (MPU) works with the L1 memory system to control the
+accesses to and from L1 cache and external memory. For a detailed description of the MPU,
+refer to the Cortex-R5F Technical Reference Manual [Ref 47].
+The MPU enables you to partition memory into regions and set individual protection
+attributes for each region. When the MPU is disabled, no access permission checks are
+performed, and memory attributes are assigned according to the default memory map. The
+MPU has a maximum of 16 regions.
+Using the MPU memory region programming registers you can specify the following for
+each region.
+• Region base address
+• Region size
+• Sub-region enables
+• Region attributes
+• Region access permissions
+• Region enable
+Table 4-2: SPI Map to RPU Interrupt and RPU Interrupt Mask Registers
+SPI RPU Interrupt Register RPU Interrupt Mask Register
+SPI<31:0> RPU_INTR_0<31:0> RPU_INTR_MASK_0<31:0>
+SPI<63:32> RPU_INTR_1<31:0> RPU_INTR_MASK_1<31:0>
+SPI<95:64> RPU_INTR_2<31:0> RPU_INTR_MASK_2<31:0>
+SPI<127:96> RPU_INTR_3<31:0> RPU_INTR_MASK_3<31:0>
+SPI<159:128> RPU_INTR_4<31:0> RPU_INTR_MASK_4<31:0>
+Send FeedbackZynq UltraScale+ Device TRM 75
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Events and Performance Monitor
+The processor includes logic to detect various events that can occur, for example, a cache
+miss. These events provide useful information about the behavior of the processor for use
+when debugging or profiling code.
+The events are made visible on an output event bus and can be counted using registers in
+the performance monitoring unit.
+Power Management
+Each CPU in the Cortex-R5F processor supports three power management modes
+(Table 4-3) from run to shutdown, with decreasing levels of power consumption, but
+increasing entry and exit costs.
+Exception Vector Pointers
+The exception vector pointers (EVP) refer to the base-address of exception vectors (for
+reset, IRQ, FIQ, etc). The reset-vector starts at the base-address and subsequent vectors are
+on 4-byte boundaries. The Cortex-R5F processor EVPs are determined as follows.
+• If the Cortex-R5F processor SCTRL.V register bit is 0, then exception vectors start from
+0x0000_0000 (LOVEC).
+• If the Cortex-R5F processor SCTRL.V register bit is 1, then exception vectors start from
+0xFFFF_0000 (HIVEC).
+The reset value of SCTRL.V is taken from the Cortex-R5F processor VINITHIm pin value,
+which is driven by the Zynq UltraScale+ MPSoC SLCR bit.
+Table 4-3: Power Management Modes
+Mode CPU Clock
+Gated
+CPU Logic
+Powered
+TCM
+Memory
+Retention
+Exit to Run Mode
+Run No Yes Yes N/A
+Standby When idle Yes Yes Pipeline restart.
+Shutdown Yes No No
+Pipeline restart restore registers and configuration from
+memory invalidate caches and re-initialize caches and
+TCMs.
+Send FeedbackZynq UltraScale+ Device TRM 76
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+At system boot, the Cortex-R5F processor exception vectors (i.e., VINITHIm pin-value)
+default to HIVEC, which is mapped in the OCM. The FSBL (running on the Cortex-R5F
+processor) is expected to change the Cortex-R5F processor exception vectors by changing
+both the Zynq UltraScale+ MPSoC SLCR to change the value of the VINITHIm pin and the
+Cortex-R5F processor SCTRL.V bit to LOVEC. The Cortex-R5F processor exception vectors
+should remain at LOVEC.
+RECOMMENDED: AMD does not recommend that you change the exception vector. Changing the EVP
+to HIVEC will result in increased interrupt latency and jitter. Also, if the OCM is secured and the
+Cortex-R5F processor is non-secured, then the Cortex-R5F processor cannot access the HIVEC exception
+vectors in the OCM.
+System Register Overview
+Table 4-4 provides an overview of the RPU system registers.
+Table 4-4: RPU Registers
+Register name Description
+RPU_GLBL_CNTL Global control register for the RPU
+RPU_GLBL_STATUS Miscellaneous status information for the RPU
+RPU_ERR_CNTL Error response enable/disable register
+RPU_RAM Control for extra features of the RAMs
+RPU_ERR_INJ RPU Error Injection Register
+RPU_CCF_MASK Common cause signal mask register
+RPU_INTR_0-4 RPU interrupt injection registers
+RPU_INTR_MASK_0-4 RPU interrupt injection mask registers
+RPU_CCF_VAL Common cause signal value register
+RPU_SAFETY_CHK RPU safety check register
+RPU_0_CFG Configuration parameters specific to RPU0
+RPU_0_STATUS RPU0 status register
+RPU_0_PWRDWN Power-down request from the Cortex-R5F processors
+RPU_0_ISR Interrupt status register
+RPU_0_IMR Interrupt mask register
+RPU_0_IEN Interrupt enable register
+RPU_0_IDS Interrupt disable register
+RPU_0_SLV_BASE Slave base address register
+RPU_0_AXI_OVER RPU0 AXI override register
+RPU_1_CFG Configuration parameters specific to RPU1
+Send FeedbackZynq UltraScale+ Device TRM 77
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Tightly Coupled Memory
+Tightly-coupled memories (TCMs) are low-latency memory that provide predictable
+instruction execution and predictable data load/store timing. Each Cortex-R5F processor
+contains two 64-bit wide 64 KB memory banks on the ATCM and BTCM ports, for a total of
+128 KB of memory. The division of the RAMs into two banks, and placing them on ports A
+and B, allows concurrent accesses to both banks by the load-store, instruction prefetch, or
+AXI slave ports.
+The BTCM memory bank is divided into two 32 KB ranks that are connected to the BTCM-0
+and BTCM-1 ports of the Cortex-R5F processors. There are two TCM interfaces that permit
+connection to configurable memory blocks of tightly-coupled memory (ATCM and BTCM).
+• An ATCM typically holds interrupt or exception code that must be accessed at high
+speed, without any potential delay resulting from a cache miss.
+• A BTCM typically holds a block of data for intensive processing, such as audio or video
+processing.
+RPU_1_STATUS RPU1 status register
+RPU_1_PWRDWN Power-down request from the Cortex-R5F processors
+RPU_1_ISR Interrupt status register
+RPU_1_IMR Interrupt mask register
+RPU_1_IEN Interrupt enable register
+RPU_1_IDS Interrupt disable register
+RPU_1_SLV_BASE Slave base address register
+RPU_1_AXI_OVER RPU1 AXI override register
+Table 4-4: RPU Registers (Cont’d)
+Register name Description
+Send FeedbackZynq UltraScale+ Device TRM 78
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+The block diagram of RPU along with the TCMs is shown in Figure 4-4.
+The entire 256 KB of TCM can be accessed by R5_0 (in lock-step mode). The PMU block
+controls power gating to each of the 64 KB TCM banks, through the system power and
+configuration state (SPCS) registers.
+Tightly Coupled Memory Functional Description
+The Cortex-R5F processors in the RPU block operate in normal (split) and lock-step
+configuration. Each of these operating modes also defines the TCM access methods. The
+following sections describe various TCM access methods.
+X-Ref Target - Figure 4-4
+Figure 4-4: Block Diagram of RPU with TCMs
+AXI Masters
+LSU AXI Slave PFU
+Interconnect
+Cortex-R5 CPU
+AXI
+Peripheral
+Interface
+AXI Virtual
+Peripheral
+Interface
+AHB
+Peripheral
+Interface
+D-cache
+Control
+I-cache
+Control
+ATCM
+Interface
+BTCM
+Interface
+Level 1
+Memory
+System
+AXI
+Peripheral
+Port
+AHB
+Peripheral
+Port
+AXI Master
+Interface
+B1 RAM
+B0 RAM
+A RAM
+I-cache
+RAMs
+D-cache
+RAMs
+Peripherals/Memory Peripherals/Memory
+Level 2 Memory System
+Level 2 Memory System
+X15296-092916
+Send FeedbackZynq UltraScale+ Device TRM 79
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Normal (Split) Operation
+The 2-bank 128 KB TCM support for each Cortex-R5F processor in the split mode includes
+the following.
+• Each TCM is 64 KB.
+• One BTCM is composed of two ranks allowing interleaved accesses.
+• 32-bit ECC support is available in both normal and lock-step mode.
+• TCMs can be combined for a total of 256 KB (128 KB each of ATCM and BTCM) for use
+by R5_0 in lock-step mode.
+• External TCM access from AXI slave interfaces.
+Lock-step Operation
+When the Cortex-R5F processors are in the lock-step mode (Figure 4-5), there should be
+code in the reset handler to ensure that the distributor within the GIC dispatches interrupts
+only to CPU0. During the lock-step operation, the TCMs that are associated with the
+redundant processor become available to the lock-step processor. The size of ATCM and
+BTCM become 128 KB each with BTCM supporting interleaved accesses from processor and
+AXI slave interface.
+X-Ref Target - Figure 4-5
+Figure 4-5: TCMs in Lock-step Mode
+TCMs
+Associated with
+CPU1
+TCM A
+TCM B
+TCMs
+Associated with
+CPU0
+TCM A
+TCM B
+Shim Shim
+Cortex-R5
+CPU0
+Cortex-R5
+CPU1
+Caches
+Associated with
+CPU0
+D-Cache
+I-Cache
+GIC
+Comparison and Synchronization Logic
+X15297-110815
+Send FeedbackZynq UltraScale+ Device TRM 80
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Tightly Coupled Memory Address Map
+TCMs are mapped in the local address space of each Cortex-R5F processor, but they are also
+mapped in the global address space for access from any master. The address maps from the
+RPU point of view and from the global address space are shown in Table 4-5.
+TCM Access from a Global Address Space
+The following address can be routed to the Cortex-R5F processors slave port:
+• If 0xFFE6_0000 > ReqAddr[31:0]  0xFFE0_0000, then route request to R5_0
+• If 0xFFEE_0000 > ReqAddr[31:0]  0xFFE9_0000, then route request to R5_1
+Table 4-5: TCM Address Map
+R5_0 View
+(Start Address)
+R5_1 View
+(Start Address)
+Global Address View
+(Start Address)
+Split mode
+R5_0 ATCM (64 KB) 0x0000_0000 N/A 0xFFE0_0000
+R5_0 BTCM (64 KB) 0x0002_0000 N/A 0xFFE2_0000
+R5_0 instruction cache (32 KB) I-Cache N/A 0xFFE4_0000
+R5_0 data cache (32 KB) D-Cache N/A 0xFFE5_0000
+R5_1 ATCM (64KB) N/A 0x0000_0000 0xFFE9_0000
+R5_1 BTCM (64KB) N/A 0x0002_0000 0xFFEB_0000
+R5_1 instruction cache (32 KB) N/A I-Cache 0xFFEC_0000
+R5_1 data cache (32 KB) N/A D-Cache 0xFFED_0000
+Lock-step mode
+R5_0 ATCM (128KB) 0x0000_0000 N/A 0xFFE0_0000
+R5_0 BTCM (128KB) 0x0002_0000 N/A 0xFFE2_0000
+R5_0 instruction cache (32 KB) I-Cache N/A 0xFFE4_0000
+R5_0 data cache (32 KB) D-Cache N/A 0xFFE5_0000
+R5_1 slave port is not accessible in lock-step mode.
+Send FeedbackZynq UltraScale+ Device TRM 81
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Figure 4-6 shows the address map views of the RPU and APU CPUs. The TCMs are mapped
+into a global address space that is accessible (via RPU slave port) by an APU or any other
+master that can access a global address space. In addition, TCMs are aliased in the local
+view of the RPU starting at address 0x0000-0000.
+A TCM cannot be accessed when the Cortex-R5F processor is in reset. The R5F processor
+must be in active or halt state to allow another master to access the TCM. The Cortex-R5F
+processor connection to TCM is a direct low-latency path that does not go through the
+SMMU. There is no protection to stop the Cortex-R5F processor from accessing the TCM.
+The RPU exception vectors can be configured to be HIVEC (0xFFFF-0000) or LOVEC
+(0x0000-0000). Because the OCM is mapped at HIVEC, and for the RPU to be able to
+execute interrupt handlers directly from TCMs, the TCMs must be mapped starting at
+address 0x0000-0000 (=LOVEC). Also, to configure the APU with LOVEC in DRAM, the APU
+cannot access TCMs at LOVEC. Consequently, TCMs are aliased into a local address map of
+the RPU for the Cortex-R5F processor to access them starting at address 0x0000-0000.
+There are cases where the CCI-400 will generate transactions using the same master ID as
+that of the R5_0. If that region is coherent and protected by an XMPU it will generate an
+error, unless the R5_0 is added to the allowed master ID list of the XMPU. If access to that
+region by the R5_0 is not compatible with the safety or security goal of the system, the user
+can either run the R5F application using only R5_1 (leaving R5_0 unused) or skip the use of
+coherency and not add R5_0 to the XMPU allowed list.
+X-Ref Target - Figure 4-6
+Figure 4-6: APU and RPU CPUs TCM Address Map
+Global Address Map
+TCMs (256 KB)
+LLPP + RPU-GIC
+DRAM
+BTCM (64 KB)
+ATCM (64 KB)
+0xFFFF-FFFF
+RPU Split View
+Global Address Map
+TCMs (256 KB)
+LLPP + RPU-GIC
+DRAM
+BTCM (128 KB)
+ATCM (128 KB)
+RPU Lock-step View
+Global Address Map
+TCMs (256 KB)
+APU-GIC
+DRAM
+APU View
+GIC BaseAddr
+Top of DRAM
+TCMs alias
+0x0000-0000
+0xFFE0-0000
+X15298-092916
+Send FeedbackZynq UltraScale+ Device TRM 82
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+Lock-step Sequence in Cortex-R5F Processors
+The following sequence is used to enable the lock-step mode of the Cortex-R5F processors.
+;SVC out of reset
+MOV r0,#0
+MOV r1,#0
+MOV r2,#0
+MOV r3,#0
+MOV r4,#0
+MOV r5,#0
+MOV r6,#0
+MOV r7,#0
+MOV r8,#0
+MOV r9,#0
+MOV r10,#0
+MOV r11,#0
+MOV r12,#0
+MOV r13,#0x10000
+;SP - Choose a suitable stack pointer value based on your system
+MOV r14, #0;LR
+;User (Sys)
+MSR CPSR_cxsf,#0x1F
+MOV r13,#0x70000
+;SP - Choose a suitable stack pointer value based on your system
+MOV r14,#0;LR
+;FIQ
+MSR CPSR_cxsf,#0x11
+MOV r8,#0
+MOV r9,#0
+MOV r10,#0
+MOV r11,#0
+MOV r12,#0
+MOV r13,#0x60000
+;SP - Choose a suitable stack pointer value based on your system
+MOV r14,#0;LR
+;IRQ
+MSR CPSR_cxsf,#0x12
+MOV r13,#0x50000
+;SP - Choose a suitable stack pointer value based on your system
+MOV r14,#0;LR
+;Undef
+MSR CPSR_cxsf,#0x1B
+MOV r13,#0x40000
+;SP - Choose a suitable stack pointer value based on your system
+MOV r14,#0;LR
+;Abort
+MSR CPSR_cxsf,#0x17
+MOV r13, #0x30000
+;SP - Choose a suitable stack pointer value based on your system
+MOV r14, #0;LR
+;Return to SVC
+MSR CPSR_cxsf,#0x13
+Send FeedbackZynq UltraScale+ Device TRM 83
+UG1085 (v2.5) March 21, 2025
+Chapter 4: Real-time Processing Unit
+FUNC(asm_init_vfp_regs)
+mov>----r1,#0
+vmov d0,r1,r1
+vmov d1,r1,r1
+vmov d2,r1,r1
+vmov d3,r1,r1
+vmov d4,r1,r1
+vmov d5,r1,r1
+vmov d6,r1,r1
+vmov d7,r1,r1
+vmov d8,r1,r1
+vmov d9,r1,r1
+vmov d10,r1,r1
+vmov d11,r1,r1
+vmov d12,r1,r1
+vmov d13,r1,r1
+vmov d14,r1,r1
+vmov d15,r1,r1
+cmp r0,#1
+beq asm_init_vfp_regs32
+bx lr
+asm_init_vfp_regs32:
+vmov d16,r1,r1
+vmov d17,r1,r1
+vmov d18,r1,r1
+vmov d19,r1,r1
+vmov d20,r1,r1
+vmov d21,r1,r1
+vmov d22,r1,r1
+vmov d23,r1,r1
+vmov d24,r1,r1
+vmov d25,r1,r1
+vmov d26,r1,r1
+vmov d27,r1,r1
+vmov d28,r1,r1
+vmov d29,r1,r1
+vmov d30,r1,r1
+vmov d31,r1,r1
+bx lr
+The ECC for the cache RAMs is initialized as part of the initial invalidation after reset. The
+cache ECC checking must be enabled during the invalidation using the following sequence.
+DSB
+MRC p15, 0, r1, c1, c0, 1 ;Read ACTLR
+ORR r1, r1, #(0x1 << 5) ;Set Bits [5:3] = 0b101
+BIC r1, r1, #(0x1 << 4) ;to enable ECC no forced
+ORR r1, r1, #(0x1 << 3) ;write-through
+MCR p15, 0, r1, c1, c0, 1 ;Write ACTLR ISB
+MCR p15, 0, r0, c7, c5, 0 ;Invalidate All instruction caches
+MCR p15, 0, r0, c15, c5, 0 ;Invalidate All Data caches DSB ISB
+If you have ECC on the TCMs, then the initial accesses to the TCM locations also needs to
+ensure that the ECC locations are updated correctly

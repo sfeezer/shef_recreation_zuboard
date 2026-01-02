@@ -1,0 +1,3766 @@
+Chapter 6
+Platform Management Unit
+Introduction
+The AMD Zynq™ UltraScale+™ MPSoC includes a dedicated user-programmable processor,
+the platform measurement unit (PMU) processor for power, error management, and
+execution of an optional software test library (STL) for functional safety applications.
+The PMU performs the following set of tasks.
+• Initialization of the system prior to boot.
+• Power management.
+• Software test library execution (optional).
+• System error handling.
+The configuration and security unit (CSU) monitors system temperature sensors.
+Power Modes
+There are three modes of power management operation at the PS level: battery-powered
+mode, low-power operation mode, and full-power operation mode.
+To comply with the power domain requirements, there are separate power rails to supply
+the power for each domain. Figure 6-1 shows the features within the PS over the power
+rails.
+Battery Powered Mode
+To maintain critical information over the time during power off, the device provides the
+battery power mode. The following blocks are contained in the battery-powered domain:
+• Battery-backed RAM (BBRAM) holds the key for secure configuration.
+• Real-time clock (RTC) with crystal oscillator.
+Send FeedbackZynq UltraScale+ Device TRM 106
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Low-Power Operation Mode
+In the low-power operation mode, hardware blocks on the low power rail are powered up in
+the PS block (PMU, RPU, CSU, and the IOP). The low-power mode includes all peripherals
+except the SATA and display port blocks. Table 6-1 shows the IP enabled in low-power
+mode.
+Full-Power Operation Mode
+All domains are powered in the full-power mode, so the LPD is typically powered whenever
+FPD is powered. Like the low-power mode, power dissipation depends on the components
+that are running and their frequencies.
+Note: If the FPD is needed at any point, it must be powered during the initial boot. This does not
+apply if the FPD is never used.
+Table 6-1: Minimum and Typical Configurations for the Low-Power Mode
+System Elements Typical Minimum
+Configuration
+Typical Configuration
+Full Optimization Comments
+Cortex-R5F One core @ 50 MHz Two cores @maximum
+data sheet frequency
+Clock is gated to the
+unused core.
+TCM configuration
+OCM configuration
+Powered down
+128KB
+64 KB instruction and
+64 KB data
+256 KB
+Power is gated off to
+the unused TCM banks.
+Power is gated off to
+the unused banks
+Device security Without AES All, including AES
+Peripheral One set of UART, I2C,
+and Ethernet
+All peripherals in LPS
+and one USB 2.0
+USB can
+independently be
+powered down.
+PLLs One PLL Two PLLs PLLs that are not used
+are in the
+powered-down state.
+SYSMON Included Included Power is reduced as
+there are fewer
+supplies to be
+sampled.
+RTC and BBRAM Included Included Switched to the
+VCC_PSAUX rail.
+PMU
+SoC debug
+Included
+Standby
+Included
+Standby
+SoC debug is mostly
+on the FP rail. The LP
+section is not used.
+eFuse
+Components outside LPD
+Included
+Powered down
+Included
+Powered down
+PL Powered down Powered down
+Send FeedbackZynq UltraScale+ Device TRM 107
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+X-Ref Target - Figure 6-1
+Figure 6-1: Power Domains and Islands
+X16958-120418
+VCU H.265, H.265
+BRAM
+PL SYSMON
+(SYSMONE4)
+100 Gb Ethernet Interlaken
+PL Configuration
+PL Fabric
+PL Fabric
+DSP, LUT, Clks
+SerDes
+HD I/O
+eFUSE
+Real
+Time
+Clock BBRAM
+Oscillator
+USB 0
+USB 1
+PS-GTR
+1.2 to 1.5V
+Battery Power Domain (BPD)
+1.8V
+VCC_PSAUX good
+1.8V to 3.3V VCCO_PSIO3
+1.8V to 3.3V VCCO_PSIO2
+1.8V to 3.3V VCCO_PSIO1
+1.8V to 3.3V VCCO_PSIO0
+0.85 or 0.9V VCC_PSINTLP
+1.2V VCC_PSPLL
+0.85 or 0.9V
+VCC_PSINTFP
+0.85V PS_MGTRAVCC
+1.8V PS_MGTRAVTT
+Note: RFSoC devices provide enhanced
+Ethernet, PCIe, and GTY functionality.
+VCCO_PSDDR
+1.8V VCC_PSDDR_PLL
+VCCBRAM
+0.9V VCCINT_VCU
+1.8V VCCADC
+1.25V VREFP
+1.8V VCCAUX
+1.2 to 3.3V VCCO
+0.85 or 0.9V
+VCC_PSINTFP_DDR
+PS
+SysMon
+APLL
+VPLL
+DPLL
+RPLL
+IOPLL
+System
+MIO 2
+MIO 1
+MIO 0
+L2 Cache
+RAM
+CPU 3
+CPU 1
+CPU 2
+CPU 0
+APU MPCore
+(SCU, GIC, CCI)
+APU Debug
+RPU debug
+Arm DAP
+PL
+debug
+FPD
+DMA PCIe SATA GPU pipeline
+Interconnect and SLCR
+DisplayPort
+GPU PP0
+GPU PP1
+Bank 0
+Bank 1
+Bank 2
+Bank 3
+TCM A0
+TCM A1
+TCM B0
+TCM B1
+IOP OCM Ctrl
+CSU PMU
+IPI
+Interconnect and SLCR
+LPD DMA
+PS TAP
+PLLs (x6)
+DDR Memory
+Controller
+DDRIOB
+Ports
+Battery
+Power
+Supplies
+PCAP
+PCAP-LPD Isolation Wall
+PL-LPD Isolation Wall
+VCC_PSAUX
+Low Power Domain (LPD)
+Full Power Domain (FPD)
+PL Power Domain (PLPD)
+PSIO {0:3} Power
+High-Performance I/O PL Power Domains for Multiple
+PL Units
+PLL Power Domains
+VCC_PSBATT
+GIC ETM
+RPU
+MPCore
+PL-FPD Isolation Wall
+PS Auxiliary Power Domain
+0.9 to 1.8V GTH/GTY Supplies
+1.8V VCC_PSADC
+PCIe Gen3, 4
+PL TAP
+PMU software control
+PHY
+HP I/O
+1.8V VCCAUX_IO
+VCCINT
+0.72, 0.85, or 0.9V
+PLPD
+1.0 to 1.8V VCCO
+1.1 to 1.5V
+Send FeedbackZynq UltraScale+ Device TRM 108
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU System-level View
+The PMU block is located within the low-power domain. Figure 6-2 shows the block
+diagram of the PMU. It includes the following subcomponents:
+• Dedicated, fault-tolerant triple-redundant processor.
+• ROM to hold PMU ROM code that includes the PMU startup sequence, routines to
+handle power-up or down requests, and interrupts.
+• 128 KB RAM with ECC used for code and data.
+• PMU local registers accessible only by the PMU.
+• PMU global registers accessible by the PMU processor and also by other bus masters
+within the system. These include all power, isolation, and reset request registers. It also
+includes error capture registers and the system power state registers.
+• 32-bit AXI slave interface to allow masters outside the PMU to access the PMU RAM
+and the global register file.
+• PMU interrupt controller manages the 23 interrupts to the PMU. Four are from the
+inter-processor interconnect (IPI).
+• GPI and GPO registers interface to the PMU, MIO, PL, and other resources within the PS
+for signaling to and from the PMU.
+° Six outputs and six inputs.
+° 32 GPO outputs to the PL from the PMU and 32 GPI inputs from the PL to the PMU.
+° 47 system errors to the PMU.
+° CSU error code.
+° 32 memory built-in self test (MBIST) status signals and 32 MBIST completion
+signals.
+° Three direct reset control signals.
+° Four AIB status signals and four AIB control signals.
+° 11 logic clear status signals.
+° DDR retention control.
+° Three programmable settings to the CSU for the PL.
+• PMU MDM controller accessible using the PS TAP controller via the PSJTAG interface.
+Send FeedbackZynq UltraScale+ Device TRM 109
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+X-Ref Target - Figure 6-2
+Figure 6-2: PMU System Diagram
+PMU I/O Units
+Internal
+Interrupt
+Controller
+GPI
+Voter
+128 KB
+RAM
+ECC
+AXI Interconnect
+AXI
+APB AXI
+AXI
+APB
+PMU Global
+Registers
+eFUSE Cache
+System Monitor
+Reset
+Controller
+MDM
+GPO
+GIC
+Proxy
+RTC
+PS Multiplexed I/O Dedicated PS I/O
+External
+Peripheral
+Interrupts
+- USB Wake
+- IPI
+- APU Cores 0:3
+- DAP
+RTC Wake
+PS_ERROR_STATUS
+JTAG
+- PS Mode
+- PRST
+POR_B
+SRST_B
+PS_REF_CLK
+SysCalc
+pma_clk
+Clock
+MUX
+PS
+TAP
+External PCR
+Internal PCR
+SRST
+PMU
+Voter
+PMU Processor
+Voter
+from LPD Inbound
+Switch
+To LPD
+Outbound Switch
+System
+Errors
+LPD Subsystem
+X28744-101823
+Send FeedbackZynq UltraScale+ Device TRM 110
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Functional Description
+The functionality within the PMU is outlined in this section.
+• Performs the sequencing of events after POR and before CSU reset is released. These
+functions include the following.
+° Check the power-supply levels using the System Monitor for proper operation of
+the CSU and the rest of the LP domain.
+° Initialize the PLLs for the default configuration and their potential bypass.
+° Trigger and sequence the necessary scan and MBIST.
+° Capture and signal errors during this stage. Error ID can be read through JTAG.
+° Release reset to the CSU.
+• Acts as a delegate to the application and real-time processors during their sleep state
+and initiates their power-up and restart after their wake-up request.
+• Maintain the system-power state at all times.
+• Handles the sequence of low-level events required for power-up, power-down, reset,
+memory built-in self repair (MBISR), MBIST, and scan zeroization of different blocks.
+• Manages the system during the sleep mode and wake-up the system based on various
+triggering mechanisms.
+• Includes PS-level error capture and propagation logic.
+PMU Processor
+The PMU processor is a triple-redundant processor without caches. The processing system
+provides fault tolerance by applying redundancy on the PMU and error correction (ECC) on
+the RAM interface. The triple redundancy and ECC corrects single errors and generates an
+error on multiple errors that cannot be corrected. When an error occurs with one of the
+PMU processors, it might not always be possible for the processor in error to properly
+continue operation. Thus, at some point, the PMU might require a reset for proper TMR
+operation.
+There is a provision to allow more complex power protocol management programs to be
+implemented as firmware or application programs in the PMU RAM.
+Note: PMU processor debug module is disabled by default on ES2 and higher versions.
+Send FeedbackZynq UltraScale+ Device TRM 111
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Table 6-2 lists the implementation features for the PMU processor.
+PMU Processor Interfaces
+The PMU provides input/output signals that are grouped functionally into the following
+interfaces.
+• 32-bit AXI master interface to the low-power domain (LPD) interconnect that allows the
+PMU to access other PS resources including the SLCR registers and the IPI block.
+• 32-bit AXI slave interface from the LPD inbound switch to allow accesses to the PMU
+global registers and the PMU RAM by external processors.
+• PMU clock and reset signals.
+• Power control interface to all islands within the PS.
+° L2, OCM, and TCM RAMs.
+° APU_Cores [3:0].
+° Dual-core Cortex-R5F® real-time processor.
+° USB0 and USB1.
+° GPU pixel-processor (PP) PP0 and PP1.
+° Full-power and PL domain crossing bridges.
+Table 6-2: MicroBlaze Implementation Features
+Feature Implementation
+Pipeline 5-stage.
+Interconnect standard AXI
+Endianness Little endian.
+Program counter width 32
+Support for load/store exclusive Enabled.
+Fault tolerance Enabled.
+Hardware multiplier/divider/barrel shifter Disabled/disabled/enabled.
+Debug Enabled. One of each type of break-point.
+Fast interrupt Disabled.
+Send FeedbackZynq UltraScale+ Device TRM 112
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake interface from GPIO, RTC, APU GIC, RPU GIC, and USBs.
+• Interrupt interface.
+• Device reset control interface.
+• Memory BIST and BISR control interface.
+• Other miscellaneous interfaces including the power-supply monitor interface. Table 6-3
+lists the PMU general purpose MIO pins.
+• Error capture and propagation interfaces. Table 6-4 lists the error capture and
+propagation signals.
+PMU Clocking
+The PMU operates on the SysOsc clock (180 MHz ± 15%) that is supplied from the internal
+ring-oscillator (IRO) located within the system monitor (PS SYSMON) block. The clock is
+gated until the POR block detects that the VCC_PSAUX supply has ramped up.
+Table 6-3: PMU General Purpose MIO Pins
+Register Bit
+Fields Pins Size Direction Clock Clamp
+Value Description
+GPI1[15:10] MIO
+[31:26] 6 Input Async 6’b0
+Inputs for external events that are
+available to the PMU using six
+MIO pins. The GPI1 register bits
+are listed in Table 6-6. These
+signals are defined by FSBL, SDK,
+development boards, or users.
+GPO1[5:0] MIO
+[37:32] 6 Output pmu_clk
+Output signals to control external
+power supplies and other board
+hardware using MIO pins. See
+Table 6-9 for pin assignments.
+GPO1[0]: used by the PMU ROM
+code for the FPD's VCC_PSINTFP.
+GPO1[1]: used by the PMU ROM
+code for the PL's VCCINT.
+GPO1[2:5]: user defined (including
+AMD reference boards and
+customer designs). Not used by
+the PMU ROM code.
+Table 6-4: Error Interface Signals To and From the PL
+Signal Name Size Direction Clock Clamp
+Value Description
+pmu_pl_err 4 Input Async 4’b0 Generic PL errors communicated to PS.
+pmu_error_to_pl 47 Output pmu_clk PS error communicated to the PL and
+JTAG.
+Send FeedbackZynq UltraScale+ Device TRM 113
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+SysOsc starts to oscillate as soon as the voltage is high enough for the block to function.
+The reset of the PMU processor is synchronous and requires a clock edge for it to take
+place, POR_B input must be asserted until the voltage has ramped up. This guarantees that
+the PMU processor GPOs, which control many hardware logic blocks within the PS, are
+initialized when the device is powered up.
+PMU Reset
+The PMU block uses both power-on reset (POR) and the system reset (SRST) inputs that are
+controlled by the reset block. POR clears the state of the PMU completely. All islands and
+power domains are powered up and all the isolations are disabled. After a POR, the PMU
+executes both scan and BIST clear functions on the LP and FP domains. However, the SRST
+will only reset the PMU processor subsystem, the PMU interconnect, and a subset of local
+and global registers, leaving most local and global registers in the states they were prior to
+the reset. When the SRST triggers the reboot of the PMU, the power state is not cleared and
+the power state of the PS is preserved. However, after a power-on reset, the power state is
+cleared by specifically clearing all RAMs and flip-flops.
+PMU RAM
+Much of the PMU functionality is provided by software executed by the PMU processor. The
+ROM memory contains instructions that provide default functionality. To extend or replace
+these features, or to provide new features, software can be downloaded into the PMU
+processor’s 128 KB RAM. The PMU includes a 128 KB RAM with 32-bit ECC that is used to
+hold data and code. The PMU RAM is accessible both by the PMU processor and the
+external masters through the PMU AXI slave interface.
+IMPORTANT: Accesses by the external masters should be 32-bit wide and word-aligned.
+The PMU RAM allows only word writes, words are 4 bytes. It does not allow byte writes. If
+less than 4 bytes have to be written, then the 4 bytes must be read first, modified, and the
+entire 4 bytes must be written back.
+For an external master to access the PMU RAM through the APB interface, the PMU
+processor must be in sleep mode. A PMU RAM access from an external master while the
+PMU processor is not asleep can hang the system. If the PMU processor is not put in sleep
+mode, it performs an instruction fetch or load/store on every clock cycle, which means that
+the APB never gets to access the RAM. In this case, starvation of the APB interface occurs.
+The following is the order of priority to access the PMU RAM.
+1. PMU processor data load/store.
+2. PMU processor instruction fetch.
+3. External access.
+Send FeedbackZynq UltraScale+ Device TRM 114
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU ROM
+PMU includes a ROM that holds the boot code for the PMU, its interrupt vectors, and the
+service routines that the PMU can execute (upon a request). The PMU ROM is responsible
+for various functions within the PMU. The following is the list of the tasks that are executed
+by the ROM code.
+• Pre-boot tasks
+° Clean PMU RAM
+° Enable the System Monitor and check LP domain supply.
+° Configure PLLs with initial settings.
+° Trigger and sequence the necessary scan and BIST clear of PS.
+° Release reset to CSU.
+• Post-boot tasks
+° Power-up and power-down domains within the PS.
+° Enable and control built-in self-repair (BISR).
+° Reset blocks when requested or as a part of the master power-ups.
+• Execute firmware code upon request.
+MBIST Functionality
+ROM code execution initiates MBIST clear on the entire LP domain minus the PMU or on the
+entire FP domain. When a memory is tested or cleared using the MBIST, the rest of the
+system can be functioning. For most of the blocks, RAM is accessed by the MBIST and it
+keeps the block RAM in the reset state when the RAM is accessed by the MBIST engine. For
+a few blocks, such as APU core processors, RAM is accessed by the MBIST through the core
+functional paths that can be interfered if the block is in reset. In such cases, Arm requires a
+small subset of inputs to the core to be tied off to specific values during the MBIST
+execution.
+Setting a particular bit in the MBIST_RST, MBIST_PG_EN, and MBIST_SETUP registers starts
+the MBIST process on that particular block. The MBIST_DONE bit is set to indicate that the
+process is finished. MBIST_GOOD provides the status of the process by setting either 0 (fail)
+or 1 (success).
+Send FeedbackZynq UltraScale+ Device TRM 115
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+There are five control and status registers:
+• MBIST_RST rw
+• MBIST_PG_EN rw
+• MBIST_SETPU rw
+• MBIST_DONE ro
+• MBIST_GOOD ro
+For the RAMs in:
+• APU, RPU cores
+• CANx, GEMx, USBx,
+• GPU, PCIe, SIOU
+• PS-PL AXI Interface RAMs
+The MBIST units are listed by bit field in the Zynq UltraScale+ MPSoC Register Reference
+(UG1087) [Ref 4].
+Scan Clear Functionality
+Zeroization is a process in which zeros are shifted through all of the storage elements and
+then verified that the shift occurred correctly. This is achieved using MBIST and scan clear
+functionality. The scan clear engines can only be controlled by the PMU and CSU processors
+through their direct interfaces to the engines. Other processors can request the PMU
+through its SCAN_CLR_REQ register to start any specific scan clear engines. When a scan
+clear engine is started, the completion status signal from the engine transitions from 1 to 0.
+This signal, which is routed directly to a PMU LOGCLR_ACK register, communicates the
+completion status of the engine to the PMU. When a scan clear engine finishes its
+operation, its completion status bit toggles from 0 to 1 generating an interrupt to the PMU.
+The pass/fail status of the clearing operation can be checked by the bits in the PMU
+LOGCLR_STATUS global register that are directly driven by the pass/fail status of the engine.
+The CSU only starts scan clear engines under a security lock-down scenario and there is no
+functional requirement for the CSU to check the pass/fail status, or the completion status,
+of the clearing operation.
+Every power island and every power domain has a scan clear engine. The PMU and CSU
+blocks have separate scan clear engines even though they are not power islands. The PMU
+scan clear is triggered only on power-on reset and the CSU scan clear can only be triggered
+by the PMU.
+IMPORTANT: The scan clear has to operate on the entire power island. In this case, the power island
+needs to be isolated before the block is put in the scan mode to start the scan clear functionality.
+Send FeedbackZynq UltraScale+ Device TRM 116
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+To ensure running the scan clear on the LP domain, the full LPD (minus the PMU) is in reset,
+the reset logic must follow these guidelines:
+1. Keep reset registers off the LPD scan chain.
+2. Leverage the explicit reset input to clear state in registers that have this feature (this is
+recommended, but not required). The explicit reset can be asserted by the scan clear
+request output from the PMU (scan_clear_trigger_lpd output for the LPD domain) to
+force the reset to stay asserted by OR’ing it with the reset. The use of explicit resets for
+clearing instead of using scan on these registers requires them to be applied on chains
+that are included in the scan test rather than in the scan clear. However, this makes the
+scan architecture more complex.
+3. The PMU local and global registers implement self-clearing through reset and are
+excluded from the scan clear. This is done to prevent an unnecessary power cycle of the
+islands during the scan clear of the PMU. The PMU is required to be cleared only during
+a POR or after a security shutdown. In either case, the flip-flops on the local and global
+registers are excluded from clearing functions. If for any reason this is not acceptable for
+the security lock-down, the reset to the flip-flops with the self-clearing feature that are
+not cleared through scan has to be asserted after the scan clear function on the rest of
+the flops is completed. This guarantees that the self-clearing of the PS is not affected by
+a potential IR drop due to the power up of the blocks that were previously powered
+down.
+Note: User functions that need FPD SC must power MGTRAVCC even if not using the GT.
+PMU Interconnect
+PMU includes a 2 × 3 interconnect which supports two AXI masters, two APB slaves, and
+one AXI slave. One of the masters is the 32-bit AXI master from the triple-redundant
+processor and the other is the low-power domain main interconnect. This AXI master is a
+port on its register switch allowing any master in the system to access the PMU slaves.
+The two APB slaves are the PMU RAM and PMU global register file. The AXI slave is on the
+port routed to the LPD switch and only allows the accesses that were originated by the PMU
+processor to be routed to the PS slaves outside the PMU.
+The PMU processor AXI master can generate a coherent transaction by setting the coherent
+bit in the PMU global control register. The PMU AXI master (from the LPD interconnect)
+always generates transactions with AWCACHE and ARCACHE equal to 4'b0001 regardless
+of the coherency bit. This implies that PMU requests are treated as device transactions that
+can be buffered.
+The PMU interconnect implements TrustZone security. All accesses that are generated by
+the PMU are secure and only secure accesses are allowed to be routed to the PMU. The PMU
+interconnect will generate an error on any non-secure access to the PMU.
+Send FeedbackZynq UltraScale+ Device TRM 117
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU I/O Registers
+The PMU I/O registers include all the registers associated with the interrupts, GPI/GPO, and
+the programmable interval timers (PITs). The PMU_IOMODULE registers control the
+interrupt controller, GPI{0:3}, GPO{0-3}, and PIT0-PIT3. The PMU_GLOBAL registers enable
+the system processors to control interrupts and trigger PMU service requests.The PMU
+processor memory map is shown in Table 6-5.
+PMU Global Registers
+The global register set includes registers that are used as a means of communication
+between the PMU and other blocks to synchronize activities regarding power/system
+management and reset.
+The PMU global register set is mapped at address FFD8 0000—FFDB FFFF. The registers
+are summarized in Table 6-16. For a bit-level description, refer to the PMU_GLOBAL section
+in the Zynq UltraScale+ MPSoC Register Reference (UG1087) [Ref 4].
+PMU GPIs and GPOs
+The PMU processor includes four local (only accessible by the PMU processor) GPI banks
+and four GPO banks. GPI0 and GPO0 are reserved for the dedicated PMU processor
+subsystem features (see PMU Processor), while GPI3 and GPO3 are reserved for
+communication with the PL. GPI1, GPI2, GPO1, and GPO2 are used for communication
+between the PS hardware features and the PMU.
+The PMU’s general-purpose I/O features include miscellaneous wake, errors, and
+handshaking signals. The usage of the GPIs and GPOs can be summarized as follows with all
+signals being active-High unless otherwise specified.
+• GPI0 is used internally by the PMU processor. GPI0[31:0] shows the value of the
+fault-tolerance status register.
+• GPI1 monitors wake-up requests. Table 6-6 describes the various GPI1 bit(s).
+Table 6-5: PMU I/O Registers and Local Memory
+Memory
+Address Size Slave Interface Accessible AXI Interconnect
+0xFFD0_0000 32 KB PMU ROM PMU only Local bus
+0xFFD4_0000 128 B PMU_IOMODULE register set PMU only Local bus
+0xFFD5_0000 1024 B PMU_LMB_BRAM PMU only Local bus
+0xFFD6_0000 128 B PMU_LOCAL register set PMU only Local bus
+0xFFD8_0000 1024 B PMU_GLOBAL register set System via XPPU System bus
+0xFFDC_0000 128 KB PMU RAM memory System via XPPU System bus
+Send FeedbackZynq UltraScale+ Device TRM 118
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• GPI2 monitors power control requests. Table 6-7 describes the various GPI2 bit(s).
+Table 6-6: GPI1 Bit Descriptions
+Bit(s) Description
+GPI1[3:0] ACPU3-ACPU0 wake from APU GIC associated with ACPU3-ACPU0.
+GPI1[5:4] R5_1 and R5_0 wake from RPU GIC associated with R5_1 and R5_0.
+GPI1[7:6] USB1 and USB0 wake.
+GPI1[8] DAP full-power domain wake-up request.
+GPI1[9] DAP RPU wake-up request.
+GPI1[15:10]
+General purpose wake-up and event signals from MIO (see Table 6-3).
+MIO[26] -> GPI1[10]
+MIO[27] -> GPI1[11]
+...
+MIO[31] -> GPI1[15]
+GPI1[16] Full-power domain wake directed by the GIC proxy.
+GPI1[19:17] Reserved.
+GPI1[23:20] APU debug power-up request for ACPU3-ACPU0 APU MPCore processors 0, 1, 2, 3.
+GPI1[27:24] Reserved.
+GPI1[28] Error interrupt to PMU from error register 1.
+GPI1[29] Error interrupt to PMU from error register 2.
+GPI1[30] AXI AIB access error. A powered-down block is accessed through AXI.
+GPI1[31] APB AIB access error. A powered-down block is accessed through APB.
+Table 6-7: GPI2 Bit Descriptions
+Bit(s) Description
+GPI2[3:0] Power-down request from APU core {3:0}.
+GPI2[5:4] Power-down request from RPU core {1:0}.
+GPI2[6] Read the state of the pcfg_por_b input from PL, which signifies that PL is properly
+powered up.
+GPI2[7] Reserved.
+GPI2[8] Request to reset RPU core 0 by debug.
+GPI2[9] Request to reset RPU core 1 by debug.
+GPI2[15:10] Reserved.
+GPI2[16] Warm reset request for APU core 0.
+GPI2[17] Warm reset request for APU core 1.
+GPI2[18] Warm reset request for APU core 2.
+GPI2[19] Warm reset request for APU core 3.
+GPI2[20] Warm reset request for APU core 0 by debug logic.
+GPI2[21] Warm reset request for APU core 1 by debug logic.
+Send FeedbackZynq UltraScale+ Device TRM 119
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• GPI3 monitors the GPIs from the PL.
+• GPO0 is dedicated to the PMU features. Table 6-8 describes the various GPO0 bit(s).
+GPI2[22] Warm reset request for APU core 2 by debug logic.
+GPI2[23] Warm reset request for APU core 3 by debug logic.
+GPI2[28:24] Reserved.
+GPI2[31:29]
+Power rail removal alarms.
+[31]: Asserts when VCC_PSINTFP is removed.
+[30]: Asserts when VCC_PSINTLP is removed.
+[29]: Asserts when VCC_PSAUX is removed.
+Table 6-8: GPO0 Bit Descriptions
+Bit(s) Description
+GPO0[0]
+Used during debug to remap the 64-byte interrupt base vectors region to the RAM
+starting address (0xFFD0 0000).
+0 = base vectors in ROM (default).
+1 = base vectors in RAM.
+GPO0[2:1]
+Set PIT0 prescaler.
+x0 = PIT0 is a 32-bit timer with no prescaler.
+01 = External prescaler.
+11 = PIT1 is prescaler to PIT0.
+GPO0[4:3]
+Set PIT1 prescaler.
+x0 = PIT1 is a 32-bit timer with no prescaler.
+x1 = External prescaler.
+GPO0[6:5]
+Set PIT2 prescaler.
+x0 = PIT2 is a 32-bit timer with no prescaler.
+01 = External prescaler.
+11 = PIT3 is prescaler to PIT2.
+GPO0[7]
+Set PIT3 prescaler.
+0 = PIT3 is a 32-bit timer with no prescaler.
+1 = External prescaler.
+GPO0[8] Used to suppress the comparison of the PMU processor trace bus to not detect a
+trace bus mis-compare during fault injection.
+GPO0[9] Controls if the PMU processor SLEEP instruction cause a processor hardware reset
+during recovery from lock-step mode due to voting mode comparison.
+GPO0[10] Makes it possible to clear the value of the fault tolerance status register.
+GPO0[11] Makes it possible to reset the fault tolerance state machine.
+GPO0[12] Controls if fault tolerance state machine reset of the PMU processor is generated
+or not.
+Table 6-7: GPI2 Bit Descriptions (Cont’d)
+Bit(s) Description
+Send FeedbackZynq UltraScale+ Device TRM 120
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• GPO1 is dedicated to the MIO for signaling and power-supply management. Table 6-9
+lists the GPO1 register bits.
+• GPO2 is dedicated to the PMU-generated requests and acknowledges. Table 6-10
+describes the various GPO2 bit(s).
+• GPO3 is dedicated to the GPOs to the PL.
+PMU Programmable Interval Timers
+The PMU includes four 32-bit programmable interval timers (PITs). The clock source to
+these timers is the fixed system oscillator (SysOsc) to the PMU. These are general-purpose
+timers for use as delay counters or event scheduling. The pre-scaler for the PITs can be
+configured through GPO0. The following are the possible pre-scaler choices for each PIT.
+• PIT0: No pre-scaler, use pre-scaler value from PIT1
+• PIT1: No pre-scaler
+• PIT2: No pre-scaler, correctable ECC error
+• PIT3: No pre-scaler
+GPO0[15:13] Used to inject failures in the triple-redundant PMU processor.
+GPO0[23:16] Used as magic word #2 to reduce the risk of accidental commands controlling TMR
+operation being issued.
+GPO0[31:24] Used as magic word #1 to reduce the risk of accidental commands controlling TMR
+operation being issued.
+Table 6-9: GPO1 Bit Descriptions
+Bit(s) Description
+GPO1[5:0] These bits can drive up to six MIO outputs, their usage is described in Table 6-3.
+GPO1[31: 6] Not implemented.
+Table 6-10: GPO2 Bit Descriptions
+Bit(s) Description
+GPO2[5:0] Reserved.
+GPO2[6] Used to enable a subset of signals between PL and PS after the PMU has determined
+that the PL is properly powered up.
+GPO2[7] PS status output from PMU to a dedicated PS general purpose I/O pad.
+GPO2[8] Acknowledge to FP wake-up request from DAP.
+GPO2[9] Acknowledge to RPU wake-up request from DAP.
+GPO2[31:10] Not implemented.
+Table 6-8: GPO0 Bit Descriptions (Cont’d)
+Bit(s) Description
+Send FeedbackZynq UltraScale+ Device TRM 121
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+The timers are only accessible from the PMU firmware. The PMU processor’s I/O module
+driver provides an API for these resources.
+PMU Interrupts
+When the PMU processor receives an interrupt, it branches to the PMU ROM. The ROM
+code must check the pending interrupt register within the interrupt controller in the PMU
+I/O module and branch to the appropriate interrupt service routine in the ROM or RAM. The
+priority between the pending interrupts can be enforced by the PMU firmware, and if not
+present, the priority is managed by the ROM. Table 6-11 lists the PMU interrupts.
+Table 6-11: PMU Interrupts
+Bit in Interrupt
+Pending Register External Interrupt Description
+31 Secure lock-down request Interrupt from CSU to initiate a secure lock down.
+30 Reserved
+29 Address error interrupt Interrupt for address errors generated during
+accesses to PS SLCRs or PMU global registers.
+28 Power-down request Interrupt to signal a power-down request.
+27 Power-up request Interrupt to signal a power-up request.
+26 Software reset request Interrupt to signal a software-generated reset
+request.
+25 Hardware block RST
+request
+Interrupt for all hardware-generated block reset
+requests.
+24 Isolate request Interrupt to signal an isolation request.
+23 ScanClear request Interrupt to signal a scan clear request.
+22-19 IPI3-IPI0 Interrupt associated with IPI slices 3-0 to PMU.
+18 RTC alarm interrupt Interrupt from RTC to signal the alarm.
+17 RTC seconds interrupt Interrupt from RTC triggered every second.
+16 Correctable ECC error Interrupt generated when an ECC error on the PMU
+RAM is corrected.
+15 Reserved
+14 GPI3 Interrupt generated when any input on GPI3
+changes from 0 to 1.
+13 GPI2 Interrupt generated when any input on GPI2
+changes from 0 to 1.
+12 GPI1 Interrupt generated when any input on GPI1
+changes from 0 to 1.
+11 GPI0 Interrupt generated when any input on GPI0
+changes from 0 to 1.
+10-7 Reserved
+Send FeedbackZynq UltraScale+ Device TRM 122
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+MIO Pin Considerations
+The processing system (PS) contains three banks of 26-bit general-purpose multiplexed I/O
+(MIO) used by different peripherals. All the three banks can support LVCMOS18, LVCMOS25,
+and LVCMOS33 standards. The I/O that is used in conjunction with the PMU includes the
+UTMI+ low pin interface (ULPI) for one USB, six GPIs for wake and signaling, and six GPOs
+for power supply control and signaling. The I/O pins for power management and wake up
+are accessible from the GPO1 and GPI1 registers, respectively.
+Among the six GPOs, the PMU ROM code uses GPO1[0] on MIO[32] to control the FPD's
+VCC_PSINTFP power supply and GPO1[1] on MIO[33] to control the PL's VCCINT power
+supply. Both pins are active high (1 is power on and 0 is power off). The other four GPO[2:5]
+signals can drive outputs onto the MIO[34:37] pins.
+The AMD development boards assign functionality for the GPO[2:5] signals, but they can be
+re-assigned and controlled by PMU user firmware because they are not used by the PMU
+ROM code. The GPO signals and MIO pins are listed in Table 6-3.
+PMU Error Handling and Propagation Logic
+The PMU is responsible for capturing, reporting, and taking an appropriate action with
+respect to each error. Each system error is identified in the PMU_GLOBAL error status
+registers. The PMU also includes the necessary registers, logic, and interfaces for handling
+this functionality.
+The PMU provides a collection of error input signals that route all system-level hardware
+errors to capture them. These errors are recorded in the error status registers 1 and 2 within
+the PMU and are not cleared even during a system reset or an internal POR. A captured
+error can only be cleared if a 1 is explicitly written to each corresponding error status bit. All
+errors can generate an interrupt to the PMU. This interrupt can be masked per error. The
+propagation of all errors to error status registers can be disabled by using the bits in the
+error enable registers (ERROR_EN_1 and ERROR_EN_2) global registers in the PMU.
+PMU also includes registers that can capture software-generated errors. The software errors
+refer to the errors that occur during the execution of PMU ROM, PMU firmware, and the
+CSU ROM.
+Similar to the hardware errors, software errors are recorded in the PMU and are cleared only
+by an external POR or explicitly by writing a 1 to its corresponding error status register bit.
+All but the software errors are recorded by the PMU during its pre-boot execution can
+6-3 PIT3-PIT0 Programmable interval timer interrupts.
+2-0 Reserved
+Table 6-11: PMU Interrupts (Cont’d)
+Bit in Interrupt
+Pending Register External Interrupt Description
+Send FeedbackZynq UltraScale+ Device TRM 123
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+generate an interrupt to the PMU. Similar to the hardware errors, this interrupt can be
+masked per error.
+For each of the errors that are processed by the error handling logic, you can decide what
+action should be taken when the error occurs. The possible scenarios would be one or a
+combination of the following choices.
+• Assertion of the PS_ERROR_OUT signal on the device.
+• Generation of an interrupt to the PMU processor (PMU_Int).
+• Generation of a system reset (SRST).
+• Generation of a power-on-reset (POR).
+There are four mask registers associated with each of the ERROR_STATUS registers
+(ERROR_STATUS_1 and ERROR_STATUS_2). These mask registers can be used to enable
+either POR, SRST, PMU interrupt (if firmware is installed), or signal a PS_ERROR_OUT. To set
+the mask, write a 1 to the appropriate bit on the ERROR_INT_EN register (ERROR_INT_EN_1
+or ERROR_INT_EN_2). To clear the mask, write a 1 to the appropriate bit on the
+ERROR_INT_DIS register (ERROR_INT_DIS_1 or ERROR_INT_DIS_2). When selecting the
+option to interrupt the PMU when a specific error occurs, there should be user firmware to
+process the error. Otherwise, a no-firmware error will occur. The signal states can be
+unmasked as desired. Table 6-12 lists all possible sources of error and the corresponding
+reset state of the ERROR_SIG_MASK_n mask registers for the PS_ERROR_OUT device pin
+signal. All of the other error mask registers are set = 1 (masked).
+Table 6-12: PMU Error Sources and Reset State Masks
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Software Errors
+CSU BootROM
+detected error U _2 [26] [0] ~
+BootROM in CSU
+experienced an error
+during boot, including
+bitstream authentication
+failure.
+PMU ROM code
+preboot errors U _2 [25] [1] ~
+PMU ROM code
+experienced an error
+during the preboot
+process.
+Send FeedbackZynq UltraScale+ Device TRM 124
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU ROM code
+service errors U _2 [24] [2] ~
+PMU ROM code
+experienced an error
+processing a service
+request.
+PMU firmware
+defined interrupt
+bits.
+U _2 [21:18] [6:3] ~
+PMU user firmware
+reported an error code.
+FSBL detected
+errors
+~
+Hardware Errors
+PMU hardware
+errors
+U _2 [17] [7]
+PMU ROM validation,
+TMR fault, RAM UE ECC,
+or register address access
+error.
+CSU error U _2 [16] [8]
+CSU hardware errors.
+Includes CSU ROM
+validation error.
+PMU_PB _2 [25]
+PLL lock errors M _2 [12:8] [13:9]
+PMU unmasks these bits
+when PLL is functioning.
+An error is signaled when
+a PLL loses lock; bits are
+in ERROR_STATUS_2.
+Generic PL errors U _2 [5:2] [17:14] Generic PL errors
+communicated to PS.
+FPD bus timeout
+error
+U _2 [1] [18] 153
+OR of all timeout signals
+from the FPD AIB units;
+ABP and AXI.
+LPD bus timeout
+error
+U _2 [0] [19] 86
+OR of all timeout signals
+from the LPD AIB units;
+ABP and AXI.
+Clock monitor error U _1 [26] [25] 60 Error from clock monitor
+logic.
+FPD XMPU isolation
+error
+U _1 [25] [26] 166
+OR of violation signals
+from the FPD and DDRx
+XMPU protection units.
+Table 6-12: PMU Error Sources and Reset State Masks (Cont’d)
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Send FeedbackZynq UltraScale+ Device TRM 125
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+LPD XMPU isolation
+error
+U _1 [24] [27] 120
+OR of violation signals
+from the OCM XMPU and
+the XPPU protection
+units.
+Power supply
+failures detected by
+PS SYSMON unit
+U _1 [23:16] [35:28] ~
+[16]: VCC_PSINTLP, [17]:
+VCC_PSINTFP, [18]:
+VCC_PSAUX, [19]:
+VCCO_PSDDR, [20]:
+VCC_PSIO3, [22]:
+VCC_PSIO0, [21]:
+VCC_PSIO1, [23]:
+VCC_PSIO2
+FPD SWDT error U _1 [13] [36] 145 Timeout error from the
+FPD SWDT.
+LPD SWDT error U _1 [12] [37] 84 Timeout error from the
+LPD SWDT.
+RPU CCF U _1 [9] [38] ~
+All RPU CCFS OR'ed
+together after
+RPU_CCF_MASK register.
+RPU lock-step
+errors
+M _1 [7:6] [40:39] ~ RPU lock-step errors from
+RPU MPCore.
+FPD over
+temperature U _1 [5] [41] ~
+FPD temperature near
+APU indicates a shutdown
+alert from the PS SysMon
+unit.
+LPD over
+temperature U _1 [4] [42] ~
+LPD temperature near
+RPU indicates a shutdown
+alert from the PS SysMon
+unit.
+RPU hardware
+errors
+U _1 [3:2] [44:43] 45, 44
+RPU0 or RPU1 error
+including both
+correctable and
+uncorrectable errors.
+Table 6-12: PMU Error Sources and Reset State Masks (Cont’d)
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Send FeedbackZynq UltraScale+ Device TRM 126
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+All the errors listed in Table 6-12 and the five reserved errors are also routed to the PL and
+are directly accessible through JTAG. In addition to these errors, the 74 bits of software
+errors from the PMU_PB_ERR, CSU_BR_ERR, and PMU_SERV_ERR registers are also
+accessible directly through JTAG. You can suppress the accessibility to these errors through
+JTAG permanently by blowing an eFUSE. Table 6-13 lists the assignment of errors in the
+JTAG status register and the error status interface to PL.
+Note: The eFUSE suppresses accessibility of the errors through JTAG, but the errors are accessible
+internal to the device.
+OCM uncorrectable
+ECC M _1 [1] [45] 42
+The OCM reported an
+uncorrectable ECC error
+during an OCM memory
+access.
+DDR uncorrectable
+ECC M _1 [0] [46]
+The DDR reported an
+uncorrectable ECC error
+during a DDR memory
+access.
+Table 6-12: PMU Error Sources and Reset State Masks (Cont’d)
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Table 6-13: JTAG Error Register Description
+Error source Bit on JTAG
+Error Status
+Bit on Error
+Status to PL
+CSU ROM error (same as bit 120). 0 0
+PMU pre-boot error (same as bit 78). 1 1
+PMU ROM service error (same as bit 99). 2 2
+PMU firmware error (same as bits 103:100). 6:3 6:3
+Uncorrectable PMU error.
+Includes ROM validation, TMR, uncorrectable RAM ECC, and local
+register address errors.
+7 7
+CSU error. 8 8
+PLL lock errors [VideoPLL, DDRPLL, APUPLL, RPUPLL, IOPLL]. 13:9 13:9
+PL generic errors passed to PS. 17:14 17:14
+Full-power subsystem time-out error. 18 18
+Low-power subsystem time-out error. 19 19
+Reserved errors. 24:20 24:20
+Clock monitor error. 25 25
+Send FeedbackZynq UltraScale+ Device TRM 127
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Operation
+The PMU is responsible for handling the primary pre-boot tasks and management of the PS
+hardware for reliable power up/power down of system resources and system error
+management. Optionally, the PMU can run the AMD Software Test Library. The
+power-on-reset (POR) initiates the PMU operation which directly or indirectly releases
+resets to any other blocks that are expected to be powered up.
+In the PS, the APU MPCore and Cortex-R5F are classified as power masters. Power masters
+in the system are entities that can trigger the power down or power up of all islands
+including themselves.
+GPU pixel processors, USB, PL, and memory blocks are classified as power slaves as their
+power management is triggered by one of the power masters. The power masters can also
+be slaves because their islands can be individually powered down.
+XMPU errors [FPD XMPU, LPD XMPU]. 27:26 27:26
+Supply Detection Failure Errors
+[VCCO_PSIO_2, VCCO_PSIO_1, VCCO_PSIO_0, VCCO_PSIO_3,
+VCCO_PSDDR, VCC_PSAUX, VCC_PSINTFP, VCC_PSINTLP]
+35:28 35:28
+FPD System Watch-Dog Timer Error 36 36
+LPD System Watch-Dog Timer Error 37 37
+RPU CCF error 38 38
+RPU Lockstep Error 40:39 40:39
+FPD Temperature Shutdown Alert 41 41
+LPD Temperature Shutdown Alert 42 42
+RPU1 Error (Both Correctable and Uncorrectable Errors) 43 43
+RPU0 Error (Both Correctable and Uncorrectable Errors) 44 44
+OCM Uncorrectable ECC Error 45 45
+DDR Uncorrectable ECC Error 46 46
+PMU Preboot Errors (PMU_PB_ERR.PBERR_Data) 77:47 77:47
+PMU Preboot Error Flag (PMU_PB_ERR.PBERR_Flag) 78 78
+PMU Service Errors (PMU_SERV_ERR.SERVERR_Data) 98:79 98:79
+PMU Service Error Flag (PMU_SERV_ERR.SERVERR_Flag) 99 99
+PMU Firmware Error (PMU_SERV_ERR.FWERR) 103:100 103:100
+CSU BootROM Errors (CSU_BR_ERR.ERR_TYPE) 119:104 119:104
+CSU BootROM Errors (CSU_BR_ERR.BR_ERROR) 120 120
+Table 6-13: JTAG Error Register Description (Cont’d)
+Error source Bit on JTAG
+Error Status
+Bit on Error
+Status to PL
+Send FeedbackZynq UltraScale+ Device TRM 128
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+When the processors in the PS are powered down, the PMU is the sole entity in the PS that
+can capture a request to power up the required system and wake up the target processor.
+PMU GPIs can be used as inputs for external wake signals. The ULPI and RGMII are
+potentially used for wakes on USB 2.0 and Ethernet, respectively. PMU GPOs are used for
+sending signals to power supplies and communicating errors. For a detailed description of
+PMU GPIs and GPOs, see PMU GPIs and GPOs.
+Interacting with the PMU
+User software services requests from the PMU through the PMU_GLOBAL registers generate
+interrupts to the PMU processor and are processed automatically in the priority set by the
+PMU ROM code. The requests are initiated by user software enabling the service request
+and subsequently asserting the associated trigger for the service. The assertion of the
+enabled trigger asserts an associated status flag. Once the PMU has completed the service,
+it clears the status flag indicating to the user software that the service has completed. If the
+service has experienced a failure, the PMU_SERVICE bit of the
+PMU_GLOBAL.ERROR_STATUS_2 register is asserted and the system responds according to
+the mask settings for that error event. For all software generated requests to the PMU, the
+above sequence is recommended for usage.
+Send FeedbackZynq UltraScale+ Device TRM 129
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Power Down
+Any master in the system can request the PMU to power down an island or domain by
+writing a 1 to the appropriate bits in the REQ_PWRDWN_TRIG register while the
+corresponding mask bit is also enabled in the REQ_PWRDWN_INT_MASK register. The PMU
+will be interrupted and after executing the preamble ISR to check the interrupt pending
+register within the I/O block, it will execute the power-down-request ISR. In the case of a
+simultaneous power down request, the order for processing power-down requests is that
+the islands are powered down before the domains. The PMU will proceed to power down an
+island only if there is no other request from a master to power it up.
+Power Up
+Any master in the system can queue a request to the PMU to power up an island or domain
+by writing a 1 to the appropriate bits in the REQ_PWRUP_TRIG register. If a 1 is also written
+to the same bit in the REQ_PWRUP_INT_MASK register, the PMU will be interrupted. After
+executing the preamble ISR to check the interrupt pending register within the I/O block, it
+will execute the power-up request ISR. The priority of the power up is enforced such that
+domains are powered up first, then the islands, followed by slaves, and then finally the
+masters.
+Use Case for Power Down and Power Up by PMU
+This section describes power-down and power-up using the Zynq UltraScale+ MPSoC PMU.
+APU Power Down
+A few methods to power-down the APU are described in this section.
+Direct Power Down
+The flowchart in Figure 6-3 describes how to power down using the APU. As a preparation
+for power down, the APU program must follow these steps.
+• Disable interrupts to the core.
+• Record the intention to power down the CPU in the CPUPWRDWNREQ field of the
+PWRCTL register in APU by writing 1 to the field that corresponds to that APU core.
+• Save the state of the APU core.
+• Configure the GIC or GIC proxy (if the ACPU power-down is expected to be followed by
+the FPD power-down) for the wake source.
+• Execute a waiting for interrupt (WFI) instruction.
+Send FeedbackZynq UltraScale+ Device TRM 130
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Because the CPUPWRDWNREQ field marks the intention of the APU core to power down,
+the execution of the WFI instruction not only puts the APU core in a wait state, it also causes
+the power-down request to propagate outside the core and inform the PMU processor by
+asserting the GPI2 interrupt.
+Requested Power Down
+A requested power down occurs when the APU core power down is specifically requested
+through the REQ_PWRDWN_TRIG global registers. Setting a particular bit in the register
+would power down the APU. In this case, the PMU directly proceeds with powering down
+the APU Core. For REQ_PWRDWN_TRIG register description see the Zynq UltraScale+
+MPSoC Register Reference (UG1087) [Ref 4].
+Ensure that the appropriate bit position in the REQ_PWRDWN_STATUS global register is set
+to 0 to indicate that the power down request is served by the PMU.
+X-Ref Target - Figure 6-3
+Figure 6-3: APU Power Down Flowchart
+Start
+Disable interrupts to APU
+Set CPUPWRDWNREQ field to 1 in APU power
+control register
+Save state of APU
+Configure GIC or GIC proxy
+Execute WFI instruction
+Stop
+X15308-092916
+Send FeedbackZynq UltraScale+ Device TRM 131
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+APU Core Power Up
+Unlike power down, powering up an APU core is typically requested either by another CPU
+through power-up request registers on the PMU or by interrupts that are associated with
+the peripherals on the powered-down APU core. For the latter, the interrupts for these
+peripherals are passed to the PMU when the ACPU is powered down. For power up, follow
+these steps.
+• For powering up an APU core, the particular bit in the REQ_PWRUP_TRIG global register
+has to be set by the requesting device. For the description of REQ_PWRUP_TRIG global
+register, see the Register Overview section.
+• If a direct power-up or wake by the GIC is associated with the APU core, the PMU
+follows the steps as specified by the ROM code and powers up the APU. A direct
+power-up refers to a power-on event triggered by an interrupt destined for the APU
+core, as opposed to software triggering the event by writing to the request register in
+the PMU_GLOBAL module.
+• If a direct wake up or wake by GIC occurs after the power-up is completed, the reset to
+the APU core is also released automatically.
+• If the power-up request is made by another processor, the same processor has to
+explicitly request for the reset to the APU core be released through the PMU
+reset-request register.
+• Check if the appropriate bit position in the REQ_PWRUP_STATUS global register is set
+to 0 to indicate that the power up request is served by the PMU.
+IMPORTANT: After the power-up, the CPUPWRDWNREQ field of the PWRCTL register in the APU
+contains the value of 1 as the power status for the core that is just powered up. The CPU is expected to
+check the register, upon boot, to identify if this was a cold boot or a wake from sleep. Post-verification,
+the processor is expected to clear the bit in the CPUPWRDWNREQ field of the PWRCTL register.
+PMU Operation After a Wake-up
+After receiving a wake-up trigger, the PMU can follow these three wake-up flows.
+Fixed: Direct wake of a processor, will always cause the target processor to be powered up.
+For example, when the dual Cortex-R5F MPCores are powered down and any of the two
+receives an interrupt from a peripheral or a timer, the interrupt does the following.
+• Route to the PMU to trigger the power up of the dual Cortex-R5F MPCores.
+• Release its reset to prepare for processing of the pending interrupt.
+Similarly, if an APU core is powered down while the FP domain is up, the interrupts for the
+APU core that was shutdown can trigger its power up followed by the release of its reset.
+Send FeedbackZynq UltraScale+ Device TRM 132
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+On-demand: Prior to requesting a power-down and entering the sleep mode, the user
+program can queue up the list that needs to be powered up after the wake in the PMU. The
+following procedure should achieve this.
+1. Your program requests to power up the desired domains and islands using the
+REQ_PWRUP_TRIG register while masking the interrupt for those requests in the
+REQ_PWRUP_INT_DIS register. Even though the requests are recorded, the PMU does
+not actually execute them until after the wake-up.
+2. Your program follows up with the normal request for power down. Because the interrupt
+for the power-ups were masked, the power-down routine ignores those requests and
+proceeds with powering down the blocks.
+3. When the PMU receives a wake-up request, it checks the REQ_PWRUP_STATUS register
+for pending power-up requests with the interrupt being masked and proceeds with
+powering up those islands.
+4. Similarly, if reset to any block needs to be released after the power up, your code
+queues up the requests to release those resets in the REQ_SWRST_TRIG register while
+masking their interrupts.
+5. After the wake-up and its consequent power-up, the PMU releases the reset to the
+desired blocks.
+Wake-up Code Programming: The wake up routine can be programmed into the PMU
+RAM and when a wake interrupt occurs the PMU executes your code which powers up all
+the blocks that are necessary after the wake-up.
+Wake-up Through MIO
+The following wake-up mechanisms can respond to any of the six GPI signals from the six
+MIO inputs (MIO 26 to 31) that are allocated to the PMU.
+• Wake-up on external events
+• Wake-up on Ethernet PHY
+• Wake-up on CAN PHY
+Based on the mechanism, any interrupt raised by the above interfaces, is issued to the PMU
+to wake up the device which has set the interface as its wake-up source.
+Send FeedbackZynq UltraScale+ Device TRM 133
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake-up on USB
+The USB specification defines a link-layer suspend mode in which both the USB host and
+the device enter a no-activity phase to save power. The decision to take the USB host into
+the suspend mode is determined solely by the software. Once the host enters the suspend
+mode, all devices connected to that host are required to enter the suspend mode within
+3 ms. A USB device could not enter the suspend mode by itself; however, when the link
+power management (LPM) extension is supported, the USB device can request the USB host
+to enter the suspend mode. When the USB host enters the suspend mode, all USB devices
+will follow.
+A USB host can exit the suspend mode either through interrupts such as timers or through
+a remote wake-up request by a device with special USB signal leveling. A USB device can
+similarly wake up through interrupts or remote wake signaling from host or additionally
+through host reset signaling.
+When the USB is in a suspend mode, the USB ULPI link protocol provides a standard method
+for the PHY to power-down during a time when the D+/D- signaling is directed to the USB
+link. In this case, a subsection of the USB IP that is always on, detects the wake signaling and
+generates the wake interrupt to the PMU to proceed with powering up the USB block and
+the processor that is responsible for its device driver.
+Wake-up on Ethernet
+Wake-up by Ethernet can be performed two ways.
+Wake on PHY: This wake-up procedure can be implemented using a GPI input signal
+routed from an MIO pin.
+Wake on MAC: This wake up procedure is widely referred to as wake-on-LAN. This
+procedure is implemented using a special network message called a magic packet. The
+magic packet is a broadcast frame containing anywhere within its payload 6 bytes of all 255
+(FF FF FF FF FF FF), followed by sixteen repetitions of the target computer's 48-bit
+MAC address, for a total of 102 bytes. The detection of the magic packet will generate an
+interrupt to the processor that is running the device driver which causes a direct wake on
+the processor.
+Wake on Real-time Clock
+This feature allows the system to wake up at a pre-determined time using the internal
+real-time clock (RTC). Configure the RTC to generate an interrupt when it reaches a specific
+time and date.
+Send FeedbackZynq UltraScale+ Device TRM 134
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake through DAP
+This feature wakes up a system that is in the sleep mode through the debugger. The
+debugger can request two possible direct power-up scenarios through DAP. One option can
+wake up the FP domain which includes the MPSoC debug. The other wake option initiates
+the power-up of the dual Cortex-R5F subsystem.
+Direct Wake by the APU or Cortex-R5F
+When any of the application processors or the real-time processors are powered down, if a
+peripheral is attempting to interrupt the powered down processor, the interrupt is routed to
+the PMU to trigger the power up of that specific processor.
+Wake through GIC Proxy
+If the power down of an application processor is in conjunction with the power down of the
+entire FPD, an LPD device that is associated with that processor can still trigger a direct
+wake to that processor by first triggering the power up of the FPD. This is accomplished by
+having a GIC proxy block in the LPD that can have selected peripheral interrupts routed to
+the PMU as an interrupt other than the direct wakes.
+Upon receiving an interrupt from the GIC proxy block:
+1. The PMU powers up the FPD.
+2. Releases the reset to the FPD and APU.
+3. Unmasks the interrupts that trigger the direct wake of that application processor.
+The direct wake will take effect resulting in the power up of the application processor.
+Deep-sleep Mode
+The deep-sleep mode suspends the PS and waits to be woken up. The lowest power deep
+sleep is supported for wake sources GPI and RTC. Other sleep states are supported for wake
+sources of USB and Ethernet, with additional power for the wake source. Upon wake, the PS
+does not have to go through the boot process and the security state of the system is
+preserved. This reduces the restart time of the system.
+The device consumes the lowest power during this mode while still maintaining its boot and
+security state. The PMU is placed in a sleep or suspend state waiting to be interrupted.
+During the deep-sleep mode, the wake signal can be generated either through a GPI input
+routed from an MIO pin or by an RTC alarm.
+Send FeedbackZynq UltraScale+ Device TRM 135
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Table 6-14 summarizes the PS configuration in deep-sleep mode.
+Deep-sleep Mode Programming Model/Example
+The processing system in deep-sleep mode is discussed in this section.
+System Configuration prior to Sleep
+System includes at least the following devices.
+• The Cortex-R5F processor in the lock-step mode.
+• TCM memory.
+• Real-time counter.
+System Configuration during Sleep
+The configuration of the system during sleep is discussed in this section.
+• FPD is powered off.
+• RPU, USBs, and OCM are powered off.
+• TCM is in retention.
+• RTC alarm is set and RTC is functioning.
+• PLLs are powered down.
+Table 6-14: Deep-sleep Configuration
+Configuration Type Status Description
+Cortex-R5F Powered down
+TCM configuration
+OCM configuration
+Device security
+In retention
+In retention
+Suspended
+Either TCM or OCM is powered down.
+Peripheral Suspended Wake up peripheral logic might be active.
+PLLs Powered down
+System Monitor Powered down During power down, the SysOsc clock can go to
+20 MHz ±50%.
+RTC and BBRAM Included Switched to the V
+CC_PSAUX rail.
+PMU
+MPSoC debug
+Suspended
+Powered down
+The wake logic is active.
+MPSoC debug is mostly in FPD. The LPD portion is
+suspended.
+eFUSE
+Components outside the LPD
+Suspended
+Powered down
+PL internal power Powered down
+Send FeedbackZynq UltraScale+ Device TRM 136
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• System Monitor is powered down.
+Power Down Procedure
+The power down is initiated by the Cortex-R5F MPCore. As the TCM is placed in retention,
+the Cortex-R5F MPCore is required to do the following (Figure 6-4).
+1. Set the TCM bit in the RAM_RET_CNTRL register.
+2. Set the TCM bit in the REQ_PWRDWN_TRIG register while the interrupt is masked for the
+TCM in the REQ_PWRDWN_INT_MASK register.
+3. Set the RPU and TCM bits in the REQ_PWRUP_TRIG register while the interrupt mask bits
+for those fields are disabled.
+4. Set the RPU bit in the REQ_SWRST_TRIG while the interrupt mask bit for it is disabled.
+5. Set the alarm.
+6. Disable interrupts.
+7. Set the SLCR bit to request for a direct RPU power down and execute a WFI instruction.
+This procedure causes an interrupt to the PMU to power down the RPU.
+Send FeedbackZynq UltraScale+ Device TRM 137
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake Procedure
+Once the RTC alarm generates an interrupt to the PMU, the handler for the RTC wake
+detects if there is a firmware loaded for this purpose. If not, the handler checks whether an
+on-demand procedure is queued up in the PMU. Prior to the power down, the Cortex-R5F
+MPCore requests for the power up of the RPU and TCM while the interrupts for the
+power-up requests are masked. It requests the Cortex-R5F MPCore reset to be released
+while the interrupt for that request is masked, again. Upon waking up from the RTC, the
+PMU proceeds with the RPU power-up and issues the Cortex-R5F MPCore reset. Figure 6-5
+shows the flowchart for wake-up from a deep sleep.
+1. RPU and TCM power up requests are unmasked as a part of the RTC wake.
+2. Cortex-R5F MPCore reset request is unmasked as a part of the RTC wake.
+3. TCM is powered up first as a result of the follow-up TCM power-up interrupt.
+4. RPU is powered up as a result of the follow-up RPU power-up interrupt.
+X-Ref Target - Figure 6-4
+Figure 6-4: Deep Sleep Power Down Flowchart
+Start
+Set TCM bit in RAM retention control
+register
+Request power down with interrupts
+masked
+Request power up for RPU and TCM
+with interrupt mask bits disabled
+Reset RPU with interrupt mask disabled
+Set the alarm (RTC)
+Disable interrupts
+Set SLCR bit for direct RPU
+power down
+Execute WFI
+End
+X15309-092916
+Send FeedbackZynq UltraScale+ Device TRM 138
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+5. Reset to the Cortex-R5F MPCore is released as a result of the follow up Cortex-R5F
+MPCore reset request interrupt.
+6. Your code on the Cortex-R5F MPCore releases the system monitor out of the power
+down state.
+7. The code on the Cortex-R5F MPCore clears the RTC alarm. Because the RTC has an
+interrupt status register, setting the alarm bit to 1 clears the interrupt.
+X-Ref Target - Figure 6-5
+Figure 6-5: Wake up from Deep Sleep Flowchart
+Start
+RTC interrupts PMU
+RPU and TCM power up
+requests are unmasked
+Cortex-R5 reset request
+unmasked
+TCM is powered up
+RPU is powered up
+Deassert Cortex-R5 reset
+User code on Cortex-R5 powers
+up SYSMON
+Clear RTC alarm
+End
+X15310-092916
+Send FeedbackZynq UltraScale+ Device TRM 139
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Isolation Request
+Isolation is generally used to isolate signals from a powered-up domain and a
+powered-down domain to prevent crowbar currents affecting the proper functioning of the
+blocks. Isolation ensures that the outputs of the domains are clamped to a known value. The
+PMU facilitates isolation of various power domains. This can be done by setting appropriate
+bits in the REQ_ISO_TRIG global register. For the PMU_GLOBAL.REQ_ISO_STATUS register
+description, see the Zynq UltraScale+ MPSoC Register Reference (UG1087) [Ref 4]. Three bits
+control domain isolation between the low-power, full-power, and PL domain. Different
+combinations of isolation are available. By writing to bit 0 of the REQ_ISO_TRIG register and
+the REQ_ISO_INT_MASK register, the full-power domain can be isolated from the low-power
+domain and the PL domain. By writing to bit 1 of these registers, the PS is isolated from the
+PL. By writing to bit 2 the PS and the PL are isolated, with the exception of the PCAP
+interface. Finally, to lock isolation on the full-power domain, write to bit 4.
+Reset Services
+This section describes the reset services. Various blocks can be reset through the
+REQ_SWRST_TRIG register if the interrupt for that specific reset is unmasked in the
+REQ_SWRST_INT_MASK register. The Table 6-15 lists the reset services.
+Table 6-15: Reset Requests
+Reset Service Block Request Bit Description
+PL 31 Resetting the PL domain depends on your design. This service is not
+handled by ROM code.
+FPD 30 A hard reset of the full-power domain. Transactions are not flushed.
+LPD 29 The PMU firmware uses this service to reset the low-power domain.
+This service is not handled by ROM code.
+PS_ONLY 28 Acts as an internally generated a system reset (SRST). You can
+perform an isolation request on the PL prior to this event and then
+issue this request to only SRST the PS.
+Reserved 27:26 Reserved
+USB1 25 Cycles the reset for USB_1 by asserting the
+CRL_APB.RESET_LPD_TOP. USB1_CORERESET signal and then
+deasserting it.
+USB0 24 Cycles the reset for USB_0 by asserting the
+CRL_APB.RESET_LPD_TOP.USB0_CORERESET signal and then
+deasserting it.
+GEM3 23 Cycles the reset for GEM_3 by asserting the
+CRL_APB.RESET_IOU0.GEM3_RESET signal and then deasserting it.
+GEM2 22 Cycles the reset for GEM_2 by asserting the
+CRL_APB.RESET_IOU0.GEM2_RESET signal and then deasserting it.
+GEM1 21 Cycles the reset for GEM_1 by asserting the
+CRL_APB.RESET_IOU0.GEM1_RESET signal and then deasserting it.
+Send FeedbackZynq UltraScale+ Device TRM 140
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+GEM0 20 Cycles the reset for GEM_0 by asserting the
+CRL_APB.RESET_IOU0.GEM0_RESET signal and then deasserting it.
+Reserved 19 Reserved
+RPU 18 This service performs a sequence that resets the entire RPU and
+leaves the block in reset. You can request the R5_0 or R5_1 service
+to release the appropriate signal. The following resets signals are
+asserted:
+• PMU_GLOBAL_RESET_RPU_LS
+• CRL_APB.RESET_LPD_TOP.RPU_PGE_RESET
+• CRL_APB.RESET_LPD_TOP.R50_RESET
+• CRL_APB.RESET_LPD_TOP.R51_RESET
+The following signals release the resets.
+• PMU_GLOBAL.RESET_RPU_LS
+• CRL_APB.RESET_LPD_TOP.PRPU_PGE_RESET
+Prior to issuing an RPU request, the application should flush
+transactions to the RPU. The debug logic is not reset.
+R5_1 17 Cycles the reset for the APU1 (R5_1) by asserting the
+CRL_APB.RESET_LPD_TOP.R51_RESET signal and then deasserting it.
+R5_0 16 Cycles the reset for APU0 (R5_0) by asserting the
+CRL_APB.RESET_LPD_TOP.R51_RESET signal and then deasserting it.
+Reserved 15:13 Reserved
+Display_Port 12 Cycles the reset for the DisplayPort controller by asserting the
+CRL_APB.RESET_FPD_TOP.DP_RESET signal and then deasserting it.
+Reserved 11 Reserved
+SATA 10 Cycles the reset for the SATA controller by asserting the
+CRL_APB.RESET_FPD_TOP.SATA_RESET signal and then deasserting
+it.
+PCIe 9 Cycles the reset for PCIe by asserting the
+CRL_APB.RESET_FPD_TOP.PCIE_RESET signal and then deasserting
+it.
+GPU 8 This service performs a sequence that resets the entire GPU. Both
+pixel processors and the GPU resets are asserted and released by
+the following signals.
+• CRF_APB.RESET_FPD_TOP.GPU_RESET
+• CRF_APB.RESET_FPD_TOP.PP1_RESET
+• CRF_APB.RESET_FPD_TOP.PP0_RESET
+PP1 7 Cycles the individual reset for the pixel processor by asserting the
+CRF_APB.RESET_FPD_TOP.GPU_PP1_RESET signal and the
+deasserting it.
+PP0 6 Cycles the individual reset for the pixel processor by asserting the
+CRF_APB.RESET_FPD_TOP.GPU_PP0_RESET signal and the
+deasserting it.
+Table 6-15: Reset Requests (Cont’d)
+Reset Service Block Request Bit Description
+Send FeedbackZynq UltraScale+ Device TRM 141
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Programming Model
+Beyond the AMD provided firmware, the PMU can execute user programs that implement
+advance system monitoring and system-critical functions. Typically, PMU code loading
+occurs either via CSU ROM code at boot or by the first stage boot loader (FSBL). During this
+time, the PMU is either in an already-loaded maintenance mode or in the sleep mode. To
+assure that the PMU is in the sleep mode, IPI0 is used to interrupt the PMU. In response to
+the IPI0 interrupt, the interrupt service routine for this IPI disables interrupts and executes
+a sleep instruction followed by a branch to the user code being loaded in the RAM. This
+guarantees that the processor stays in the sleep mode and is not interrupted to execute any
+services until it is explicitly woken up by another master through the use of the wake-up bit
+in the PMU global control register. After the main processor copies the user program into
+the PMU RAM, the processor wake-up feature in the PMU global control register is used to
+direct the PMU processor into executing the newly-loaded maintenance code.
+Reserved 5 Reserved
+APU 4 This service performs a sequence that resets the entire APU and L2
+and leaves them in reset until the ACPU reset service (bits 3:0) are
+requested while cycling the reset on the L2 and surrounding APU
+logic. The debug logic is not reset. The following reset signals are
+asserted:
+• CRF_APB.RESET_FPD_APU.L2_RESET
+• CRF_APB.RESET_FPD_APU.ACPU3_RESET
+• CRF_APB.RESET_FPD_APU.ACPU2_RESET
+• CRF_APB.RESET_FPD_APU.ACPU1_RESET
+• CRF_APB.RESET_FPD_APU.ACPU0_RESET
+The L2_RESET is released to make the L2 available.
+ACPU3 3 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU3_RESET and the deasserting it.
+ACPU2 2 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU2_RESET and the deasserting it.
+ACPU1 1 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU1_RESET and the deasserting it.
+ACPU0 0 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU0_RESET and the deasserting it.
+Table 6-15: Reset Requests (Cont’d)
+Reset Service Block Request Bit Description
+Send FeedbackZynq UltraScale+ Device TRM 142
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+The steps required to load a user-level program and start its execution are listed here and
+shown in Figure 6-6.
+1. Application program on another processor either APU or RPU executes IPI0 to the PMU.
+2. IPI0 interrupt service routine.
+3. Disables all interrupts.
+4. Executes a sleep instruction. The instruction after the sleep instruction must be a branch
+to the address for the user code in RAM.
+5. The application program loads the PMU user program into the RAM.
+6. The application program writes a 1 to bit [0] of the PMU global control register to wake
+up the processor.
+7. PMU starts executing instructions following the sleep instruction and returns to the
+main() function in the code.
+8. PMU branches to the user code.
+9. The user code clears the bit [0] in the PMU global control register and enables the
+interrupt.
+An upper-level program can check the PMU global control register to determine the state
+of the firmware loading and execution.
+Send FeedbackZynq UltraScale+ Device TRM 143
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+X-Ref Target - Figure 6-6
+Figure 6-6: PMU Programming Model
+Start
+Execute IPI0 (by application program) to PMU
+IPI0 ISR
+Execute sleep instruction
+Load user program into PMU RAM
+Set PMU global control register to 1
+PMU branch to user code
+Clear bit 0 in PMU global control register
+Enable interrupt
+Stop
+Done
+Not done
+Done
+Not done
+X15312-092916
+Send FeedbackZynq UltraScale+ Device TRM 144
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Register Overview
+The registers in Table 6-16 are in the PMU_GLOBAL module. For more information, see the
+Zynq UltraScale+ MPSoC Register Reference (UG1087) [Ref 4]. Access to some PMU registers
+is restricted (black list) unless a #define is set, see the Zynq UltraScale+ MPSoC Software
+Developer’s Guide (UG1137) [Ref 3].
+)
+Table 6-16: Global Registers
+Register Name Type Description
+GLOBAL_CNTRL Mixed This register controls functions such as QoS for AXI read
+and write transactions that are generated by the PMU, or
+indication for firmware presence that can also be
+executed by other masters.
+PS_CNTRL Mixed This register controls miscellaneous functions related to
+the PS that can be controlled by all masters.
+APU_PWR_STATUS_INIT Mixed Provides a location in the PMU to hold the initialization
+value for the CPUPWRDWNREQ field of the APU PWRCTL
+register during an FPD power down. The bit associated
+with an ACPU is loaded by the PMU ROM code in the
+CPUPWRDWNREQ field of the PWRCTL register right after
+the routine releases the reset to the ACPU core after an
+FPD power up.
+0 = Normal cold reset (default)
+1 = Reset after a power up after a shutdown mode
+ADDR_ERROR_STATUS Mixed Address error status register. This is a sticky register that
+holds the value of the interrupt until cleared by a value of
+1.
+ADDR_ERROR_INT_MASK RO Address error mask register. This is a read-only location
+and can be altered through the corresponding interrupt
+Enable or Disable registers.
+ADDR_ERROR_INT_EN WO Address error interrupt enable register. A write to this
+location will unmask the interrupt.
+ADDR_ERROR_INT_DIS WO Address error interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+GLOBAL_GEN_STORAGE{0:6} RW Global general storage register that can be used by
+system to pass information between masters. The register
+is reset during system or power-on resets. These registers
+are used by the PMUFW, FSBL, and other AMD software
+products.
+PERS_GLOB_GEN_STORAGE{0:7} RW Persistent global general storage register that can be used
+by system to pass information between masters. This
+register is only reset by the power-on reset and maintains
+its value through a system reset. Four registers are used
+by the FSBL and other AMD software products:
+PERS_GLOB_GEN_STORAGE{4:7}. Register is reset only by a
+POR reset.
+Send FeedbackZynq UltraScale+ Device TRM 145
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+DDR_CNTRL RW This register controls DDR I/O features that have to be
+driven when the FPD is powered down.
+PWR_STATE RO This register provides the power-up status for all islands
+within the PS. (0 = powered down). Reserved bits read as
+zero. The register maintains its contents during a system
+reset.
+AUX_PWR_STATE RO This register provides the retention state for the PS
+memories (1 = retention) and the power-down emulation
+state for the Arm processor. (1 = powered-down
+emulation state). The register maintains its contents
+during a system reset.
+RAM_RET_CNTRL Mixed This register is used to enable retention request for the L2,
+OCM, and TCM RAMs. If a bit in this register is set, a
+power-down request of the corresponding RAM bank
+would guide the PMU to put the RAM in retention,
+instead.
+PWR_SUPPLY_STATUS RO This register provides the status of a subset of the power
+supplies within the PS
+REQ_PWRUP_STATUS Mixed If any of the bits in this register is 1, it would trigger a
+power-up request to the PMU. Writing a 1 to any bit will
+clear the request.
+REQ_PWRUP_INT_MASK RO Power-up request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_PWRUP_INT_EN WO Power-up request interrupt enable register. Writing a 1 to
+this location will unmask the interrupt.
+REQ_PWRUP_INT_DIS WO Power-up request interrupt disable register. Writing a 1 to
+this location will mask the interrupt.
+REQ_PWRUP_TRIG WO Power-up request trigger register. A write of 1 to this
+location will generate a power-up request to the PMU.
+REQ_PWRDWN_STATUS Mixed If any of the bits in this register is 1, it would trigger a
+power-down request to the PMU. Writing a 1 to any bit
+will clear the request.
+REQ_PWRDWN_INT_MASK RO Power-down request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_PWRDWN_INT_EN WO Power-down request interrupt enable register. Writing a 1
+to this location will unmask the interrupt.
+REQ_PWRDWN_INT_DIS WO Power-down request interrupt disable register. Writing a
+1 to this location will mask the interrupt.
+REQ_PWRDWN_TRIG WO Power-down request trigger register. Writing a 1 to this
+location will trigger a power-down request to the PMU.
+REQ_ISO_STATUS Mixed If any of the bits in this register is 1, it would capture an
+Isolation request to the PMU. Writing a 1 to any bit will
+clear the request.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 146
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+REQ_ISO_INT_MASK RO Isolation request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_ISO_INT_EN WO Isolation request interrupt enable register. A write of 1 to
+this location will unmask the interrupt.
+REQ_ISO_INT_DIS WO Isolation request interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+REQ_ISO_TRIG WO Isolation request trigger register. A write of 1 to this
+location will set the corresponding isolation status
+register bit.
+REQ_SWRST_STATUS Mixed If any of the bits in this register is 1, it triggers a reset
+request to the PMU. Writing a 1 to any bit clears the
+request.
+REQ_SWRST_INT_MASK RO Reset request interrupt mask register. This is a read-only
+location and can be altered through the corresponding
+interrupt enable or disable registers.
+REQ_SWRST_INT_EN WO Reset request interrupt enable register. A write of 1 to this
+location will unmask the interrupt.
+REQ_SWRST_INT_DIS WO Reset request interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+REQ_SWRST_TRIG WO Reset request trigger register. A write of 1 to this location
+will set the reset status register related to this interrupt.
+REQ_AUX_STATUS Mixed If any of the service request bits in this register is 1, it
+would capture an auxiliary request to the PMU. Writing a
+1 to any bit will clear the request. The services for these
+requests need to be implemented by firmware.
+REQ_AUX_INT_MASK RO Auxiliary service request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_AUX_INT_EN WO Auxiliary service request interrupt enable register. A write
+of 1 to this location will unmask the interrupt.
+REQ_AUX_INT_DIS WO Auxiliary service request interrupt disable register. A write
+of 1 to this location will mask the interrupt.
+REQ_AUX_TRIG WO Auxiliary service request trigger register. A write of 1 to
+this location will set the corresponding auxiliary service
+status register bit.
+LOGCLR_STATUS RO This register provides the status of the logic clear engines
+after they are run. (0 = Fail)
+CSU_BR_ERROR Mixed This register holds all errors related to the BootROM
+execution on the CSU.
+MB_FAULT_STATUS RO This register provides the status of the redundancy logic
+in the triple-redundant PMU processor.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 147
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+ERROR_STATUS_1 Mixed Error status register 1. If the bit in this register is set to 1,
+it signifies an error within the system. Writing a 1 to any
+bit will clear the error. This register is only reset by the
+external power-on reset.
+ERROR_INT_MASK_1 RO Error register 1 interrupt mask register. This is a read-only
+location and can be altered through the corresponding
+interrupt enable or disable registers.
+ERROR_INT_EN_1 WO Error register 1 interrupt enable register. A write of 1 to
+this location will unmask the interrupt.
+ERROR_INT_DIS_1 WO Error register 1 interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+ERROR_STATUS_2 Mixed Error status register 2. If any of the bits in this register are
+set to 2, it signifies an error within the system. Writing a 1
+to any bit will clear the error. This register is only reset by
+the external power-on reset.
+ERROR_INT_MASK_2 RO Error register 2 interrupt mask register. This is a read-only
+location and can be altered through the corresponding
+interrupt enable or disable registers.
+ERROR_INT_EN_2 WO Error register 2 interrupt enable register. A write of 1 to
+this location will unmask the interrupt.
+ERROR_INT_DIS_2 WO Error register 2 interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+ERROR_POR_MASK_1 RO Error register 1 power-on reset mask register. This is a
+read-only location and can be altered through the
+corresponding power-on reset enable or disable registers.
+ERROR_POR_EN_1 WO Error register 1 power-on reset enable register. A write of
+1 to this location will unmask the interrupt.
+ERROR_POR_DIS_1 WO Error register 1 power-on reset disable register. A write of
+1 to this location will mask the generation of power-on
+reset.
+ERROR_POR_MASK_2 RO Error register 2 power-on reset mask register. This is a
+read-only location and can be altered through the
+corresponding power-on reset enable or disable registers.
+ERROR_POR_EN_2 WO Error register 2 power-on reset enable register. A write of
+1 to this location will unmask the generation of power-on
+reset.
+ERROR_POR_DIS_2 WO Error register 2 power-on reset disable register. A write of
+1 to this location will mask the generation of power-on
+reset.
+ERROR_SRST_MASK_1 RO Error register 1 SRST mask register. This is a read-only
+location and can be altered through the corresponding
+SRST enable or disable registers.
+ERROR_SRST_EN_1 WO Error register 1 SRST enable register. A write of 1 to this
+location will unmask the generation of SRST.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 148
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+ERROR_SRST_DIS_1 WO Error register 1 SRST disable register. A write of 1 to this
+location will mask the generation of SRST.
+ERROR_SRST_MASK_2 RO Error register 2 SRST mask register. This is a read-only
+location and can be altered through the corresponding
+SRST enable or disable registers.
+ERROR_SRST_EN_2 WO Error register 2 SRST enable register. A write of 1 to this
+location will unmask the generation of SRST.
+ERROR_SRST_DIS_2 WO Error register 2 SRST disable register. A write of 1 to this
+location will mask the generation of SRST.
+ERROR_SIG_MASK_1 RO Error register 1 signal mask register. This is a read-only
+location and can be altered through the corresponding
+error signal enable or disable registers. This register is
+only reset by the external power-on reset.
+ERROR_SIG_EN_1 WO Error register 1 signal enable register. A write of 1 to this
+location will unmask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_SIG_DIS_1 WO Error register 1 signal disable register. A write of 1 to this
+location will mask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_SIG_MASK_2 RO Error register 2 signal mask register. This is a read-only
+location and can be altered through the corresponding
+error signal enable or disable registers. This register is
+only reset by the external power-on reset.
+ERROR_SIG_EN_2 WO Error register 2 signal enable register. A write of 1 to this
+location will unmask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_SIG_DIS_2 WO Error register 2 signal disable register. A write of 1 to this
+location will mask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_EN_1 RW Error enable register 1. If any of the bits in this register is
+1, the corresponding error is allowed to be propagated to
+the error handling logic.
+ERROR_EN_2 RW Error enable register 2. If any of the bits in this register is
+1, the corresponding error is allowed to be propagated to
+the error handling logic.
+AIB_CNTRL WO This register is used by the PMU to request functional
+isolation on the AXI interfaces between the PL and PS by
+using the AIBs. The register maintains its contents during
+a system reset. AIBs are only for PS to PL isolation,
+handled by ISO_AIB {AXI,APB} and can respond to the PS
+master with a SLVERR.
+AIB_STATUS RO This register is used by the PMU to check the status of
+functional isolation by the AIBs on the AXI interfaces
+between the PL and PS. The register maintains its contents
+during a system reset.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 149
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Table 6-17 lists the I/O registers.
+MIO Signals
+Six GPI1 register bits can be driven by input signals routed through the MIO, as described
+in Table 6-3 and listed in Table 6-9. If these inputs are not routed through the MIO, then
+they are driven to 0. Six GPO1 register bits can drive output signals routed through the MIO,
+GLOBAL_RESET Mixed This register contains reset for safety-related blocks.
+ROM_VALIDATION_STATUS RO This register holds the status of the ROM validation.
+ROM_VALIDATION_DIGEST_{0:11} RO This register holds word {0:11} of the ROM validation
+digest.
+SAFETY_CHK RW Target register for safety applications to check the
+integrity of interconnect data lines by periodically writing
+to and reading from these registers.
+Table 6-17: I/O Registers
+Register Name Description
+IRQ_MODE Interrupt mode register.
+GPO0 I/O module miscellaneous control register (see Table 6-8).
+GPO1 PMU to MIO signals.
+GPO2 PMU acknowledgments (see Table 6-10).
+GPO3 PMU to PL signals (GPO3).
+GPI1[0] Fault tolerance status register (GPI0).
+GPI1 General purpose input register 1 (see Table 6-6).
+GPI2 General purpose input register 2 (see Table 6-7).
+GPI3 General purpose input from PL to PMU.
+IRQ_STATUS Interrupt status register.
+IRQ_PENDING Interrupt pending register.
+IRQ_ENABLE Interrupt enable register.
+IRQ_ACK Interrupt acknowledge register.
+PIT{0:3}_PRELOAD PIT{0:3} preload register.
+PIT{0:3}_COUNTER PIT{0:3} counter register.
+PIT{0:3}_CONTROL PIT{0:3} control register.
+INSTRUCTION_INJECT_ADDR Instruction injection address (IOModule_1.GPO1).
+INSTRUCTION_INJECT Instruction injection (IOModule_1.GPO2).
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 150
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+as described in Table 6-3 and listed in Table 6-6. All 32 GPI3 register bits are driven by PL
+input signals. All 32 GPO3 register bits drive PL output signalZynq UltraScale+ Device TRM 106
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Low-Power Operation Mode
+In the low-power operation mode, hardware blocks on the low power rail are powered up in
+the PS block (PMU, RPU, CSU, and the IOP). The low-power mode includes all peripherals
+except the SATA and display port blocks. Table 6-1 shows the IP enabled in low-power
+mode.
+Full-Power Operation Mode
+All domains are powered in the full-power mode, so the LPD is typically powered whenever
+FPD is powered. Like the low-power mode, power dissipation depends on the components
+that are running and their frequencies.
+Note: If the FPD is needed at any point, it must be powered during the initial boot. This does not
+apply if the FPD is never used.
+Table 6-1: Minimum and Typical Configurations for the Low-Power Mode
+System Elements Typical Minimum
+Configuration
+Typical Configuration
+Full Optimization Comments
+Cortex-R5F One core @ 50 MHz Two cores @maximum
+data sheet frequency
+Clock is gated to the
+unused core.
+TCM configuration
+OCM configuration
+Powered down
+128KB
+64 KB instruction and
+64 KB data
+256 KB
+Power is gated off to
+the unused TCM banks.
+Power is gated off to
+the unused banks
+Device security Without AES All, including AES
+Peripheral One set of UART, I2C,
+and Ethernet
+All peripherals in LPS
+and one USB 2.0
+USB can
+independently be
+powered down.
+PLLs One PLL Two PLLs PLLs that are not used
+are in the
+powered-down state.
+SYSMON Included Included Power is reduced as
+there are fewer
+supplies to be
+sampled.
+RTC and BBRAM Included Included Switched to the
+VCC_PSAUX rail.
+PMU
+SoC debug
+Included
+Standby
+Included
+Standby
+SoC debug is mostly
+on the FP rail. The LP
+section is not used.
+eFuse
+Components outside LPD
+Included
+Powered down
+Included
+Powered down
+PL Powered down Powered down
+Send FeedbackZynq UltraScale+ Device TRM 107
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+X-Ref Target - Figure 6-1
+Figure 6-1: Power Domains and Islands
+X16958-120418
+VCU H.265, H.265
+BRAM
+PL SYSMON
+(SYSMONE4)
+100 Gb Ethernet Interlaken
+PL Configuration
+PL Fabric
+PL Fabric
+DSP, LUT, Clks
+SerDes
+HD I/O
+eFUSE
+Real
+Time
+Clock BBRAM
+Oscillator
+USB 0
+USB 1
+PS-GTR
+1.2 to 1.5V
+Battery Power Domain (BPD)
+1.8V
+VCC_PSAUX good
+1.8V to 3.3V VCCO_PSIO3
+1.8V to 3.3V VCCO_PSIO2
+1.8V to 3.3V VCCO_PSIO1
+1.8V to 3.3V VCCO_PSIO0
+0.85 or 0.9V VCC_PSINTLP
+1.2V VCC_PSPLL
+0.85 or 0.9V
+VCC_PSINTFP
+0.85V PS_MGTRAVCC
+1.8V PS_MGTRAVTT
+Note: RFSoC devices provide enhanced
+Ethernet, PCIe, and GTY functionality.
+VCCO_PSDDR
+1.8V VCC_PSDDR_PLL
+VCCBRAM
+0.9V VCCINT_VCU
+1.8V VCCADC
+1.25V VREFP
+1.8V VCCAUX
+1.2 to 3.3V VCCO
+0.85 or 0.9V
+VCC_PSINTFP_DDR
+PS
+SysMon
+APLL
+VPLL
+DPLL
+RPLL
+IOPLL
+System
+MIO 2
+MIO 1
+MIO 0
+L2 Cache
+RAM
+CPU 3
+CPU 1
+CPU 2
+CPU 0
+APU MPCore
+(SCU, GIC, CCI)
+APU Debug
+RPU debug
+Arm DAP
+PL
+debug
+FPD
+DMA PCIe SATA GPU pipeline
+Interconnect and SLCR
+DisplayPort
+GPU PP0
+GPU PP1
+Bank 0
+Bank 1
+Bank 2
+Bank 3
+TCM A0
+TCM A1
+TCM B0
+TCM B1
+IOP OCM Ctrl
+CSU PMU
+IPI
+Interconnect and SLCR
+LPD DMA
+PS TAP
+PLLs (x6)
+DDR Memory
+Controller
+DDRIOB
+Ports
+Battery
+Power
+Supplies
+PCAP
+PCAP-LPD Isolation Wall
+PL-LPD Isolation Wall
+VCC_PSAUX
+Low Power Domain (LPD)
+Full Power Domain (FPD)
+PL Power Domain (PLPD)
+PSIO {0:3} Power
+High-Performance I/O PL Power Domains for Multiple
+PL Units
+PLL Power Domains
+VCC_PSBATT
+GIC ETM
+RPU
+MPCore
+PL-FPD Isolation Wall
+PS Auxiliary Power Domain
+0.9 to 1.8V GTH/GTY Supplies
+1.8V VCC_PSADC
+PCIe Gen3, 4
+PL TAP
+PMU software control
+PHY
+HP I/O
+1.8V VCCAUX_IO
+VCCINT
+0.72, 0.85, or 0.9V
+PLPD
+1.0 to 1.8V VCCO
+1.1 to 1.5V
+Send FeedbackZynq UltraScale+ Device TRM 108
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU System-level View
+The PMU block is located within the low-power domain. Figure 6-2 shows the block
+diagram of the PMU. It includes the following subcomponents:
+• Dedicated, fault-tolerant triple-redundant processor.
+• ROM to hold PMU ROM code that includes the PMU startup sequence, routines to
+handle power-up or down requests, and interrupts.
+• 128 KB RAM with ECC used for code and data.
+• PMU local registers accessible only by the PMU.
+• PMU global registers accessible by the PMU processor and also by other bus masters
+within the system. These include all power, isolation, and reset request registers. It also
+includes error capture registers and the system power state registers.
+• 32-bit AXI slave interface to allow masters outside the PMU to access the PMU RAM
+and the global register file.
+• PMU interrupt controller manages the 23 interrupts to the PMU. Four are from the
+inter-processor interconnect (IPI).
+• GPI and GPO registers interface to the PMU, MIO, PL, and other resources within the PS
+for signaling to and from the PMU.
+° Six outputs and six inputs.
+° 32 GPO outputs to the PL from the PMU and 32 GPI inputs from the PL to the PMU.
+° 47 system errors to the PMU.
+° CSU error code.
+° 32 memory built-in self test (MBIST) status signals and 32 MBIST completion
+signals.
+° Three direct reset control signals.
+° Four AIB status signals and four AIB control signals.
+° 11 logic clear status signals.
+° DDR retention control.
+° Three programmable settings to the CSU for the PL.
+• PMU MDM controller accessible using the PS TAP controller via the PSJTAG interface.
+Send FeedbackZynq UltraScale+ Device TRM 109
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+X-Ref Target - Figure 6-2
+Figure 6-2: PMU System Diagram
+PMU I/O Units
+Internal
+Interrupt
+Controller
+GPI
+Voter
+128 KB
+RAM
+ECC
+AXI Interconnect
+AXI
+APB AXI
+AXI
+APB
+PMU Global
+Registers
+eFUSE Cache
+System Monitor
+Reset
+Controller
+MDM
+GPO
+GIC
+Proxy
+RTC
+PS Multiplexed I/O Dedicated PS I/O
+External
+Peripheral
+Interrupts
+- USB Wake
+- IPI
+- APU Cores 0:3
+- DAP
+RTC Wake
+PS_ERROR_STATUS
+JTAG
+- PS Mode
+- PRST
+POR_B
+SRST_B
+PS_REF_CLK
+SysCalc
+pma_clk
+Clock
+MUX
+PS
+TAP
+External PCR
+Internal PCR
+SRST
+PMU
+Voter
+PMU Processor
+Voter
+from LPD Inbound
+Switch
+To LPD
+Outbound Switch
+System
+Errors
+LPD Subsystem
+X28744-101823
+Send FeedbackZynq UltraScale+ Device TRM 110
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Functional Description
+The functionality within the PMU is outlined in this section.
+• Performs the sequencing of events after POR and before CSU reset is released. These
+functions include the following.
+° Check the power-supply levels using the System Monitor for proper operation of
+the CSU and the rest of the LP domain.
+° Initialize the PLLs for the default configuration and their potential bypass.
+° Trigger and sequence the necessary scan and MBIST.
+° Capture and signal errors during this stage. Error ID can be read through JTAG.
+° Release reset to the CSU.
+• Acts as a delegate to the application and real-time processors during their sleep state
+and initiates their power-up and restart after their wake-up request.
+• Maintain the system-power state at all times.
+• Handles the sequence of low-level events required for power-up, power-down, reset,
+memory built-in self repair (MBISR), MBIST, and scan zeroization of different blocks.
+• Manages the system during the sleep mode and wake-up the system based on various
+triggering mechanisms.
+• Includes PS-level error capture and propagation logic.
+PMU Processor
+The PMU processor is a triple-redundant processor without caches. The processing system
+provides fault tolerance by applying redundancy on the PMU and error correction (ECC) on
+the RAM interface. The triple redundancy and ECC corrects single errors and generates an
+error on multiple errors that cannot be corrected. When an error occurs with one of the
+PMU processors, it might not always be possible for the processor in error to properly
+continue operation. Thus, at some point, the PMU might require a reset for proper TMR
+operation.
+There is a provision to allow more complex power protocol management programs to be
+implemented as firmware or application programs in the PMU RAM.
+Note: PMU processor debug module is disabled by default on ES2 and higher versions.
+Send FeedbackZynq UltraScale+ Device TRM 111
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Table 6-2 lists the implementation features for the PMU processor.
+PMU Processor Interfaces
+The PMU provides input/output signals that are grouped functionally into the following
+interfaces.
+• 32-bit AXI master interface to the low-power domain (LPD) interconnect that allows the
+PMU to access other PS resources including the SLCR registers and the IPI block.
+• 32-bit AXI slave interface from the LPD inbound switch to allow accesses to the PMU
+global registers and the PMU RAM by external processors.
+• PMU clock and reset signals.
+• Power control interface to all islands within the PS.
+° L2, OCM, and TCM RAMs.
+° APU_Cores [3:0].
+° Dual-core Cortex-R5F® real-time processor.
+° USB0 and USB1.
+° GPU pixel-processor (PP) PP0 and PP1.
+° Full-power and PL domain crossing bridges.
+Table 6-2: MicroBlaze Implementation Features
+Feature Implementation
+Pipeline 5-stage.
+Interconnect standard AXI
+Endianness Little endian.
+Program counter width 32
+Support for load/store exclusive Enabled.
+Fault tolerance Enabled.
+Hardware multiplier/divider/barrel shifter Disabled/disabled/enabled.
+Debug Enabled. One of each type of break-point.
+Fast interrupt Disabled.
+Send FeedbackZynq UltraScale+ Device TRM 112
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake interface from GPIO, RTC, APU GIC, RPU GIC, and USBs.
+• Interrupt interface.
+• Device reset control interface.
+• Memory BIST and BISR control interface.
+• Other miscellaneous interfaces including the power-supply monitor interface. Table 6-3
+lists the PMU general purpose MIO pins.
+• Error capture and propagation interfaces. Table 6-4 lists the error capture and
+propagation signals.
+PMU Clocking
+The PMU operates on the SysOsc clock (180 MHz ± 15%) that is supplied from the internal
+ring-oscillator (IRO) located within the system monitor (PS SYSMON) block. The clock is
+gated until the POR block detects that the VCC_PSAUX supply has ramped up.
+Table 6-3: PMU General Purpose MIO Pins
+Register Bit
+Fields Pins Size Direction Clock Clamp
+Value Description
+GPI1[15:10] MIO
+[31:26] 6 Input Async 6’b0
+Inputs for external events that are
+available to the PMU using six
+MIO pins. The GPI1 register bits
+are listed in Table 6-6. These
+signals are defined by FSBL, SDK,
+development boards, or users.
+GPO1[5:0] MIO
+[37:32] 6 Output pmu_clk
+Output signals to control external
+power supplies and other board
+hardware using MIO pins. See
+Table 6-9 for pin assignments.
+GPO1[0]: used by the PMU ROM
+code for the FPD's VCC_PSINTFP.
+GPO1[1]: used by the PMU ROM
+code for the PL's VCCINT.
+GPO1[2:5]: user defined (including
+AMD reference boards and
+customer designs). Not used by
+the PMU ROM code.
+Table 6-4: Error Interface Signals To and From the PL
+Signal Name Size Direction Clock Clamp
+Value Description
+pmu_pl_err 4 Input Async 4’b0 Generic PL errors communicated to PS.
+pmu_error_to_pl 47 Output pmu_clk PS error communicated to the PL and
+JTAG.
+Send FeedbackZynq UltraScale+ Device TRM 113
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+SysOsc starts to oscillate as soon as the voltage is high enough for the block to function.
+The reset of the PMU processor is synchronous and requires a clock edge for it to take
+place, POR_B input must be asserted until the voltage has ramped up. This guarantees that
+the PMU processor GPOs, which control many hardware logic blocks within the PS, are
+initialized when the device is powered up.
+PMU Reset
+The PMU block uses both power-on reset (POR) and the system reset (SRST) inputs that are
+controlled by the reset block. POR clears the state of the PMU completely. All islands and
+power domains are powered up and all the isolations are disabled. After a POR, the PMU
+executes both scan and BIST clear functions on the LP and FP domains. However, the SRST
+will only reset the PMU processor subsystem, the PMU interconnect, and a subset of local
+and global registers, leaving most local and global registers in the states they were prior to
+the reset. When the SRST triggers the reboot of the PMU, the power state is not cleared and
+the power state of the PS is preserved. However, after a power-on reset, the power state is
+cleared by specifically clearing all RAMs and flip-flops.
+PMU RAM
+Much of the PMU functionality is provided by software executed by the PMU processor. The
+ROM memory contains instructions that provide default functionality. To extend or replace
+these features, or to provide new features, software can be downloaded into the PMU
+processor’s 128 KB RAM. The PMU includes a 128 KB RAM with 32-bit ECC that is used to
+hold data and code. The PMU RAM is accessible both by the PMU processor and the
+external masters through the PMU AXI slave interface.
+IMPORTANT: Accesses by the external masters should be 32-bit wide and word-aligned.
+The PMU RAM allows only word writes, words are 4 bytes. It does not allow byte writes. If
+less than 4 bytes have to be written, then the 4 bytes must be read first, modified, and the
+entire 4 bytes must be written back.
+For an external master to access the PMU RAM through the APB interface, the PMU
+processor must be in sleep mode. A PMU RAM access from an external master while the
+PMU processor is not asleep can hang the system. If the PMU processor is not put in sleep
+mode, it performs an instruction fetch or load/store on every clock cycle, which means that
+the APB never gets to access the RAM. In this case, starvation of the APB interface occurs.
+The following is the order of priority to access the PMU RAM.
+1. PMU processor data load/store.
+2. PMU processor instruction fetch.
+3. External access.
+Send FeedbackZynq UltraScale+ Device TRM 114
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU ROM
+PMU includes a ROM that holds the boot code for the PMU, its interrupt vectors, and the
+service routines that the PMU can execute (upon a request). The PMU ROM is responsible
+for various functions within the PMU. The following is the list of the tasks that are executed
+by the ROM code.
+• Pre-boot tasks
+° Clean PMU RAM
+° Enable the System Monitor and check LP domain supply.
+° Configure PLLs with initial settings.
+° Trigger and sequence the necessary scan and BIST clear of PS.
+° Release reset to CSU.
+• Post-boot tasks
+° Power-up and power-down domains within the PS.
+° Enable and control built-in self-repair (BISR).
+° Reset blocks when requested or as a part of the master power-ups.
+• Execute firmware code upon request.
+MBIST Functionality
+ROM code execution initiates MBIST clear on the entire LP domain minus the PMU or on the
+entire FP domain. When a memory is tested or cleared using the MBIST, the rest of the
+system can be functioning. For most of the blocks, RAM is accessed by the MBIST and it
+keeps the block RAM in the reset state when the RAM is accessed by the MBIST engine. For
+a few blocks, such as APU core processors, RAM is accessed by the MBIST through the core
+functional paths that can be interfered if the block is in reset. In such cases, Arm requires a
+small subset of inputs to the core to be tied off to specific values during the MBIST
+execution.
+Setting a particular bit in the MBIST_RST, MBIST_PG_EN, and MBIST_SETUP registers starts
+the MBIST process on that particular block. The MBIST_DONE bit is set to indicate that the
+process is finished. MBIST_GOOD provides the status of the process by setting either 0 (fail)
+or 1 (success).
+Send FeedbackZynq UltraScale+ Device TRM 115
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+There are five control and status registers:
+• MBIST_RST rw
+• MBIST_PG_EN rw
+• MBIST_SETPU rw
+• MBIST_DONE ro
+• MBIST_GOOD ro
+For the RAMs in:
+• APU, RPU cores
+• CANx, GEMx, USBx,
+• GPU, PCIe, SIOU
+• PS-PL AXI Interface RAMs
+The MBIST units are listed by bit field in the Zynq UltraScale+ MPSoC Register Reference
+(UG1087) [Ref 4].
+Scan Clear Functionality
+Zeroization is a process in which zeros are shifted through all of the storage elements and
+then verified that the shift occurred correctly. This is achieved using MBIST and scan clear
+functionality. The scan clear engines can only be controlled by the PMU and CSU processors
+through their direct interfaces to the engines. Other processors can request the PMU
+through its SCAN_CLR_REQ register to start any specific scan clear engines. When a scan
+clear engine is started, the completion status signal from the engine transitions from 1 to 0.
+This signal, which is routed directly to a PMU LOGCLR_ACK register, communicates the
+completion status of the engine to the PMU. When a scan clear engine finishes its
+operation, its completion status bit toggles from 0 to 1 generating an interrupt to the PMU.
+The pass/fail status of the clearing operation can be checked by the bits in the PMU
+LOGCLR_STATUS global register that are directly driven by the pass/fail status of the engine.
+The CSU only starts scan clear engines under a security lock-down scenario and there is no
+functional requirement for the CSU to check the pass/fail status, or the completion status,
+of the clearing operation.
+Every power island and every power domain has a scan clear engine. The PMU and CSU
+blocks have separate scan clear engines even though they are not power islands. The PMU
+scan clear is triggered only on power-on reset and the CSU scan clear can only be triggered
+by the PMU.
+IMPORTANT: The scan clear has to operate on the entire power island. In this case, the power island
+needs to be isolated before the block is put in the scan mode to start the scan clear functionality.
+Send FeedbackZynq UltraScale+ Device TRM 116
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+To ensure running the scan clear on the LP domain, the full LPD (minus the PMU) is in reset,
+the reset logic must follow these guidelines:
+1. Keep reset registers off the LPD scan chain.
+2. Leverage the explicit reset input to clear state in registers that have this feature (this is
+recommended, but not required). The explicit reset can be asserted by the scan clear
+request output from the PMU (scan_clear_trigger_lpd output for the LPD domain) to
+force the reset to stay asserted by OR’ing it with the reset. The use of explicit resets for
+clearing instead of using scan on these registers requires them to be applied on chains
+that are included in the scan test rather than in the scan clear. However, this makes the
+scan architecture more complex.
+3. The PMU local and global registers implement self-clearing through reset and are
+excluded from the scan clear. This is done to prevent an unnecessary power cycle of the
+islands during the scan clear of the PMU. The PMU is required to be cleared only during
+a POR or after a security shutdown. In either case, the flip-flops on the local and global
+registers are excluded from clearing functions. If for any reason this is not acceptable for
+the security lock-down, the reset to the flip-flops with the self-clearing feature that are
+not cleared through scan has to be asserted after the scan clear function on the rest of
+the flops is completed. This guarantees that the self-clearing of the PS is not affected by
+a potential IR drop due to the power up of the blocks that were previously powered
+down.
+Note: User functions that need FPD SC must power MGTRAVCC even if not using the GT.
+PMU Interconnect
+PMU includes a 2 × 3 interconnect which supports two AXI masters, two APB slaves, and
+one AXI slave. One of the masters is the 32-bit AXI master from the triple-redundant
+processor and the other is the low-power domain main interconnect. This AXI master is a
+port on its register switch allowing any master in the system to access the PMU slaves.
+The two APB slaves are the PMU RAM and PMU global register file. The AXI slave is on the
+port routed to the LPD switch and only allows the accesses that were originated by the PMU
+processor to be routed to the PS slaves outside the PMU.
+The PMU processor AXI master can generate a coherent transaction by setting the coherent
+bit in the PMU global control register. The PMU AXI master (from the LPD interconnect)
+always generates transactions with AWCACHE and ARCACHE equal to 4'b0001 regardless
+of the coherency bit. This implies that PMU requests are treated as device transactions that
+can be buffered.
+The PMU interconnect implements TrustZone security. All accesses that are generated by
+the PMU are secure and only secure accesses are allowed to be routed to the PMU. The PMU
+interconnect will generate an error on any non-secure access to the PMU.
+Send FeedbackZynq UltraScale+ Device TRM 117
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU I/O Registers
+The PMU I/O registers include all the registers associated with the interrupts, GPI/GPO, and
+the programmable interval timers (PITs). The PMU_IOMODULE registers control the
+interrupt controller, GPI{0:3}, GPO{0-3}, and PIT0-PIT3. The PMU_GLOBAL registers enable
+the system processors to control interrupts and trigger PMU service requests.The PMU
+processor memory map is shown in Table 6-5.
+PMU Global Registers
+The global register set includes registers that are used as a means of communication
+between the PMU and other blocks to synchronize activities regarding power/system
+management and reset.
+The PMU global register set is mapped at address FFD8 0000—FFDB FFFF. The registers
+are summarized in Table 6-16. For a bit-level description, refer to the PMU_GLOBAL section
+in the Zynq UltraScale+ MPSoC Register Reference (UG1087) [Ref 4].
+PMU GPIs and GPOs
+The PMU processor includes four local (only accessible by the PMU processor) GPI banks
+and four GPO banks. GPI0 and GPO0 are reserved for the dedicated PMU processor
+subsystem features (see PMU Processor), while GPI3 and GPO3 are reserved for
+communication with the PL. GPI1, GPI2, GPO1, and GPO2 are used for communication
+between the PS hardware features and the PMU.
+The PMU’s general-purpose I/O features include miscellaneous wake, errors, and
+handshaking signals. The usage of the GPIs and GPOs can be summarized as follows with all
+signals being active-High unless otherwise specified.
+• GPI0 is used internally by the PMU processor. GPI0[31:0] shows the value of the
+fault-tolerance status register.
+• GPI1 monitors wake-up requests. Table 6-6 describes the various GPI1 bit(s).
+Table 6-5: PMU I/O Registers and Local Memory
+Memory
+Address Size Slave Interface Accessible AXI Interconnect
+0xFFD0_0000 32 KB PMU ROM PMU only Local bus
+0xFFD4_0000 128 B PMU_IOMODULE register set PMU only Local bus
+0xFFD5_0000 1024 B PMU_LMB_BRAM PMU only Local bus
+0xFFD6_0000 128 B PMU_LOCAL register set PMU only Local bus
+0xFFD8_0000 1024 B PMU_GLOBAL register set System via XPPU System bus
+0xFFDC_0000 128 KB PMU RAM memory System via XPPU System bus
+Send FeedbackZynq UltraScale+ Device TRM 118
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• GPI2 monitors power control requests. Table 6-7 describes the various GPI2 bit(s).
+Table 6-6: GPI1 Bit Descriptions
+Bit(s) Description
+GPI1[3:0] ACPU3-ACPU0 wake from APU GIC associated with ACPU3-ACPU0.
+GPI1[5:4] R5_1 and R5_0 wake from RPU GIC associated with R5_1 and R5_0.
+GPI1[7:6] USB1 and USB0 wake.
+GPI1[8] DAP full-power domain wake-up request.
+GPI1[9] DAP RPU wake-up request.
+GPI1[15:10]
+General purpose wake-up and event signals from MIO (see Table 6-3).
+MIO[26] -> GPI1[10]
+MIO[27] -> GPI1[11]
+...
+MIO[31] -> GPI1[15]
+GPI1[16] Full-power domain wake directed by the GIC proxy.
+GPI1[19:17] Reserved.
+GPI1[23:20] APU debug power-up request for ACPU3-ACPU0 APU MPCore processors 0, 1, 2, 3.
+GPI1[27:24] Reserved.
+GPI1[28] Error interrupt to PMU from error register 1.
+GPI1[29] Error interrupt to PMU from error register 2.
+GPI1[30] AXI AIB access error. A powered-down block is accessed through AXI.
+GPI1[31] APB AIB access error. A powered-down block is accessed through APB.
+Table 6-7: GPI2 Bit Descriptions
+Bit(s) Description
+GPI2[3:0] Power-down request from APU core {3:0}.
+GPI2[5:4] Power-down request from RPU core {1:0}.
+GPI2[6] Read the state of the pcfg_por_b input from PL, which signifies that PL is properly
+powered up.
+GPI2[7] Reserved.
+GPI2[8] Request to reset RPU core 0 by debug.
+GPI2[9] Request to reset RPU core 1 by debug.
+GPI2[15:10] Reserved.
+GPI2[16] Warm reset request for APU core 0.
+GPI2[17] Warm reset request for APU core 1.
+GPI2[18] Warm reset request for APU core 2.
+GPI2[19] Warm reset request for APU core 3.
+GPI2[20] Warm reset request for APU core 0 by debug logic.
+GPI2[21] Warm reset request for APU core 1 by debug logic.
+Send FeedbackZynq UltraScale+ Device TRM 119
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• GPI3 monitors the GPIs from the PL.
+• GPO0 is dedicated to the PMU features. Table 6-8 describes the various GPO0 bit(s).
+GPI2[22] Warm reset request for APU core 2 by debug logic.
+GPI2[23] Warm reset request for APU core 3 by debug logic.
+GPI2[28:24] Reserved.
+GPI2[31:29]
+Power rail removal alarms.
+[31]: Asserts when VCC_PSINTFP is removed.
+[30]: Asserts when VCC_PSINTLP is removed.
+[29]: Asserts when VCC_PSAUX is removed.
+Table 6-8: GPO0 Bit Descriptions
+Bit(s) Description
+GPO0[0]
+Used during debug to remap the 64-byte interrupt base vectors region to the RAM
+starting address (0xFFD0 0000).
+0 = base vectors in ROM (default).
+1 = base vectors in RAM.
+GPO0[2:1]
+Set PIT0 prescaler.
+x0 = PIT0 is a 32-bit timer with no prescaler.
+01 = External prescaler.
+11 = PIT1 is prescaler to PIT0.
+GPO0[4:3]
+Set PIT1 prescaler.
+x0 = PIT1 is a 32-bit timer with no prescaler.
+x1 = External prescaler.
+GPO0[6:5]
+Set PIT2 prescaler.
+x0 = PIT2 is a 32-bit timer with no prescaler.
+01 = External prescaler.
+11 = PIT3 is prescaler to PIT2.
+GPO0[7]
+Set PIT3 prescaler.
+0 = PIT3 is a 32-bit timer with no prescaler.
+1 = External prescaler.
+GPO0[8] Used to suppress the comparison of the PMU processor trace bus to not detect a
+trace bus mis-compare during fault injection.
+GPO0[9] Controls if the PMU processor SLEEP instruction cause a processor hardware reset
+during recovery from lock-step mode due to voting mode comparison.
+GPO0[10] Makes it possible to clear the value of the fault tolerance status register.
+GPO0[11] Makes it possible to reset the fault tolerance state machine.
+GPO0[12] Controls if fault tolerance state machine reset of the PMU processor is generated
+or not.
+Table 6-7: GPI2 Bit Descriptions (Cont’d)
+Bit(s) Description
+Send FeedbackZynq UltraScale+ Device TRM 120
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• GPO1 is dedicated to the MIO for signaling and power-supply management. Table 6-9
+lists the GPO1 register bits.
+• GPO2 is dedicated to the PMU-generated requests and acknowledges. Table 6-10
+describes the various GPO2 bit(s).
+• GPO3 is dedicated to the GPOs to the PL.
+PMU Programmable Interval Timers
+The PMU includes four 32-bit programmable interval timers (PITs). The clock source to
+these timers is the fixed system oscillator (SysOsc) to the PMU. These are general-purpose
+timers for use as delay counters or event scheduling. The pre-scaler for the PITs can be
+configured through GPO0. The following are the possible pre-scaler choices for each PIT.
+• PIT0: No pre-scaler, use pre-scaler value from PIT1
+• PIT1: No pre-scaler
+• PIT2: No pre-scaler, correctable ECC error
+• PIT3: No pre-scaler
+GPO0[15:13] Used to inject failures in the triple-redundant PMU processor.
+GPO0[23:16] Used as magic word #2 to reduce the risk of accidental commands controlling TMR
+operation being issued.
+GPO0[31:24] Used as magic word #1 to reduce the risk of accidental commands controlling TMR
+operation being issued.
+Table 6-9: GPO1 Bit Descriptions
+Bit(s) Description
+GPO1[5:0] These bits can drive up to six MIO outputs, their usage is described in Table 6-3.
+GPO1[31: 6] Not implemented.
+Table 6-10: GPO2 Bit Descriptions
+Bit(s) Description
+GPO2[5:0] Reserved.
+GPO2[6] Used to enable a subset of signals between PL and PS after the PMU has determined
+that the PL is properly powered up.
+GPO2[7] PS status output from PMU to a dedicated PS general purpose I/O pad.
+GPO2[8] Acknowledge to FP wake-up request from DAP.
+GPO2[9] Acknowledge to RPU wake-up request from DAP.
+GPO2[31:10] Not implemented.
+Table 6-8: GPO0 Bit Descriptions (Cont’d)
+Bit(s) Description
+Send FeedbackZynq UltraScale+ Device TRM 121
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+The timers are only accessible from the PMU firmware. The PMU processor’s I/O module
+driver provides an API for these resources.
+PMU Interrupts
+When the PMU processor receives an interrupt, it branches to the PMU ROM. The ROM
+code must check the pending interrupt register within the interrupt controller in the PMU
+I/O module and branch to the appropriate interrupt service routine in the ROM or RAM. The
+priority between the pending interrupts can be enforced by the PMU firmware, and if not
+present, the priority is managed by the ROM. Table 6-11 lists the PMU interrupts.
+Table 6-11: PMU Interrupts
+Bit in Interrupt
+Pending Register External Interrupt Description
+31 Secure lock-down request Interrupt from CSU to initiate a secure lock down.
+30 Reserved
+29 Address error interrupt Interrupt for address errors generated during
+accesses to PS SLCRs or PMU global registers.
+28 Power-down request Interrupt to signal a power-down request.
+27 Power-up request Interrupt to signal a power-up request.
+26 Software reset request Interrupt to signal a software-generated reset
+request.
+25 Hardware block RST
+request
+Interrupt for all hardware-generated block reset
+requests.
+24 Isolate request Interrupt to signal an isolation request.
+23 ScanClear request Interrupt to signal a scan clear request.
+22-19 IPI3-IPI0 Interrupt associated with IPI slices 3-0 to PMU.
+18 RTC alarm interrupt Interrupt from RTC to signal the alarm.
+17 RTC seconds interrupt Interrupt from RTC triggered every second.
+16 Correctable ECC error Interrupt generated when an ECC error on the PMU
+RAM is corrected.
+15 Reserved
+14 GPI3 Interrupt generated when any input on GPI3
+changes from 0 to 1.
+13 GPI2 Interrupt generated when any input on GPI2
+changes from 0 to 1.
+12 GPI1 Interrupt generated when any input on GPI1
+changes from 0 to 1.
+11 GPI0 Interrupt generated when any input on GPI0
+changes from 0 to 1.
+10-7 Reserved
+Send FeedbackZynq UltraScale+ Device TRM 122
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+MIO Pin Considerations
+The processing system (PS) contains three banks of 26-bit general-purpose multiplexed I/O
+(MIO) used by different peripherals. All the three banks can support LVCMOS18, LVCMOS25,
+and LVCMOS33 standards. The I/O that is used in conjunction with the PMU includes the
+UTMI+ low pin interface (ULPI) for one USB, six GPIs for wake and signaling, and six GPOs
+for power supply control and signaling. The I/O pins for power management and wake up
+are accessible from the GPO1 and GPI1 registers, respectively.
+Among the six GPOs, the PMU ROM code uses GPO1[0] on MIO[32] to control the FPD's
+VCC_PSINTFP power supply and GPO1[1] on MIO[33] to control the PL's VCCINT power
+supply. Both pins are active high (1 is power on and 0 is power off). The other four GPO[2:5]
+signals can drive outputs onto the MIO[34:37] pins.
+The AMD development boards assign functionality for the GPO[2:5] signals, but they can be
+re-assigned and controlled by PMU user firmware because they are not used by the PMU
+ROM code. The GPO signals and MIO pins are listed in Table 6-3.
+PMU Error Handling and Propagation Logic
+The PMU is responsible for capturing, reporting, and taking an appropriate action with
+respect to each error. Each system error is identified in the PMU_GLOBAL error status
+registers. The PMU also includes the necessary registers, logic, and interfaces for handling
+this functionality.
+The PMU provides a collection of error input signals that route all system-level hardware
+errors to capture them. These errors are recorded in the error status registers 1 and 2 within
+the PMU and are not cleared even during a system reset or an internal POR. A captured
+error can only be cleared if a 1 is explicitly written to each corresponding error status bit. All
+errors can generate an interrupt to the PMU. This interrupt can be masked per error. The
+propagation of all errors to error status registers can be disabled by using the bits in the
+error enable registers (ERROR_EN_1 and ERROR_EN_2) global registers in the PMU.
+PMU also includes registers that can capture software-generated errors. The software errors
+refer to the errors that occur during the execution of PMU ROM, PMU firmware, and the
+CSU ROM.
+Similar to the hardware errors, software errors are recorded in the PMU and are cleared only
+by an external POR or explicitly by writing a 1 to its corresponding error status register bit.
+All but the software errors are recorded by the PMU during its pre-boot execution can
+6-3 PIT3-PIT0 Programmable interval timer interrupts.
+2-0 Reserved
+Table 6-11: PMU Interrupts (Cont’d)
+Bit in Interrupt
+Pending Register External Interrupt Description
+Send FeedbackZynq UltraScale+ Device TRM 123
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+generate an interrupt to the PMU. Similar to the hardware errors, this interrupt can be
+masked per error.
+For each of the errors that are processed by the error handling logic, you can decide what
+action should be taken when the error occurs. The possible scenarios would be one or a
+combination of the following choices.
+• Assertion of the PS_ERROR_OUT signal on the device.
+• Generation of an interrupt to the PMU processor (PMU_Int).
+• Generation of a system reset (SRST).
+• Generation of a power-on-reset (POR).
+There are four mask registers associated with each of the ERROR_STATUS registers
+(ERROR_STATUS_1 and ERROR_STATUS_2). These mask registers can be used to enable
+either POR, SRST, PMU interrupt (if firmware is installed), or signal a PS_ERROR_OUT. To set
+the mask, write a 1 to the appropriate bit on the ERROR_INT_EN register (ERROR_INT_EN_1
+or ERROR_INT_EN_2). To clear the mask, write a 1 to the appropriate bit on the
+ERROR_INT_DIS register (ERROR_INT_DIS_1 or ERROR_INT_DIS_2). When selecting the
+option to interrupt the PMU when a specific error occurs, there should be user firmware to
+process the error. Otherwise, a no-firmware error will occur. The signal states can be
+unmasked as desired. Table 6-12 lists all possible sources of error and the corresponding
+reset state of the ERROR_SIG_MASK_n mask registers for the PS_ERROR_OUT device pin
+signal. All of the other error mask registers are set = 1 (masked).
+Table 6-12: PMU Error Sources and Reset State Masks
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Software Errors
+CSU BootROM
+detected error U _2 [26] [0] ~
+BootROM in CSU
+experienced an error
+during boot, including
+bitstream authentication
+failure.
+PMU ROM code
+preboot errors U _2 [25] [1] ~
+PMU ROM code
+experienced an error
+during the preboot
+process.
+Send FeedbackZynq UltraScale+ Device TRM 124
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+PMU ROM code
+service errors U _2 [24] [2] ~
+PMU ROM code
+experienced an error
+processing a service
+request.
+PMU firmware
+defined interrupt
+bits.
+U _2 [21:18] [6:3] ~
+PMU user firmware
+reported an error code.
+FSBL detected
+errors
+~
+Hardware Errors
+PMU hardware
+errors
+U _2 [17] [7]
+PMU ROM validation,
+TMR fault, RAM UE ECC,
+or register address access
+error.
+CSU error U _2 [16] [8]
+CSU hardware errors.
+Includes CSU ROM
+validation error.
+PMU_PB _2 [25]
+PLL lock errors M _2 [12:8] [13:9]
+PMU unmasks these bits
+when PLL is functioning.
+An error is signaled when
+a PLL loses lock; bits are
+in ERROR_STATUS_2.
+Generic PL errors U _2 [5:2] [17:14] Generic PL errors
+communicated to PS.
+FPD bus timeout
+error
+U _2 [1] [18] 153
+OR of all timeout signals
+from the FPD AIB units;
+ABP and AXI.
+LPD bus timeout
+error
+U _2 [0] [19] 86
+OR of all timeout signals
+from the LPD AIB units;
+ABP and AXI.
+Clock monitor error U _1 [26] [25] 60 Error from clock monitor
+logic.
+FPD XMPU isolation
+error
+U _1 [25] [26] 166
+OR of violation signals
+from the FPD and DDRx
+XMPU protection units.
+Table 6-12: PMU Error Sources and Reset State Masks (Cont’d)
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Send FeedbackZynq UltraScale+ Device TRM 125
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+LPD XMPU isolation
+error
+U _1 [24] [27] 120
+OR of violation signals
+from the OCM XMPU and
+the XPPU protection
+units.
+Power supply
+failures detected by
+PS SYSMON unit
+U _1 [23:16] [35:28] ~
+[16]: VCC_PSINTLP, [17]:
+VCC_PSINTFP, [18]:
+VCC_PSAUX, [19]:
+VCCO_PSDDR, [20]:
+VCC_PSIO3, [22]:
+VCC_PSIO0, [21]:
+VCC_PSIO1, [23]:
+VCC_PSIO2
+FPD SWDT error U _1 [13] [36] 145 Timeout error from the
+FPD SWDT.
+LPD SWDT error U _1 [12] [37] 84 Timeout error from the
+LPD SWDT.
+RPU CCF U _1 [9] [38] ~
+All RPU CCFS OR'ed
+together after
+RPU_CCF_MASK register.
+RPU lock-step
+errors
+M _1 [7:6] [40:39] ~ RPU lock-step errors from
+RPU MPCore.
+FPD over
+temperature U _1 [5] [41] ~
+FPD temperature near
+APU indicates a shutdown
+alert from the PS SysMon
+unit.
+LPD over
+temperature U _1 [4] [42] ~
+LPD temperature near
+RPU indicates a shutdown
+alert from the PS SysMon
+unit.
+RPU hardware
+errors
+U _1 [3:2] [44:43] 45, 44
+RPU0 or RPU1 error
+including both
+correctable and
+uncorrectable errors.
+Table 6-12: PMU Error Sources and Reset State Masks (Cont’d)
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Send FeedbackZynq UltraScale+ Device TRM 126
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+All the errors listed in Table 6-12 and the five reserved errors are also routed to the PL and
+are directly accessible through JTAG. In addition to these errors, the 74 bits of software
+errors from the PMU_PB_ERR, CSU_BR_ERR, and PMU_SERV_ERR registers are also
+accessible directly through JTAG. You can suppress the accessibility to these errors through
+JTAG permanently by blowing an eFUSE. Table 6-13 lists the assignment of errors in the
+JTAG status register and the error status interface to PL.
+Note: The eFUSE suppresses accessibility of the errors through JTAG, but the errors are accessible
+internal to the device.
+OCM uncorrectable
+ECC M _1 [1] [45] 42
+The OCM reported an
+uncorrectable ECC error
+during an OCM memory
+access.
+DDR uncorrectable
+ECC M _1 [0] [46]
+The DDR reported an
+uncorrectable ECC error
+during a DDR memory
+access.
+Table 6-12: PMU Error Sources and Reset State Masks (Cont’d)
+System Error
+ERROR_SIG_MASK_n
+ERROR_STATUS
+Register and
+[Bits]
+JTAG
+Error
+Registe
+r
+GIC IRQ Description
+Table 6-13: JTAG Error Register Description
+Error source Bit on JTAG
+Error Status
+Bit on Error
+Status to PL
+CSU ROM error (same as bit 120). 0 0
+PMU pre-boot error (same as bit 78). 1 1
+PMU ROM service error (same as bit 99). 2 2
+PMU firmware error (same as bits 103:100). 6:3 6:3
+Uncorrectable PMU error.
+Includes ROM validation, TMR, uncorrectable RAM ECC, and local
+register address errors.
+7 7
+CSU error. 8 8
+PLL lock errors [VideoPLL, DDRPLL, APUPLL, RPUPLL, IOPLL]. 13:9 13:9
+PL generic errors passed to PS. 17:14 17:14
+Full-power subsystem time-out error. 18 18
+Low-power subsystem time-out error. 19 19
+Reserved errors. 24:20 24:20
+Clock monitor error. 25 25
+Send FeedbackZynq UltraScale+ Device TRM 127
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Operation
+The PMU is responsible for handling the primary pre-boot tasks and management of the PS
+hardware for reliable power up/power down of system resources and system error
+management. Optionally, the PMU can run the AMD Software Test Library. The
+power-on-reset (POR) initiates the PMU operation which directly or indirectly releases
+resets to any other blocks that are expected to be powered up.
+In the PS, the APU MPCore and Cortex-R5F are classified as power masters. Power masters
+in the system are entities that can trigger the power down or power up of all islands
+including themselves.
+GPU pixel processors, USB, PL, and memory blocks are classified as power slaves as their
+power management is triggered by one of the power masters. The power masters can also
+be slaves because their islands can be individually powered down.
+XMPU errors [FPD XMPU, LPD XMPU]. 27:26 27:26
+Supply Detection Failure Errors
+[VCCO_PSIO_2, VCCO_PSIO_1, VCCO_PSIO_0, VCCO_PSIO_3,
+VCCO_PSDDR, VCC_PSAUX, VCC_PSINTFP, VCC_PSINTLP]
+35:28 35:28
+FPD System Watch-Dog Timer Error 36 36
+LPD System Watch-Dog Timer Error 37 37
+RPU CCF error 38 38
+RPU Lockstep Error 40:39 40:39
+FPD Temperature Shutdown Alert 41 41
+LPD Temperature Shutdown Alert 42 42
+RPU1 Error (Both Correctable and Uncorrectable Errors) 43 43
+RPU0 Error (Both Correctable and Uncorrectable Errors) 44 44
+OCM Uncorrectable ECC Error 45 45
+DDR Uncorrectable ECC Error 46 46
+PMU Preboot Errors (PMU_PB_ERR.PBERR_Data) 77:47 77:47
+PMU Preboot Error Flag (PMU_PB_ERR.PBERR_Flag) 78 78
+PMU Service Errors (PMU_SERV_ERR.SERVERR_Data) 98:79 98:79
+PMU Service Error Flag (PMU_SERV_ERR.SERVERR_Flag) 99 99
+PMU Firmware Error (PMU_SERV_ERR.FWERR) 103:100 103:100
+CSU BootROM Errors (CSU_BR_ERR.ERR_TYPE) 119:104 119:104
+CSU BootROM Errors (CSU_BR_ERR.BR_ERROR) 120 120
+Table 6-13: JTAG Error Register Description (Cont’d)
+Error source Bit on JTAG
+Error Status
+Bit on Error
+Status to PL
+Send FeedbackZynq UltraScale+ Device TRM 128
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+When the processors in the PS are powered down, the PMU is the sole entity in the PS that
+can capture a request to power up the required system and wake up the target processor.
+PMU GPIs can be used as inputs for external wake signals. The ULPI and RGMII are
+potentially used for wakes on USB 2.0 and Ethernet, respectively. PMU GPOs are used for
+sending signals to power supplies and communicating errors. For a detailed description of
+PMU GPIs and GPOs, see PMU GPIs and GPOs.
+Interacting with the PMU
+User software services requests from the PMU through the PMU_GLOBAL registers generate
+interrupts to the PMU processor and are processed automatically in the priority set by the
+PMU ROM code. The requests are initiated by user software enabling the service request
+and subsequently asserting the associated trigger for the service. The assertion of the
+enabled trigger asserts an associated status flag. Once the PMU has completed the service,
+it clears the status flag indicating to the user software that the service has completed. If the
+service has experienced a failure, the PMU_SERVICE bit of the
+PMU_GLOBAL.ERROR_STATUS_2 register is asserted and the system responds according to
+the mask settings for that error event. For all software generated requests to the PMU, the
+above sequence is recommended for usage.
+Send FeedbackZynq UltraScale+ Device TRM 129
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Power Down
+Any master in the system can request the PMU to power down an island or domain by
+writing a 1 to the appropriate bits in the REQ_PWRDWN_TRIG register while the
+corresponding mask bit is also enabled in the REQ_PWRDWN_INT_MASK register. The PMU
+will be interrupted and after executing the preamble ISR to check the interrupt pending
+register within the I/O block, it will execute the power-down-request ISR. In the case of a
+simultaneous power down request, the order for processing power-down requests is that
+the islands are powered down before the domains. The PMU will proceed to power down an
+island only if there is no other request from a master to power it up.
+Power Up
+Any master in the system can queue a request to the PMU to power up an island or domain
+by writing a 1 to the appropriate bits in the REQ_PWRUP_TRIG register. If a 1 is also written
+to the same bit in the REQ_PWRUP_INT_MASK register, the PMU will be interrupted. After
+executing the preamble ISR to check the interrupt pending register within the I/O block, it
+will execute the power-up request ISR. The priority of the power up is enforced such that
+domains are powered up first, then the islands, followed by slaves, and then finally the
+masters.
+Use Case for Power Down and Power Up by PMU
+This section describes power-down and power-up using the Zynq UltraScale+ MPSoC PMU.
+APU Power Down
+A few methods to power-down the APU are described in this section.
+Direct Power Down
+The flowchart in Figure 6-3 describes how to power down using the APU. As a preparation
+for power down, the APU program must follow these steps.
+• Disable interrupts to the core.
+• Record the intention to power down the CPU in the CPUPWRDWNREQ field of the
+PWRCTL register in APU by writing 1 to the field that corresponds to that APU core.
+• Save the state of the APU core.
+• Configure the GIC or GIC proxy (if the ACPU power-down is expected to be followed by
+the FPD power-down) for the wake source.
+• Execute a waiting for interrupt (WFI) instruction.
+Send FeedbackZynq UltraScale+ Device TRM 130
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Because the CPUPWRDWNREQ field marks the intention of the APU core to power down,
+the execution of the WFI instruction not only puts the APU core in a wait state, it also causes
+the power-down request to propagate outside the core and inform the PMU processor by
+asserting the GPI2 interrupt.
+Requested Power Down
+A requested power down occurs when the APU core power down is specifically requested
+through the REQ_PWRDWN_TRIG global registers. Setting a particular bit in the register
+would power down the APU. In this case, the PMU directly proceeds with powering down
+the APU Core. For REQ_PWRDWN_TRIG register description see the Zynq UltraScale+
+MPSoC Register Reference (UG1087) [Ref 4].
+Ensure that the appropriate bit position in the REQ_PWRDWN_STATUS global register is set
+to 0 to indicate that the power down request is served by the PMU.
+X-Ref Target - Figure 6-3
+Figure 6-3: APU Power Down Flowchart
+Start
+Disable interrupts to APU
+Set CPUPWRDWNREQ field to 1 in APU power
+control register
+Save state of APU
+Configure GIC or GIC proxy
+Execute WFI instruction
+Stop
+X15308-092916
+Send FeedbackZynq UltraScale+ Device TRM 131
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+APU Core Power Up
+Unlike power down, powering up an APU core is typically requested either by another CPU
+through power-up request registers on the PMU or by interrupts that are associated with
+the peripherals on the powered-down APU core. For the latter, the interrupts for these
+peripherals are passed to the PMU when the ACPU is powered down. For power up, follow
+these steps.
+• For powering up an APU core, the particular bit in the REQ_PWRUP_TRIG global register
+has to be set by the requesting device. For the description of REQ_PWRUP_TRIG global
+register, see the Register Overview section.
+• If a direct power-up or wake by the GIC is associated with the APU core, the PMU
+follows the steps as specified by the ROM code and powers up the APU. A direct
+power-up refers to a power-on event triggered by an interrupt destined for the APU
+core, as opposed to software triggering the event by writing to the request register in
+the PMU_GLOBAL module.
+• If a direct wake up or wake by GIC occurs after the power-up is completed, the reset to
+the APU core is also released automatically.
+• If the power-up request is made by another processor, the same processor has to
+explicitly request for the reset to the APU core be released through the PMU
+reset-request register.
+• Check if the appropriate bit position in the REQ_PWRUP_STATUS global register is set
+to 0 to indicate that the power up request is served by the PMU.
+IMPORTANT: After the power-up, the CPUPWRDWNREQ field of the PWRCTL register in the APU
+contains the value of 1 as the power status for the core that is just powered up. The CPU is expected to
+check the register, upon boot, to identify if this was a cold boot or a wake from sleep. Post-verification,
+the processor is expected to clear the bit in the CPUPWRDWNREQ field of the PWRCTL register.
+PMU Operation After a Wake-up
+After receiving a wake-up trigger, the PMU can follow these three wake-up flows.
+Fixed: Direct wake of a processor, will always cause the target processor to be powered up.
+For example, when the dual Cortex-R5F MPCores are powered down and any of the two
+receives an interrupt from a peripheral or a timer, the interrupt does the following.
+• Route to the PMU to trigger the power up of the dual Cortex-R5F MPCores.
+• Release its reset to prepare for processing of the pending interrupt.
+Similarly, if an APU core is powered down while the FP domain is up, the interrupts for the
+APU core that was shutdown can trigger its power up followed by the release of its reset.
+Send FeedbackZynq UltraScale+ Device TRM 132
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+On-demand: Prior to requesting a power-down and entering the sleep mode, the user
+program can queue up the list that needs to be powered up after the wake in the PMU. The
+following procedure should achieve this.
+1. Your program requests to power up the desired domains and islands using the
+REQ_PWRUP_TRIG register while masking the interrupt for those requests in the
+REQ_PWRUP_INT_DIS register. Even though the requests are recorded, the PMU does
+not actually execute them until after the wake-up.
+2. Your program follows up with the normal request for power down. Because the interrupt
+for the power-ups were masked, the power-down routine ignores those requests and
+proceeds with powering down the blocks.
+3. When the PMU receives a wake-up request, it checks the REQ_PWRUP_STATUS register
+for pending power-up requests with the interrupt being masked and proceeds with
+powering up those islands.
+4. Similarly, if reset to any block needs to be released after the power up, your code
+queues up the requests to release those resets in the REQ_SWRST_TRIG register while
+masking their interrupts.
+5. After the wake-up and its consequent power-up, the PMU releases the reset to the
+desired blocks.
+Wake-up Code Programming: The wake up routine can be programmed into the PMU
+RAM and when a wake interrupt occurs the PMU executes your code which powers up all
+the blocks that are necessary after the wake-up.
+Wake-up Through MIO
+The following wake-up mechanisms can respond to any of the six GPI signals from the six
+MIO inputs (MIO 26 to 31) that are allocated to the PMU.
+• Wake-up on external events
+• Wake-up on Ethernet PHY
+• Wake-up on CAN PHY
+Based on the mechanism, any interrupt raised by the above interfaces, is issued to the PMU
+to wake up the device which has set the interface as its wake-up source.
+Send FeedbackZynq UltraScale+ Device TRM 133
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake-up on USB
+The USB specification defines a link-layer suspend mode in which both the USB host and
+the device enter a no-activity phase to save power. The decision to take the USB host into
+the suspend mode is determined solely by the software. Once the host enters the suspend
+mode, all devices connected to that host are required to enter the suspend mode within
+3 ms. A USB device could not enter the suspend mode by itself; however, when the link
+power management (LPM) extension is supported, the USB device can request the USB host
+to enter the suspend mode. When the USB host enters the suspend mode, all USB devices
+will follow.
+A USB host can exit the suspend mode either through interrupts such as timers or through
+a remote wake-up request by a device with special USB signal leveling. A USB device can
+similarly wake up through interrupts or remote wake signaling from host or additionally
+through host reset signaling.
+When the USB is in a suspend mode, the USB ULPI link protocol provides a standard method
+for the PHY to power-down during a time when the D+/D- signaling is directed to the USB
+link. In this case, a subsection of the USB IP that is always on, detects the wake signaling and
+generates the wake interrupt to the PMU to proceed with powering up the USB block and
+the processor that is responsible for its device driver.
+Wake-up on Ethernet
+Wake-up by Ethernet can be performed two ways.
+Wake on PHY: This wake-up procedure can be implemented using a GPI input signal
+routed from an MIO pin.
+Wake on MAC: This wake up procedure is widely referred to as wake-on-LAN. This
+procedure is implemented using a special network message called a magic packet. The
+magic packet is a broadcast frame containing anywhere within its payload 6 bytes of all 255
+(FF FF FF FF FF FF), followed by sixteen repetitions of the target computer's 48-bit
+MAC address, for a total of 102 bytes. The detection of the magic packet will generate an
+interrupt to the processor that is running the device driver which causes a direct wake on
+the processor.
+Wake on Real-time Clock
+This feature allows the system to wake up at a pre-determined time using the internal
+real-time clock (RTC). Configure the RTC to generate an interrupt when it reaches a specific
+time and date.
+Send FeedbackZynq UltraScale+ Device TRM 134
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake through DAP
+This feature wakes up a system that is in the sleep mode through the debugger. The
+debugger can request two possible direct power-up scenarios through DAP. One option can
+wake up the FP domain which includes the MPSoC debug. The other wake option initiates
+the power-up of the dual Cortex-R5F subsystem.
+Direct Wake by the APU or Cortex-R5F
+When any of the application processors or the real-time processors are powered down, if a
+peripheral is attempting to interrupt the powered down processor, the interrupt is routed to
+the PMU to trigger the power up of that specific processor.
+Wake through GIC Proxy
+If the power down of an application processor is in conjunction with the power down of the
+entire FPD, an LPD device that is associated with that processor can still trigger a direct
+wake to that processor by first triggering the power up of the FPD. This is accomplished by
+having a GIC proxy block in the LPD that can have selected peripheral interrupts routed to
+the PMU as an interrupt other than the direct wakes.
+Upon receiving an interrupt from the GIC proxy block:
+1. The PMU powers up the FPD.
+2. Releases the reset to the FPD and APU.
+3. Unmasks the interrupts that trigger the direct wake of that application processor.
+The direct wake will take effect resulting in the power up of the application processor.
+Deep-sleep Mode
+The deep-sleep mode suspends the PS and waits to be woken up. The lowest power deep
+sleep is supported for wake sources GPI and RTC. Other sleep states are supported for wake
+sources of USB and Ethernet, with additional power for the wake source. Upon wake, the PS
+does not have to go through the boot process and the security state of the system is
+preserved. This reduces the restart time of the system.
+The device consumes the lowest power during this mode while still maintaining its boot and
+security state. The PMU is placed in a sleep or suspend state waiting to be interrupted.
+During the deep-sleep mode, the wake signal can be generated either through a GPI input
+routed from an MIO pin or by an RTC alarm.
+Send FeedbackZynq UltraScale+ Device TRM 135
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Table 6-14 summarizes the PS configuration in deep-sleep mode.
+Deep-sleep Mode Programming Model/Example
+The processing system in deep-sleep mode is discussed in this section.
+System Configuration prior to Sleep
+System includes at least the following devices.
+• The Cortex-R5F processor in the lock-step mode.
+• TCM memory.
+• Real-time counter.
+System Configuration during Sleep
+The configuration of the system during sleep is discussed in this section.
+• FPD is powered off.
+• RPU, USBs, and OCM are powered off.
+• TCM is in retention.
+• RTC alarm is set and RTC is functioning.
+• PLLs are powered down.
+Table 6-14: Deep-sleep Configuration
+Configuration Type Status Description
+Cortex-R5F Powered down
+TCM configuration
+OCM configuration
+Device security
+In retention
+In retention
+Suspended
+Either TCM or OCM is powered down.
+Peripheral Suspended Wake up peripheral logic might be active.
+PLLs Powered down
+System Monitor Powered down During power down, the SysOsc clock can go to
+20 MHz ±50%.
+RTC and BBRAM Included Switched to the V
+CC_PSAUX rail.
+PMU
+MPSoC debug
+Suspended
+Powered down
+The wake logic is active.
+MPSoC debug is mostly in FPD. The LPD portion is
+suspended.
+eFUSE
+Components outside the LPD
+Suspended
+Powered down
+PL internal power Powered down
+Send FeedbackZynq UltraScale+ Device TRM 136
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+• System Monitor is powered down.
+Power Down Procedure
+The power down is initiated by the Cortex-R5F MPCore. As the TCM is placed in retention,
+the Cortex-R5F MPCore is required to do the following (Figure 6-4).
+1. Set the TCM bit in the RAM_RET_CNTRL register.
+2. Set the TCM bit in the REQ_PWRDWN_TRIG register while the interrupt is masked for the
+TCM in the REQ_PWRDWN_INT_MASK register.
+3. Set the RPU and TCM bits in the REQ_PWRUP_TRIG register while the interrupt mask bits
+for those fields are disabled.
+4. Set the RPU bit in the REQ_SWRST_TRIG while the interrupt mask bit for it is disabled.
+5. Set the alarm.
+6. Disable interrupts.
+7. Set the SLCR bit to request for a direct RPU power down and execute a WFI instruction.
+This procedure causes an interrupt to the PMU to power down the RPU.
+Send FeedbackZynq UltraScale+ Device TRM 137
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Wake Procedure
+Once the RTC alarm generates an interrupt to the PMU, the handler for the RTC wake
+detects if there is a firmware loaded for this purpose. If not, the handler checks whether an
+on-demand procedure is queued up in the PMU. Prior to the power down, the Cortex-R5F
+MPCore requests for the power up of the RPU and TCM while the interrupts for the
+power-up requests are masked. It requests the Cortex-R5F MPCore reset to be released
+while the interrupt for that request is masked, again. Upon waking up from the RTC, the
+PMU proceeds with the RPU power-up and issues the Cortex-R5F MPCore reset. Figure 6-5
+shows the flowchart for wake-up from a deep sleep.
+1. RPU and TCM power up requests are unmasked as a part of the RTC wake.
+2. Cortex-R5F MPCore reset request is unmasked as a part of the RTC wake.
+3. TCM is powered up first as a result of the follow-up TCM power-up interrupt.
+4. RPU is powered up as a result of the follow-up RPU power-up interrupt.
+X-Ref Target - Figure 6-4
+Figure 6-4: Deep Sleep Power Down Flowchart
+Start
+Set TCM bit in RAM retention control
+register
+Request power down with interrupts
+masked
+Request power up for RPU and TCM
+with interrupt mask bits disabled
+Reset RPU with interrupt mask disabled
+Set the alarm (RTC)
+Disable interrupts
+Set SLCR bit for direct RPU
+power down
+Execute WFI
+End
+X15309-092916
+Send FeedbackZynq UltraScale+ Device TRM 138
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+5. Reset to the Cortex-R5F MPCore is released as a result of the follow up Cortex-R5F
+MPCore reset request interrupt.
+6. Your code on the Cortex-R5F MPCore releases the system monitor out of the power
+down state.
+7. The code on the Cortex-R5F MPCore clears the RTC alarm. Because the RTC has an
+interrupt status register, setting the alarm bit to 1 clears the interrupt.
+X-Ref Target - Figure 6-5
+Figure 6-5: Wake up from Deep Sleep Flowchart
+Start
+RTC interrupts PMU
+RPU and TCM power up
+requests are unmasked
+Cortex-R5 reset request
+unmasked
+TCM is powered up
+RPU is powered up
+Deassert Cortex-R5 reset
+User code on Cortex-R5 powers
+up SYSMON
+Clear RTC alarm
+End
+X15310-092916
+Send FeedbackZynq UltraScale+ Device TRM 139
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Isolation Request
+Isolation is generally used to isolate signals from a powered-up domain and a
+powered-down domain to prevent crowbar currents affecting the proper functioning of the
+blocks. Isolation ensures that the outputs of the domains are clamped to a known value. The
+PMU facilitates isolation of various power domains. This can be done by setting appropriate
+bits in the REQ_ISO_TRIG global register. For the PMU_GLOBAL.REQ_ISO_STATUS register
+description, see the Zynq UltraScale+ MPSoC Register Reference (UG1087) [Ref 4]. Three bits
+control domain isolation between the low-power, full-power, and PL domain. Different
+combinations of isolation are available. By writing to bit 0 of the REQ_ISO_TRIG register and
+the REQ_ISO_INT_MASK register, the full-power domain can be isolated from the low-power
+domain and the PL domain. By writing to bit 1 of these registers, the PS is isolated from the
+PL. By writing to bit 2 the PS and the PL are isolated, with the exception of the PCAP
+interface. Finally, to lock isolation on the full-power domain, write to bit 4.
+Reset Services
+This section describes the reset services. Various blocks can be reset through the
+REQ_SWRST_TRIG register if the interrupt for that specific reset is unmasked in the
+REQ_SWRST_INT_MASK register. The Table 6-15 lists the reset services.
+Table 6-15: Reset Requests
+Reset Service Block Request Bit Description
+PL 31 Resetting the PL domain depends on your design. This service is not
+handled by ROM code.
+FPD 30 A hard reset of the full-power domain. Transactions are not flushed.
+LPD 29 The PMU firmware uses this service to reset the low-power domain.
+This service is not handled by ROM code.
+PS_ONLY 28 Acts as an internally generated a system reset (SRST). You can
+perform an isolation request on the PL prior to this event and then
+issue this request to only SRST the PS.
+Reserved 27:26 Reserved
+USB1 25 Cycles the reset for USB_1 by asserting the
+CRL_APB.RESET_LPD_TOP. USB1_CORERESET signal and then
+deasserting it.
+USB0 24 Cycles the reset for USB_0 by asserting the
+CRL_APB.RESET_LPD_TOP.USB0_CORERESET signal and then
+deasserting it.
+GEM3 23 Cycles the reset for GEM_3 by asserting the
+CRL_APB.RESET_IOU0.GEM3_RESET signal and then deasserting it.
+GEM2 22 Cycles the reset for GEM_2 by asserting the
+CRL_APB.RESET_IOU0.GEM2_RESET signal and then deasserting it.
+GEM1 21 Cycles the reset for GEM_1 by asserting the
+CRL_APB.RESET_IOU0.GEM1_RESET signal and then deasserting it.
+Send FeedbackZynq UltraScale+ Device TRM 140
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+GEM0 20 Cycles the reset for GEM_0 by asserting the
+CRL_APB.RESET_IOU0.GEM0_RESET signal and then deasserting it.
+Reserved 19 Reserved
+RPU 18 This service performs a sequence that resets the entire RPU and
+leaves the block in reset. You can request the R5_0 or R5_1 service
+to release the appropriate signal. The following resets signals are
+asserted:
+• PMU_GLOBAL_RESET_RPU_LS
+• CRL_APB.RESET_LPD_TOP.RPU_PGE_RESET
+• CRL_APB.RESET_LPD_TOP.R50_RESET
+• CRL_APB.RESET_LPD_TOP.R51_RESET
+The following signals release the resets.
+• PMU_GLOBAL.RESET_RPU_LS
+• CRL_APB.RESET_LPD_TOP.PRPU_PGE_RESET
+Prior to issuing an RPU request, the application should flush
+transactions to the RPU. The debug logic is not reset.
+R5_1 17 Cycles the reset for the APU1 (R5_1) by asserting the
+CRL_APB.RESET_LPD_TOP.R51_RESET signal and then deasserting it.
+R5_0 16 Cycles the reset for APU0 (R5_0) by asserting the
+CRL_APB.RESET_LPD_TOP.R51_RESET signal and then deasserting it.
+Reserved 15:13 Reserved
+Display_Port 12 Cycles the reset for the DisplayPort controller by asserting the
+CRL_APB.RESET_FPD_TOP.DP_RESET signal and then deasserting it.
+Reserved 11 Reserved
+SATA 10 Cycles the reset for the SATA controller by asserting the
+CRL_APB.RESET_FPD_TOP.SATA_RESET signal and then deasserting
+it.
+PCIe 9 Cycles the reset for PCIe by asserting the
+CRL_APB.RESET_FPD_TOP.PCIE_RESET signal and then deasserting
+it.
+GPU 8 This service performs a sequence that resets the entire GPU. Both
+pixel processors and the GPU resets are asserted and released by
+the following signals.
+• CRF_APB.RESET_FPD_TOP.GPU_RESET
+• CRF_APB.RESET_FPD_TOP.PP1_RESET
+• CRF_APB.RESET_FPD_TOP.PP0_RESET
+PP1 7 Cycles the individual reset for the pixel processor by asserting the
+CRF_APB.RESET_FPD_TOP.GPU_PP1_RESET signal and the
+deasserting it.
+PP0 6 Cycles the individual reset for the pixel processor by asserting the
+CRF_APB.RESET_FPD_TOP.GPU_PP0_RESET signal and the
+deasserting it.
+Table 6-15: Reset Requests (Cont’d)
+Reset Service Block Request Bit Description
+Send FeedbackZynq UltraScale+ Device TRM 141
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Programming Model
+Beyond the AMD provided firmware, the PMU can execute user programs that implement
+advance system monitoring and system-critical functions. Typically, PMU code loading
+occurs either via CSU ROM code at boot or by the first stage boot loader (FSBL). During this
+time, the PMU is either in an already-loaded maintenance mode or in the sleep mode. To
+assure that the PMU is in the sleep mode, IPI0 is used to interrupt the PMU. In response to
+the IPI0 interrupt, the interrupt service routine for this IPI disables interrupts and executes
+a sleep instruction followed by a branch to the user code being loaded in the RAM. This
+guarantees that the processor stays in the sleep mode and is not interrupted to execute any
+services until it is explicitly woken up by another master through the use of the wake-up bit
+in the PMU global control register. After the main processor copies the user program into
+the PMU RAM, the processor wake-up feature in the PMU global control register is used to
+direct the PMU processor into executing the newly-loaded maintenance code.
+Reserved 5 Reserved
+APU 4 This service performs a sequence that resets the entire APU and L2
+and leaves them in reset until the ACPU reset service (bits 3:0) are
+requested while cycling the reset on the L2 and surrounding APU
+logic. The debug logic is not reset. The following reset signals are
+asserted:
+• CRF_APB.RESET_FPD_APU.L2_RESET
+• CRF_APB.RESET_FPD_APU.ACPU3_RESET
+• CRF_APB.RESET_FPD_APU.ACPU2_RESET
+• CRF_APB.RESET_FPD_APU.ACPU1_RESET
+• CRF_APB.RESET_FPD_APU.ACPU0_RESET
+The L2_RESET is released to make the L2 available.
+ACPU3 3 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU3_RESET and the deasserting it.
+ACPU2 2 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU2_RESET and the deasserting it.
+ACPU1 1 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU1_RESET and the deasserting it.
+ACPU0 0 Cycles the individual reset for the APU by asserting the
+CRF_APB.RESET_FPD_APU.ACPU0_RESET and the deasserting it.
+Table 6-15: Reset Requests (Cont’d)
+Reset Service Block Request Bit Description
+Send FeedbackZynq UltraScale+ Device TRM 142
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+The steps required to load a user-level program and start its execution are listed here and
+shown in Figure 6-6.
+1. Application program on another processor either APU or RPU executes IPI0 to the PMU.
+2. IPI0 interrupt service routine.
+3. Disables all interrupts.
+4. Executes a sleep instruction. The instruction after the sleep instruction must be a branch
+to the address for the user code in RAM.
+5. The application program loads the PMU user program into the RAM.
+6. The application program writes a 1 to bit [0] of the PMU global control register to wake
+up the processor.
+7. PMU starts executing instructions following the sleep instruction and returns to the
+main() function in the code.
+8. PMU branches to the user code.
+9. The user code clears the bit [0] in the PMU global control register and enables the
+interrupt.
+An upper-level program can check the PMU global control register to determine the state
+of the firmware loading and execution.
+Send FeedbackZynq UltraScale+ Device TRM 143
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+X-Ref Target - Figure 6-6
+Figure 6-6: PMU Programming Model
+Start
+Execute IPI0 (by application program) to PMU
+IPI0 ISR
+Execute sleep instruction
+Load user program into PMU RAM
+Set PMU global control register to 1
+PMU branch to user code
+Clear bit 0 in PMU global control register
+Enable interrupt
+Stop
+Done
+Not done
+Done
+Not done
+X15312-092916
+Send FeedbackZynq UltraScale+ Device TRM 144
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Register Overview
+The registers in Table 6-16 are in the PMU_GLOBAL module. For more information, see the
+Zynq UltraScale+ MPSoC Register Reference (UG1087) [Ref 4]. Access to some PMU registers
+is restricted (black list) unless a #define is set, see the Zynq UltraScale+ MPSoC Software
+Developer’s Guide (UG1137) [Ref 3].
+)
+Table 6-16: Global Registers
+Register Name Type Description
+GLOBAL_CNTRL Mixed This register controls functions such as QoS for AXI read
+and write transactions that are generated by the PMU, or
+indication for firmware presence that can also be
+executed by other masters.
+PS_CNTRL Mixed This register controls miscellaneous functions related to
+the PS that can be controlled by all masters.
+APU_PWR_STATUS_INIT Mixed Provides a location in the PMU to hold the initialization
+value for the CPUPWRDWNREQ field of the APU PWRCTL
+register during an FPD power down. The bit associated
+with an ACPU is loaded by the PMU ROM code in the
+CPUPWRDWNREQ field of the PWRCTL register right after
+the routine releases the reset to the ACPU core after an
+FPD power up.
+0 = Normal cold reset (default)
+1 = Reset after a power up after a shutdown mode
+ADDR_ERROR_STATUS Mixed Address error status register. This is a sticky register that
+holds the value of the interrupt until cleared by a value of
+1.
+ADDR_ERROR_INT_MASK RO Address error mask register. This is a read-only location
+and can be altered through the corresponding interrupt
+Enable or Disable registers.
+ADDR_ERROR_INT_EN WO Address error interrupt enable register. A write to this
+location will unmask the interrupt.
+ADDR_ERROR_INT_DIS WO Address error interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+GLOBAL_GEN_STORAGE{0:6} RW Global general storage register that can be used by
+system to pass information between masters. The register
+is reset during system or power-on resets. These registers
+are used by the PMUFW, FSBL, and other AMD software
+products.
+PERS_GLOB_GEN_STORAGE{0:7} RW Persistent global general storage register that can be used
+by system to pass information between masters. This
+register is only reset by the power-on reset and maintains
+its value through a system reset. Four registers are used
+by the FSBL and other AMD software products:
+PERS_GLOB_GEN_STORAGE{4:7}. Register is reset only by a
+POR reset.
+Send FeedbackZynq UltraScale+ Device TRM 145
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+DDR_CNTRL RW This register controls DDR I/O features that have to be
+driven when the FPD is powered down.
+PWR_STATE RO This register provides the power-up status for all islands
+within the PS. (0 = powered down). Reserved bits read as
+zero. The register maintains its contents during a system
+reset.
+AUX_PWR_STATE RO This register provides the retention state for the PS
+memories (1 = retention) and the power-down emulation
+state for the Arm processor. (1 = powered-down
+emulation state). The register maintains its contents
+during a system reset.
+RAM_RET_CNTRL Mixed This register is used to enable retention request for the L2,
+OCM, and TCM RAMs. If a bit in this register is set, a
+power-down request of the corresponding RAM bank
+would guide the PMU to put the RAM in retention,
+instead.
+PWR_SUPPLY_STATUS RO This register provides the status of a subset of the power
+supplies within the PS
+REQ_PWRUP_STATUS Mixed If any of the bits in this register is 1, it would trigger a
+power-up request to the PMU. Writing a 1 to any bit will
+clear the request.
+REQ_PWRUP_INT_MASK RO Power-up request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_PWRUP_INT_EN WO Power-up request interrupt enable register. Writing a 1 to
+this location will unmask the interrupt.
+REQ_PWRUP_INT_DIS WO Power-up request interrupt disable register. Writing a 1 to
+this location will mask the interrupt.
+REQ_PWRUP_TRIG WO Power-up request trigger register. A write of 1 to this
+location will generate a power-up request to the PMU.
+REQ_PWRDWN_STATUS Mixed If any of the bits in this register is 1, it would trigger a
+power-down request to the PMU. Writing a 1 to any bit
+will clear the request.
+REQ_PWRDWN_INT_MASK RO Power-down request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_PWRDWN_INT_EN WO Power-down request interrupt enable register. Writing a 1
+to this location will unmask the interrupt.
+REQ_PWRDWN_INT_DIS WO Power-down request interrupt disable register. Writing a
+1 to this location will mask the interrupt.
+REQ_PWRDWN_TRIG WO Power-down request trigger register. Writing a 1 to this
+location will trigger a power-down request to the PMU.
+REQ_ISO_STATUS Mixed If any of the bits in this register is 1, it would capture an
+Isolation request to the PMU. Writing a 1 to any bit will
+clear the request.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 146
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+REQ_ISO_INT_MASK RO Isolation request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_ISO_INT_EN WO Isolation request interrupt enable register. A write of 1 to
+this location will unmask the interrupt.
+REQ_ISO_INT_DIS WO Isolation request interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+REQ_ISO_TRIG WO Isolation request trigger register. A write of 1 to this
+location will set the corresponding isolation status
+register bit.
+REQ_SWRST_STATUS Mixed If any of the bits in this register is 1, it triggers a reset
+request to the PMU. Writing a 1 to any bit clears the
+request.
+REQ_SWRST_INT_MASK RO Reset request interrupt mask register. This is a read-only
+location and can be altered through the corresponding
+interrupt enable or disable registers.
+REQ_SWRST_INT_EN WO Reset request interrupt enable register. A write of 1 to this
+location will unmask the interrupt.
+REQ_SWRST_INT_DIS WO Reset request interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+REQ_SWRST_TRIG WO Reset request trigger register. A write of 1 to this location
+will set the reset status register related to this interrupt.
+REQ_AUX_STATUS Mixed If any of the service request bits in this register is 1, it
+would capture an auxiliary request to the PMU. Writing a
+1 to any bit will clear the request. The services for these
+requests need to be implemented by firmware.
+REQ_AUX_INT_MASK RO Auxiliary service request interrupt mask register. This is a
+read-only location and can be altered through the
+corresponding interrupt enable or disable registers.
+REQ_AUX_INT_EN WO Auxiliary service request interrupt enable register. A write
+of 1 to this location will unmask the interrupt.
+REQ_AUX_INT_DIS WO Auxiliary service request interrupt disable register. A write
+of 1 to this location will mask the interrupt.
+REQ_AUX_TRIG WO Auxiliary service request trigger register. A write of 1 to
+this location will set the corresponding auxiliary service
+status register bit.
+LOGCLR_STATUS RO This register provides the status of the logic clear engines
+after they are run. (0 = Fail)
+CSU_BR_ERROR Mixed This register holds all errors related to the BootROM
+execution on the CSU.
+MB_FAULT_STATUS RO This register provides the status of the redundancy logic
+in the triple-redundant PMU processor.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 147
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+ERROR_STATUS_1 Mixed Error status register 1. If the bit in this register is set to 1,
+it signifies an error within the system. Writing a 1 to any
+bit will clear the error. This register is only reset by the
+external power-on reset.
+ERROR_INT_MASK_1 RO Error register 1 interrupt mask register. This is a read-only
+location and can be altered through the corresponding
+interrupt enable or disable registers.
+ERROR_INT_EN_1 WO Error register 1 interrupt enable register. A write of 1 to
+this location will unmask the interrupt.
+ERROR_INT_DIS_1 WO Error register 1 interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+ERROR_STATUS_2 Mixed Error status register 2. If any of the bits in this register are
+set to 2, it signifies an error within the system. Writing a 1
+to any bit will clear the error. This register is only reset by
+the external power-on reset.
+ERROR_INT_MASK_2 RO Error register 2 interrupt mask register. This is a read-only
+location and can be altered through the corresponding
+interrupt enable or disable registers.
+ERROR_INT_EN_2 WO Error register 2 interrupt enable register. A write of 1 to
+this location will unmask the interrupt.
+ERROR_INT_DIS_2 WO Error register 2 interrupt disable register. A write of 1 to
+this location will mask the interrupt.
+ERROR_POR_MASK_1 RO Error register 1 power-on reset mask register. This is a
+read-only location and can be altered through the
+corresponding power-on reset enable or disable registers.
+ERROR_POR_EN_1 WO Error register 1 power-on reset enable register. A write of
+1 to this location will unmask the interrupt.
+ERROR_POR_DIS_1 WO Error register 1 power-on reset disable register. A write of
+1 to this location will mask the generation of power-on
+reset.
+ERROR_POR_MASK_2 RO Error register 2 power-on reset mask register. This is a
+read-only location and can be altered through the
+corresponding power-on reset enable or disable registers.
+ERROR_POR_EN_2 WO Error register 2 power-on reset enable register. A write of
+1 to this location will unmask the generation of power-on
+reset.
+ERROR_POR_DIS_2 WO Error register 2 power-on reset disable register. A write of
+1 to this location will mask the generation of power-on
+reset.
+ERROR_SRST_MASK_1 RO Error register 1 SRST mask register. This is a read-only
+location and can be altered through the corresponding
+SRST enable or disable registers.
+ERROR_SRST_EN_1 WO Error register 1 SRST enable register. A write of 1 to this
+location will unmask the generation of SRST.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 148
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+ERROR_SRST_DIS_1 WO Error register 1 SRST disable register. A write of 1 to this
+location will mask the generation of SRST.
+ERROR_SRST_MASK_2 RO Error register 2 SRST mask register. This is a read-only
+location and can be altered through the corresponding
+SRST enable or disable registers.
+ERROR_SRST_EN_2 WO Error register 2 SRST enable register. A write of 1 to this
+location will unmask the generation of SRST.
+ERROR_SRST_DIS_2 WO Error register 2 SRST disable register. A write of 1 to this
+location will mask the generation of SRST.
+ERROR_SIG_MASK_1 RO Error register 1 signal mask register. This is a read-only
+location and can be altered through the corresponding
+error signal enable or disable registers. This register is
+only reset by the external power-on reset.
+ERROR_SIG_EN_1 WO Error register 1 signal enable register. A write of 1 to this
+location will unmask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_SIG_DIS_1 WO Error register 1 signal disable register. A write of 1 to this
+location will mask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_SIG_MASK_2 RO Error register 2 signal mask register. This is a read-only
+location and can be altered through the corresponding
+error signal enable or disable registers. This register is
+only reset by the external power-on reset.
+ERROR_SIG_EN_2 WO Error register 2 signal enable register. A write of 1 to this
+location will unmask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_SIG_DIS_2 WO Error register 2 signal disable register. A write of 1 to this
+location will mask the assertion of the PS_ERROR_OUT
+signal on the device.
+ERROR_EN_1 RW Error enable register 1. If any of the bits in this register is
+1, the corresponding error is allowed to be propagated to
+the error handling logic.
+ERROR_EN_2 RW Error enable register 2. If any of the bits in this register is
+1, the corresponding error is allowed to be propagated to
+the error handling logic.
+AIB_CNTRL WO This register is used by the PMU to request functional
+isolation on the AXI interfaces between the PL and PS by
+using the AIBs. The register maintains its contents during
+a system reset. AIBs are only for PS to PL isolation,
+handled by ISO_AIB {AXI,APB} and can respond to the PS
+master with a SLVERR.
+AIB_STATUS RO This register is used by the PMU to check the status of
+functional isolation by the AIBs on the AXI interfaces
+between the PL and PS. The register maintains its contents
+during a system reset.
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 149
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+Table 6-17 lists the I/O registers.
+MIO Signals
+Six GPI1 register bits can be driven by input signals routed through the MIO, as described
+in Table 6-3 and listed in Table 6-9. If these inputs are not routed through the MIO, then
+they are driven to 0. Six GPO1 register bits can drive output signals routed through the MIO,
+GLOBAL_RESET Mixed This register contains reset for safety-related blocks.
+ROM_VALIDATION_STATUS RO This register holds the status of the ROM validation.
+ROM_VALIDATION_DIGEST_{0:11} RO This register holds word {0:11} of the ROM validation
+digest.
+SAFETY_CHK RW Target register for safety applications to check the
+integrity of interconnect data lines by periodically writing
+to and reading from these registers.
+Table 6-17: I/O Registers
+Register Name Description
+IRQ_MODE Interrupt mode register.
+GPO0 I/O module miscellaneous control register (see Table 6-8).
+GPO1 PMU to MIO signals.
+GPO2 PMU acknowledgments (see Table 6-10).
+GPO3 PMU to PL signals (GPO3).
+GPI1[0] Fault tolerance status register (GPI0).
+GPI1 General purpose input register 1 (see Table 6-6).
+GPI2 General purpose input register 2 (see Table 6-7).
+GPI3 General purpose input from PL to PMU.
+IRQ_STATUS Interrupt status register.
+IRQ_PENDING Interrupt pending register.
+IRQ_ENABLE Interrupt enable register.
+IRQ_ACK Interrupt acknowledge register.
+PIT{0:3}_PRELOAD PIT{0:3} preload register.
+PIT{0:3}_COUNTER PIT{0:3} counter register.
+PIT{0:3}_CONTROL PIT{0:3} control register.
+INSTRUCTION_INJECT_ADDR Instruction injection address (IOModule_1.GPO1).
+INSTRUCTION_INJECT Instruction injection (IOModule_1.GPO2).
+Table 6-16: Global Registers (Cont’d)
+Register Name Type Description
+Send FeedbackZynq UltraScale+ Device TRM 150
+UG1085 (v2.5) March 21, 2025
+Chapter 6: Platform Management Unit
+as described in Table 6-3 and listed in Table 6-6. All 32 GPI3 register bits are driven by PL
+input signals. All 32 GPO3 register bits drive PL output signals.

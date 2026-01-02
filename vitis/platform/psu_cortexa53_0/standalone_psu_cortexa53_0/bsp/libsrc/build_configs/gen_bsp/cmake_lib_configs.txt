@@ -1,5 +1,3 @@
--- The ASM compiler identification is GNU
--- Found assembler: E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc.exe
 -- Configuring done
 -- Generating done
 -- Build files have been written to: E:/x/shef/vitis/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp
@@ -45,6 +43,66 @@ TOOLCHAIN_DEP_FLAGS:STRING= -MMD -MP
 
 // Extra CFLAGS
 TOOLCHAIN_EXTRA_C_FLAGS:STRING= -g -Wall -Wextra -fno-tree-loop-distribute-patterns
+
+// 0:Disable exFAT, 1:Enable exFAT(Also Enables LFN)
+XILFFS_enable_exfat:BOOL=OFF
+
+// 0:Single partition, 1:Enable multiple partition
+XILFFS_enable_multi_partition:BOOL=OFF
+
+// Enables file system with selected interface. Enter 1 for SD. Enter 2 for RAM
+XILFFS_fs_interface:STRING=1
+
+// Number of volumes (logical drives, from 1 to 10) to be used.
+XILFFS_num_logical_vol:STRING=2
+
+// RAM FS size
+XILFFS_ramfs_size:STRING=3145728
+
+// RAM FS start address
+XILFFS_ramfs_start_addr:STRING=
+
+// Enables the file system in Read_Only mode if true. ZynqMP fsbl will set this to true
+XILFFS_read_only:BOOL=OFF
+
+// Configures relative path feature (valid values 0 to 2).
+XILFFS_set_fs_rpath:STRING=0
+
+// Enables use of CHMOD functionality for changing attributes (valid only with read_only set to false)
+XILFFS_use_chmod:BOOL=OFF
+
+// Enables the Long File Name(LFN) support if non-zero. Disabled by default: 0, LFN with static working buffer: 1, Dynamic working buffer: 2 (on stack) or 3 (on heap)
+XILFFS_use_lfn:STRING=0
+
+// Disable(0) or Enable(1) f_mkfs function. ZynqMP fsbl will set this to false
+XILFFS_use_mkfs:BOOL=ON
+
+// Enables the string functions (valid values 0 to 2).
+XILFFS_use_strfunc:STRING=0
+
+// Enables word access for misaligned memory access platform
+XILFFS_word_access:BOOL=ON
+
+// Enables/Disables cache
+XILSECURE_cache_disable:BOOL=ON
+
+// Enables/Disables P-256 curve support
+XILSECURE_ecc_support_nist_p256:BOOL=OFF
+
+// Data endianness selection for elliptic curve APIs of Versal and Versal Net this selection is applicable only for server mode
+XILSECURE_elliptic_endianness:STRING=littleendian
+
+// Enables A72/R5 server and client mode support for XilSecure library for Versal
+XILSECURE_mode:STRING=client
+
+// Enables non secure access for Xilsecure IPI commands for Versal
+XILSECURE_nonsecure_ipi_access:BOOL=OFF
+
+// Enables trusted execution environment to allow device key usage(post boot) in ZynqMP for IPI response/Linux/U-boot calls valid only for PMUFW BSP
+XILSECURE_secure_environment:BOOL=OFF
+
+// Enables decryption of bitstream to memory and then writes it to PCAP, allows calculation of sha on decrypted bitstream in chunks valid only for ZynqMP FSBL BSP
+XILSECURE_tpm_support:BOOL=OFF
 
 // Enable Interval Timer
 XILTIMER_en_interval_timer:BOOL=OFF

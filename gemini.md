@@ -16,10 +16,21 @@ I am recreating the "ShEF" (Shielded Embedded Firmware) security framework.
 ## 3. Directory Structure & Key Files
 - **`shef_paper.pdf`**: The original academic paper defining the security architecture. Read this for conceptual logic (e.g., "Why does the PMU load the R5?").
 - **`u96/` Folder**: Contains the *original* reference source code (Vitis 2019.2). Use this to understand the *intent* of the code.
-- **`/vitis/` Folder**: Contains my *current* active workspace (Vitis 2023.2). This is where edits happen.
-  - **`vitis/pmufw/src/`**: The active source code for the PMU Firmware.
-  - **`vitis/zynqmp_fsbl/src/`**: The active source code for the FSBL
-  - **`vitis/hello_world/src/`**: A **temporary** placeholder application. The code here is for initial hardware validation and will be replaced by the `security_kernel` at a later stage.
+- **`vitis_2/` Folder**: The active workspace as of 2026-01-01.
+- **`vitis_2/platform/zynqmp_fsbl`**: The current working baseline FSBL project.
+- **`/vitis/` Folder**: Deprecated workspace.
+
+### Technical Documents
+The contents of the ShEF paper have been saved to `E:x\shef\Documents.ShEF_paper.txt`. Reference this document for questions relevant to the system architecture.
+Key chapters from the Zynq UltraScale+ MPSoC Technical Reference Manual (ug1085) have been saved as `.txt` files in `E:\x\shef\Documents\` for efficient searching.
+- `ultrascale_TRM_CH03.txt` (Application Processing Unit)
+- `ultrascale_TRM_CH04.txt` (Real-time Processing Unit)
+- `ultrascale_TRM_CH06.txt` (Platform Management Unit)
+- `ultrascale_TRM_CH10.txt` (System Addresses)
+- `ultrascale_TRM_CH11.txt` (Boot and Configuration)
+- `ultrascale_TRM_CH12.txt` (Security)
+- `ultrascale_TRM_CH13.txt` (Interrupts)
+- `ultrascale_TRM_CH19.txt` (DMA Controller)
 
 ## 4. Key Architecture Concepts
 - **PMU as Root-of-Trust:** The PMU Firmware is modified to include RSA-4096 keys. It verifies the Security Kernel before releasing its reset.
@@ -40,9 +51,21 @@ When suggesting code changes:
 - [X] Port PMUFW source from `u96/` to `vitis/pmufw/`.
 - [X] Successfully compile ported PMUFW.
 - [X] Partially Port custom FSBL source from `u96/` to `vitis/zynqmp_fsbl/`.
-- [ ] In `vitis/zynqmp_fsbl/xfsbl_main.c`, update commented-out hashing logic to use the correct memory addresses and size for the `hello_world` application's executable code section.
+- [X] Create a new, working baseline FSBL for the A53 core in a clean `vitis_2` workspace.
+- [ ] Port custom hashing and handoff logic from `u96/fsbl` into the new `vitis_2` FSBL.
+- [ ] Re-enable and integrate secure boot features into the `vitis_2` FSBL.
+- [ ] In `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c`, update hashing logic to use the correct memory addresses and size for the `hello_world` application's executable code section.
 - [ ] Demonstrate working hashing of `hello_world` code by `zynqmp_fsbl`
-- [ ] Port Security Kernel source from `u96/` to a new `vitis/security_kernel/` project.
+- [ ] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
 - [ ] Successfully compile ported Security Kernel.
 - [ ] Integrate Security Kernel into the boot flow, replacing `hello_world`.
 - [ ] Full system test of the ShEF boot flow on hardware.
+
+## 7. Current Status & Next Steps (as of January 2, 2026)
+- **New Baseline:** The `vitis` workspace is deprecated. All new development should occur in the `vitis_2` workspace (`E:\x\shef\vitis_2`).
+- **PMUFW Porting Complete:** The custom PMU Firmware has been successfully ported and compiles.
+- **Working FSBL:** A clean, 64-bit FSBL for the A53 core has been successfully built in `vitis_2/platform/zynqmp_fsbl`.
+- **FSBL Configuration:**
+  - This FSBL required the `ARMA53_64` symbol to be manually defined in the compiler settings to work around a Vitis 2023.2 template issue.
+  - To fit within OCM, several features were temporarily disabled in `xfsbl_config.h`: `FSBL_NAND_EXCLUDE_VAL`, `FSBL_QSPI_EXCLUDE_VAL`, `FSBL_SECURE_EXCLUDE_VAL`, and `FSBL_BS_EXCLUDE_VAL` were all set to `1U`.
+- **Next Step:** Port the custom hashing and handoff logic from the `u96/fsbl` source files into the new, working `vitis_2/platform/zynqmp_fsbl` project.

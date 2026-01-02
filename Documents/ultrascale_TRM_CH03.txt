@@ -1,0 +1,2117 @@
+Chapter 3
+Application Processing Unit
+Introduction
+The application processing unit (APU) consists of four Cortex™-A53 MPCore processors, L2
+cache, and related functionality. The Cortex-A53 MPCore processor is the most
+power-efficient Arm v8 processor capable of seamless support for 32-bit and 64-bit code. It
+makes use of a highly efficient 8-stage in-order pipeline balanced with advanced fetch and
+data access techniques for performance. It fits in a power and area footprint suitable for
+entry-level devices, and is at the same time capable of delivering high-aggregate
+performance in scalable enterprise systems using high core density.
+Cortex-A53 MPCore Processor Features
+The Cortex-A53 MPCore processor includes the following features.
+• AArch32 and AArch64 execution states.
+• All exception levels (EL0, EL1, EL2, and EL3) in each execution state.
+• Arm v8-A architecture instruction set including advanced SIMD, VFPv4 floating-point
+extensions, and cryptography extensions.
+• Separate 32 KB L1 caches for instruction and data.
+• Two-stage (hypervisor and guest stages) memory management unit (MMU).
+• CPU includes an in-order 8-stage pipeline with symmetric dual-issue of most
+instructions.
+• 1 MB L2 cache in CCI coherency domain.
+• Accelerator coherency port (ACP).
+• 128-bit AXI coherency extension (ACE) master interface to CCI.
+• Arm v8 debug architecture.
+• Configurable endianess.
+• Supports hardware virtualization that enables multiple software environments and their
+applications to simultaneously access the system capabilities.
+• Hardware-accelerated cryptography—3-10x better software encryption performance.
+Send FeedbackZynq UltraScale+ Device TRM 41
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+• Large physical address reach enables the processor to access beyond 4 GB of physical
+memory.
+• TrustZone technology ensures reliable implementation of security applications.
+Arm v8 Architecture
+The Arm v8-A is the next generation 64-bit Arm architecture. Arm v8 is backward
+compatible to Arm v7 (i.e., a 32-bit Arm v7 binary will run on an Arm v8 processor).
+Although the Arm v8 is backward compatible with the Arm v7 architecture, the Cortex-A53
+MPCore is not necessarily backward compatible with Cortex-A9 architecture. This is because
+some of the Cortex-A9 sub-system functions (e.g., Cortex-A9 L2 control registers) were
+implementation specific and not part of the Arm v7 architecture.
+Arm v8 supports two architecture states.
+• 64-bit execution state (AArch64)
+• 32-bit execution state (AArch32)
+AArch32 is compatible with Arm v7; however, it is enhanced to support some features
+included in AArch64 execution state (for example, load-acquire and store-release). Both
+execution states support advanced single-instruction multiple-data (SIMD) and
+floating-point extension for integer and floating-point. Also, both states support
+cryptography extension for the advanced encryption standard (AES)
+encryption/decryption, SHA1/256, and RSA/ECC.
+Send FeedbackZynq UltraScale+ Device TRM 42
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Figure 3-1 shows the block diagram of the APU.
+The Arm v8 exception model defines exception levels EL0–EL3, where:
+• EL0 has the lowest software execution privilege. Execution at EL0 is called unprivileged
+execution.
+Increased exception levels, from 1 to 3, indicate an increased software execution
+privilege.
+• EL1 provides support for basic non-secure state.
+• EL2 provides support for processor virtualization.
+• EL3 provides support for a secure state.
+The APU MPCore processor implements all the exception levels (EL0–EL3) and supports
+both execution states (AArch64 and AArch32) at each exception level.
+X-Ref Target - Figure 3-1
+Figure 3-1: APU Block Diagram
+APU
+GIC
+Cortex-A53 MPCore
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Snoop Control Unit (SCU)
+L2 Cache 1MB
+IRQ/vIRQ
+FIQ/vFIQ
+Timers
+Interrupts
+System Counter
+(in LPD) SPI Interrupts FPD Core Switch CoreSight
+64-bit counter
+APB, TS
+ATB
+32-bit AXI
+128-bit ACP
+CCI
+128-bit ACE
+X15286-080318
+Send FeedbackZynq UltraScale+ Device TRM 43
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+When a Cortex-A53 MPCore processor is brought up in 32-bit mode using the
+APU_CONFIG0 [VINITHI] parameter register, its exception table cannot be relocated at run
+time. The V[13] bit of the system control register defines the base address of the exception
+vector.
+See the Zynq UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3] for more
+information.
+Figure 3-2 shows a top-level functional diagram of the Cortex-A53 MPCore processor.
+X-Ref Target - Figure 3-2
+Figure 3-2: APU Block Diagram
+Cortex-A53 Processor
+APB Decoder APB ROM APB Multiplexer CTM
+Governor
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 0 Governor
+Core 0
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 1 Governor
+Core 1
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 2 Governor
+Core 2
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 3 Governor
+Core 3
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+Level 2 Memory System
+L2 Cache SCU ACE
+Master Bus Interface ACP Slave
+X15287-092916
+Send FeedbackZynq UltraScale+ Device TRM 44
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Security State
+An Arm v8 includes the EL3 exception level that provides the following security states, each
+with an associated memory address space.
+• In the secure state, the processor can access both the secure memory address space
+and the non-secure memory address space. When executing at EL3, the processor can
+access all the system control resources.
+• In the non-secure state, the processor can access only the non-secure memory address
+space and cannot access the secure system control resources.
+Secure and non-secure AXI transactions are sent through the system using the TrustZone
+protocols.
+For more information on the Arm v8 security states, see APU MPCore TrustZone Model in
+Chapter 16.
+APU Functional Units
+The following sections describe the main Cortex-A53 MPCore processor components and
+their functions.
+• Instruction Fetch Unit
+• Data Processing Unit
+• Advanced SIMD and Floating-point Extension
+• Cryptography Extension
+• Translation Lookaside Buffer
+• Data-side Memory System
+• L2 Memory Subsystem
+• Cache Protection
+• Debug and Trace
+• Generic Interrupt Controller
+• Timers
+Send FeedbackZynq UltraScale+ Device TRM 45
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Instruction Fetch Unit
+The instruction fetch unit (IFU) contains the instruction cache controller and its associated
+linefill buffer. The Cortex-A53 MPCore instruction cache is 2-way set associative and uses
+virtually-indexed physically-tagged (VIPT) cache lines holding up to 16 A32 instructions,
+16 32-bit T32 instructions, 16 A64 instructions, or up to 32 16-bit T32 instructions.
+The IFU obtains instructions from the instruction cache or from external memory and
+predicts the outcome of branches in the instruction stream, and then passes the
+instructions to the data-processing unit (DPU) for processing.
+Data Processing Unit
+The data-processing unit (DPU) holds most of the program-visible processor states, such as
+general-purpose registers and system registers. It provides configuration and control of the
+memory system and its associated functionality. It decodes and executes instructions while
+operating on data held in the registers, in accordance with the Arm v8-A architecture.
+Instructions are fed to the DPU from the IFU. The DPU executes instructions that require
+data to be transferred to or from the memory system by interfacing to the data-cache unit
+(DCU), which manages all load and store operations.
+Advanced SIMD and Floating-point Extension
+Advanced SIMD and floating-point extension implements Arm NEON technology; a media
+and signal processing architecture that adds instructions targeted at audio, video, 3D
+graphics, image, and speech processing. Advanced SIMD instructions are available in
+AArch64 and AArch32 states.
+Cryptography Extension
+The cryptography extension supports the Arm v8 cryptography extensions. The
+cryptography extension adds new A64, A32, and T32 instructions to advanced SIMD that
+accelerate the following.
+• Advanced encryption standard (AES) encryption and decryption.
+• Secure-hash algorithm (SHA) functions SHA-1, SHA-224, and SHA-256.
+• Finite-field arithmetic used in algorithms such as Galois/counter mode.
+Translation Lookaside Buffer
+The translation lookaside buffer (TLB) contains the main TLB and handles all translation
+table walk operations for the processor. TLB entries are stored inside a 512-entry, 4-way
+set-associative RAM.
+Send FeedbackZynq UltraScale+ Device TRM 46
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Data-side Memory System
+The data-cache unit (DCU) consists of the following sub-blocks.
+• The level 1 (L1) data-cache controller that generates the control signals for the
+associated embedded tag, data, and dirty RAMs, and arbitrates between the various
+sources requesting access to the memory resources. The data cache is 4-way set
+associative and uses a physically-indexed physically-tagged (PIPT) scheme for lookup
+that enables unambiguous address management in the system.
+• The load/store pipeline that interfaces with the DPU and main TLB.
+• The system controller that performs cache and TLB maintenance operations directly on
+the data cache and on the instruction cache through an interface with the IFU.
+• An interface to receive coherency requests from the snoop-control unit (SCU).
+Store Buffer
+The store buffer (STB) holds store operations when they have left the load/store pipeline
+and are committed by the DPU. The STB can request access to the cache RAMs in the DCU,
+request the BIU to initiate linefills, or request the BIU to write the data out on the external
+write channel. External data writes are through the SCU. The STB can merge the following.
+• Several store transactions into a single transaction if they are to the same 128-bit
+aligned address.
+• Multiple writes into an AXI or CHI write burst. The STB is also used to queue
+maintenance operations before they are broadcast to other cores in the Cortex-A53
+MPCore CPU cluster.
+The Cortex-A53 MPCore L1 memory system consists of separate L1 instruction and data
+caches. It also consists of two levels of TLBs.
+• Separate micro TLBs for both instruction and data sides.
+• Unified main TLB that handles misses from micro TLBs.
+Bus Interface Unit and SCU Interface
+The bus interface unit (BIU) contains the SCU interface and buffers to decouple the
+interface from the cache and STB. The BIU interface and the SCU always operate at the
+processor frequency.
+Send FeedbackZynq UltraScale+ Device TRM 47
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Snoop Control Unit
+The integrated snoop-control unit (SCU) connects the APU MPCore and an accelerator
+coherency port (ACP) used in Zynq UltraScale+ MPSoCs. The SCU also has duplicate copies
+of the L1 data-cache tags for coherency support. The SCU is clocked synchronously and at
+the same frequency as the processors.
+The SCU contains buffers that can handle direct cache-to-cache transfers between
+processors without having to read or write any data to the external memory system.
+Cache-line migration enables dirty-cache lines to be moved between processors, and there
+is no requirement to write back transferred cache-line data to the external memory system.
+The Cortex-A53 MPCore processor uses the MOESI protocol to maintain data coherency
+between multiple cores.
+L2 Memory Subsystem
+The Cortex-A53 MPCore processor’s L2 memory system size is 1 MB. It contains the L2
+cache pipeline and all logic required to maintain memory coherence between the cores of
+the cluster. It has the following features:
+• An SCU that connects the cores to the external memory system through the master
+memory interface. The SCU maintains data-cache coherency between the APU MPCore
+and arbitrates L2 requests from the cores.
+• The L2 cache is 16-way set-associative physically-addressed.
+• The L2 cache tags are looked up in parallel with the SCU duplicate tags. If both the L2
+tag and SCU duplicate tag hit, a read accesses the L2 cache in preference to snooping
+one of the other processors.
+Cache Protection
+The Cortex-A53 MPCore processor supports cache protection in the form of ECC on RAM
+instances in the processor using two separate protection options.
+• SCU-L2 cache protection
+• CPU cache protection
+These options enable the Cortex-A53 MPCore processor to detect and correct a one-bit
+error in any RAM and detect two-bit errors in some RAMs.
+Cortex-A53 MPCore RAMs are protected against single-event-upset (SEU) such that the
+processor system can detect and continue making progress without data corruption. Some
+RAMs have parity single-error detect (SED) capability, while others have ECC single-error
+correct, double-error detect (SECDED) capability.
+Note: The L1 instruction cache is protected by parity bits. It does not implement error correction
+code.
+Send FeedbackZynq UltraScale+ Device TRM 48
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+The processor can make progress and remain functionally correct when there is a single-bit
+error in any RAM. If there are multiple single-bit errors in more than one RAM, or within
+different protection granules within the same RAM, then the processor also remains
+functionally correct. If there is a double-bit error in a single RAM within the same protection
+granule, then the behavior depends on the RAM.
+• For RAMs with ECC capability, the error is detected and reported if the error is in a
+cache line containing dirty data.
+• For RAMs with only parity, a double-bit error is not detected and therefore, could cause
+data corruption.
+Interrupts upon an error event allow for the system to take the proper action, including
+flushing and re-loading caches, logging the error, etc. Multi-bit upsets (MBU) are avoided
+by proper interleaving, choice of ECC, and parity coding.
+Debug and Trace
+The Cortex-A53 MPCore processor supports a range of debug and trace features including
+the following.
+• Arm v8 debug features in each core.
+• ETMv4 instruction trace unit for each core.
+• CoreSight™ cross-trigger interface (CTI).
+• CoreSight cross-trigger matrix (CTM)
+• Debug ROM.
+Generic Interrupt Controller
+The Cortex-A53 MPCore uses an external generic interrupt controller GIC-400 to support
+interrupts. It is a GICv2 implementation and provides support for hardware virtualization.
+For a detailed overview on GICv2 and system interrupts, refer to Chapter 13, Interrupts.
+Timers
+The Cortex-A53 MPCore processor implements the Arm generic timer architecture. For a
+detailed overview on APU timers, refer to Chapter 14, Timers and Counters.
+Send FeedbackZynq UltraScale+ Device TRM 49
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+APU Memory Management Unit
+In the AArch32 state, the Arm v8 address translation system resembles the Arm v7 address
+translation system with large physical-address extensions (LPAE) and virtualization
+extensions.
+In AArch64 state, the Arm v8 address translation system resembles an extension to the long
+descriptor format address translation system to support the expanded virtual and physical
+address spaces. For more information regarding the address translation formats, see the
+Arm® Architecture Reference Manual Arm v8, for the Arm v8-A architecture profile.
+The memory management unit (MMU) controls table-walk hardware that accesses
+translation tables in main memory. The MMU translates virtual addresses to physical
+addresses. The MMU provides fine-grained memory system control through a set of
+virtual-to-physical address mappings and memory attributes held in page tables. These are
+loaded into the translation lookaside buffer (TLB) when a location is accessed.
+Address translations can have one or two stages. Each stage produces output LSBs without
+a lookup. Each stage walks through multiple levels of translation. Figure 3-3 and Figure 3-4
+show an example block translation and a page translation, respectively.
+Send FeedbackZynq UltraScale+ Device TRM 50
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+X-Ref Target - Figure 3-3
+Figure 3-3: Block Translation
+VA TTBR select
+63 41
+Level 2 index
+29
+Physical address [28:0]
+28 0
+TTBRx
+PA PA[47:29] Physical address [28:0]
+63 0
+Page table entry
+Level 2 page table with 8192 entries
+Page table entry
+contains PA [47:29]
+Index in table
+Page table
+base address
+Low bits of virtual
+address form low bits
+of physical address
+Virtual address from core
+X16949-092916
+Send FeedbackZynq UltraScale+ Device TRM 51
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+X-Ref Target - Figure 3-4
+Figure 3-4: Page Translation
+VA TTBR select
+63 41
+Level 2 index
+29
+PA [15:0]
+28 0
+TTBRx
+PA PA[47:16] PA [15:0]
+L2 page table
+Page table entry
+contains PA [47:29]
+Page table Index in table
+base address
+Low bits of virtual
+address form low bits
+of physical address
+Level 3 index
+1615
+63 0
+L3 page table
+63 0
+Page table
+base address
+Virtual address from core
+X16950-092916
+Send FeedbackZynq UltraScale+ Device TRM 52
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+System Virtualization
+In some designs, multiple operating systems are required to run on the APU MPCore.
+Running multiple guest operating systems on a CPU cluster requires hardware virtualization
+support to virtualize the processor system into multiple virtual machines (VM) to allow each
+guest operating system to run on its VM.
+Operating systems are generally designed to run on native hardware. The system expects to
+be executing in the most privileged mode and assumes total control over the whole system.
+In a virtualized environment, it is the VM that runs in privileged mode, while the operating
+system is executing at a lower privilege level.
+When booting, a typical operating system configures the processor, memories, I/O devices,
+and peripherals. When executing, it expects exclusive access to such devices, including
+changing peripherals' configuration dynamically, directly managing the interrupt controller,
+replacing MMU page table entries (PTE), and initiating DMA transfers.
+When running de-privileged inside a virtual machine, the guest operating system is not able
+to execute the privileged instructions necessary to configure and drive the hardware
+directly.
+The VM must manage these functions. In addition, the VM could be hosting multiple guest
+operating systems. Therefore, direct modification of shared devices and memory requires
+cautious arbitration schemes.
+The level of abstraction required to address this, and the inherent software complexity and
+performance overhead, are specific to the characteristics of the architecture, the hardware,
+and the guest operating systems. The main approaches can be broadly categorized in two
+groups.
+• Full virtualization
+• Paravirtualization
+In full virtualization, the guest operating system is not aware that it is virtualized, and it
+does not require any modification. The VM traps and handles all privileged and sensitive
+instruction sequences, while user-level instructions run unmodified at native speed.
+In paravirtualization the guest operating system is modified to have direct access to the VM
+through hyper-calls or hypervisor calls. A special API is exposed by the VM to allow guest
+operating systems to execute privileged and sensitive instruction sequences.
+The Arm Cortex-A53 exception level-2 (EL2) provides processor virtualization. The Arm v8
+supports virtualization extension to achieve full virtualization with near native guest
+operating system performance.
+Send FeedbackZynq UltraScale+ Device TRM 53
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+There are four key hardware components for virtualization.
+• APU Virtualization
+• Interrupt Virtualization
+• Timer Virtualization
+• System Memory Virtualization Using SMMU Address Translation
+APU Virtualization
+A processor element is in hypervisor mode when it is executing at EL2 in the AArch32 state.
+An exception return from hypervisor mode to software running at EL1 or EL0 is performed
+using the ERET instruction.
+EL2 provides a set of features that support virtualizing the non-secure state of an Arm v8-A
+implementation. The basic model of a virtualized system involves the following.
+• A hypervisor software, running in EL2, is responsible for switching between virtual
+machines. A virtual machine is comprised of non-secure EL1 and non-secure EL0.
+• A number of guest operating systems, that each run in non-secure EL1, on a virtual
+machine.
+• For each guest operating system, there are applications that usually run in non-secure
+EL0, on a virtual machine.
+The hypervisor assigns a virtual machine identifier (VMID) to each virtual machine. EL2 is
+implemented only in a non-secure state, to support guest operating system management.
+EL2 provides information in the following areas.
+• Provides virtual values for the contents of a small number of identification registers. A
+read of one of these registers by a guest operating system or the applications for a
+guest operating system returns the virtual value.
+• Traps various operations, including memory management operations and accesses to
+many other registers. A trapped operation generates an exception that is taken to EL2.
+• Routes interrupts to the appropriate area.
+° The current guest operating system.
+° A guest operating system that is not currently running.
+° The hypervisor.
+Send FeedbackZynq UltraScale+ Device TRM 54
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+In a non-secure state the following occurs.
+• The implementation provides an independent translation regime for memory accesses
+from EL2.
+• For the EL1 and EL0 translation regime, address translation occurs in two stages.
+° Stage 1 maps the virtual address (VA) to an intermediate physical address (IPA). This
+is managed at EL1, usually by a guest operating system. The guest operating system
+believes that the IPA is the physical address (PA).
+° Stage 2 maps the IPA to the PA. This is managed at EL2. The guest operating system
+might be completely unaware of this stage. Hypervisor creates the stage 2
+translation table.
+Figure 3-5 shows the Arm v8 execution modes discussed in this section.
+Note: The following notes refer to Figure 3-5.
+1. AArch64 is permitted only if EL1 is using AArch64.
+2. AArch64 is permitted only if EL2 is using AArch64.
+X-Ref Target - Figure 3-5
+Figure 3-5: Arm v8 Execution Modes
+Non-secure State
+App 0
+AArch64 or
+AArch32
+App n
+AArch64 or
+AArch32
+App 0
+AArch64 or
+AArch32
+App n
+AArch64 or
+AArch32
+Supervisor (Guest OS1)
+AArch64 or AArch32
+Supervisor (Guest OS2)
+AArch64 or AArch32
+Hypervisor Mode
+AArch64 or AArch32
+EL0
+EL1
+EL2
+SVC
+HVC
+SMC
+Secure Monitor Mode
+Supervisor (Secure OS)
+AArch64 or AArch32
+App 0
+AArch64 or
+AArch32
+App n
+AArch64 or
+AArch32
+EL3
+Secure State
+X15288-101617
+Send FeedbackZynq UltraScale+ Device TRM 55
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+The hypervisor directly controls the allocation of the actual physical memory, thereby
+fulfilling its role of arbiter of the shared physical resources. This requires two stages
+(VAIPA, and IPAPA) of address translation. Figure 3-6 shows the traditional versus
+virtualized systems addresses in the translation stage.
+Interrupt Virtualization
+The APU GIC v2 interrupt virtualization is a mechanism to aid interrupt handling, with native
+distinction of interrupt destined to secure-monitor, hypervisors, currently active guest
+operating systems, or non-currently-active guest operating systems. This reduces the
+complexity of handling interrupts using software emulation techniques in the hypervisor.
+For detailed overview on the APU GIC, refer to Chapter 13, Interrupts.
+Timer Virtualization
+The Arm generic timers include support for timer virtualization. Generic timers provide a
+counter that measures (in real-time) the passing of time, and a timer for each CPU. The CPU
+timers are programmed to raise an interrupt to the CPU after a certain amount of time has
+passed, as per the counter.
+Timers are likely to be used by both hypervisors and guest operating systems. However, to
+provide isolation and retain control, the timers used by the hypervisor cannot be directly
+configured and manipulated by guest operating systems. Refer to Chapter 14, Timers and
+Counters for further details.
+System Coherency
+The devices which require interaction with the CPU also share data with the CPU. However,
+when the CPU produces the (shared) data, the data is normally cached to improve CPU
+performance. Similarly, some devices have caches to improve their performance. There are
+two ways to share data between devices and CPUs.
+X-Ref Target - Figure 3-6
+Figure 3-6: Traditional versus Virtualized Systems Address Translation Stage
+Applications
+OS
+Hardware
+Applications
+Guest OS
+VM
+Hardware
+Traditional System Virtualized System
+Virtual Address (VA)
+Intermediate Physical Address (IPA)
+Physical Address (PA)
+Virtual Address (VA)
+Physical Address (PA)
+X15289-092916
+Send FeedbackZynq UltraScale+ Device TRM 56
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+• Software coherency
+• Hardware coherency
+In software coherency, software (as a producer) must flush CPU caches before devices can
+read shared data from memory. And, if the device produces the data, then software (as a
+consumer) must invalidate CPU caches before using the data produced by the device.
+The hardware coherency (I/O coherency) can provide data coherence by having device
+memory requests snoop CPU caches. This speeds up data sharing significantly (by avoiding
+cache flush/invalidate), and simplifies software.
+I/O Coherency
+The Cortex-A53 MPCore processor has two options for I/O coherency.
+• Accelerator coherency port (ACP) port
+• Cache-coherent interconnect (CCI) ACE-Lite ports
+The CCI ACE-Lite ports provide I/O coherency. The CCI ACE-Lite ports will snoop APU caches
+only if the request is marked coherent. All of the PS masters can be optionally configured as
+I/O coherent (including the RPU but excluding the FPD DMA unit). The RPU can be
+configured for direct DDR memory access by bypassing I/O coherency.
+Full Two-way Coherency
+Full coherent masters can snoop each other’s caches. Full coherency is provided through
+the CCI ACE-Lite ports. The Cortex-A53 MPCore supports a CCI ACE-Lite port, however, CCI
+ACE-Lite support must be implemented in the PL.
+Send FeedbackZynq UltraScale+ Device TRM 57
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+ACE Interface
+The Zynq UltraScale+ MPSoCs interface to the cache-coherent interconnect (CCI) only
+supports the AXI coherency extension (ACE). ACE is an extension to the AXI protocol and
+provides the following enhancements. See Chapter 35, PS-PL AXI Interfaces.
+• Support for hardware cache coherency.
+• Barrier transactions that ensure transaction ordering.
+System-level coherency enables the sharing of memory by system components without the
+software requirement to perform software cache maintenance to maintain coherency
+between caches. Regions of memory are coherent if writes to the same memory location by
+two components are observable in the same order by all components.
+The ACE coherency protocol ensures that all masters observe the correct data value at any
+given address location by enforcing that only one copy exists whenever a store occurs to
+the location. After each store to a location, other masters can obtain a new copy of the data
+for their own local cache, allowing multiple copies to exist. Refer to the Arm® AMBA® AXI
+and ACE protocol specification for a detailed overview.
+ACP Interface
+The accelerator coherency port (ACP) is a 128-bit AXI slave interface on the snoop control
+unit (SCU) that provides an asynchronous cache-coherent access point directly from the PL
+to the APU. See Chapter 35, PS-PL AXI Interfaces.
+APU Power Management
+The Cortex-A53 MPCore processor provides mechanisms and support to control both
+dynamic and static power dissipation. The individual cores in the Cortex-A53 processor
+support four main levels of power management. This section describes the following.
+• Power Islands
+• Power Modes
+• Event communication using a wait for event (WFE) or a send event (SEV) instruction. See
+Table 35-7.
+• Communication with the platform management unit (PMU). See Chapter 6, Platform
+Management Unit.
+Send FeedbackZynq UltraScale+ Device TRM 58
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Power Islands
+Table 3-1 shows the power islands supported by the Cortex-A53 processor.
+Power Modes
+The power islands can be controlled independently to give several combinations of
+powered-up and powered-down islands. The supported power modes in the APU MPCore
+are listed.
+• Normal State
+• Standby State
+• Individual MPCore Shutdown Mode
+• Cluster Shutdown Mode with System Driven L2 Flush
+• Cluster shutdown the MPCore without system driven L2 flush.
+Normal State
+The normal mode of operation is where all of the processor functionality is available. The
+Cortex-A53 processor uses gated clocks and gates to disable inputs to unused functional
+blocks. Only the logic in use to perform an operation consumes any dynamic power.
+Standby State
+The following sections describe the methods to enter a standby state.
+MPCore Wait for Interrupt
+The Wait for Interrupt (WFI) feature of the Arm v8-A architecture puts the processor in a
+low-power state by disabling most of the clocks in the MPCore while keeping the MPCore
+powered up. Apart from the small dynamic power overhead on the logic used to enable the
+MPCore to wake up from a WFI low-power state, the power draw is reduced to only include
+the static leakage current variable. Software indicates that the MPCore can enter the WFI
+low-power state by executing the WFI instruction.
+Table 3-1: APU MPCore Power Islands
+Power Island Description
+CORTEXA53 Includes the SCU, the L2 cache controller, and the debug registers that are described
+as being in the debug domain. This domain is a part of the PS full-power domain (FPD).
+PDL2 Includes the L2 cache RAM, L2 tag RAM, L2 victim RAM, and the SCU duplicate tag
+RAM.
+PDCPU[4] This represents core 0, core 1, core 2, and core 3. It includes the advanced SIMD and
+floating-point extensions, the L1 TLB, L1 cache RAMs, and debug registers.
+Send FeedbackZynq UltraScale+ Device TRM 59
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+When the MPCore is executing the WFI instruction, the MPCore waits for all instructions in
+the MPCore to retire before entering the idle or low-power state. The WFI instruction
+ensures that all explicit memory accesses that occurred before the WFI instruction in the
+order of the program are retired. For example, the WFI instruction ensures that the
+following instructions receive the required data or responses from the L2 memory system.
+• Load instructions
+• Cache and TLB maintenance operations
+• Store exclusive instructions
+In addition, the WFI instruction ensures that stored instructions update the cache or are
+issued to the SCU.
+MPCore Wait for Event
+The Wait for Event (WFE) feature of the Arm v8-A architecture is a locking mechanism that
+puts the MPCore in a low-power state by disabling most of the clocks in the MPCore while
+keeping the MPCore powered up. Apart from the small dynamic power overhead on the
+logic used to enable the MPCore to wake up from the WFE low-power state, the power draw
+is reduced to only include the static leakage current variable.
+A MPCore enters into a WFE low-power state by executing the WFE instruction. When
+executing the WFE instruction, the MPCore waits for all instructions in the MPCore to
+complete before entering the idle or low-power state.
+If the event register is set, a WFE does not put the MPCore into a standby state, but the WFE
+clears the event register.
+While the MPCore is in the WFE low-power state, the clocks in the MPCore are temporarily
+enabled (without causing the MPCore to exit the WFE low-power state), when any of the
+following events are detected.
+• An L2 snoop request that must be serviced by the MPCore L1 data cache.
+• A cache or TLB maintenance operation that must be serviced by the MPCore L1
+instruction cache, data cache, or TLB.
+• An APB access to the debug or trace registers residing in the MPCore power domain.
+L2 Wait for Interrupt
+When all the cores are in a WFI low-power state, the shared L2 memory system logic that is
+common to all the cores also enter a WFI low-power state.
+Send FeedbackZynq UltraScale+ Device TRM 60
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Individual MPCore Shutdown Mode
+In the individual MPCore shutdown mode, the PDCPU power island for an individual
+MPCore is shut down and all states are lost.
+Use these steps to power down the MPCore.
+1. Disable the data cache, by clearing the SCTLR.C bit, or the HSCTLR.C bit if in Hyp mode.
+This prevents more data cache allocations and causes cacheable memory attributes to
+change to normal, non-cacheable. Subsequent loads and stores do not access the L1 or
+L2 caches.
+2. Clean and invalidate all data from the L1 data cache. The L2 duplicate snoop tag RAM
+for this MPCore is empty. This prevents any new data cache snoops or data cache
+maintenance operations from other MPCore in the cluster being issued to this core.
+3. Disable any data coherency with other MPCores in the cluster by clearing the
+CPUECTLR.SMPEN bit. Clearing the SMPEN bit enables the MPCore to be taken out of
+coherency by preventing the MPCore from receiving cache or TLB maintenance
+operations broadcast by other MPCores in the cluster.
+4. Execute an ISB instruction to ensure that all of the register changes from the previous
+steps are completed.
+5. Execute a DSB SY instruction to ensure completion of all cache, TLB, and branch
+predictor maintenance operations issued by any MPCore in the cluster device before the
+SMPEN bit is cleared.
+6. Execute a WFI instruction and wait until the STANDBYWFI output is asserted to indicate
+that the MPCore is in an idle and a low-power state.
+7. Deassert DBGPWRDUP Low. This prevents any external debug access to the MPCore.
+8. Activate the MPCore output clamps.
+9. Remove power from the PDCPU power domain.
+To power up the MPCore, apply the following sequence.
+1. Assert nCPUPORESET Low. Ensure DBGPWRDUP is held Low to prevent any external
+debug access to the MPCore.
+2. Apply power to the PDCPU power domain. Keep the state of the signals nCPUPORESET
+and DBGPWRDUP Low.
+3. Release the MPCore output clamps.
+4. Deassert the resets.
+5. Set the SMPEN bit to 1 to enable snooping into the MPCore.
+6. Assert DBGPWRDUP High to allow external debug access to the MPCore.
+Send FeedbackZynq UltraScale+ Device TRM 61
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+7. If required, use software to restore the state of the MPCore to its the state prior to
+power-down.
+Cluster Shutdown Mode with System Driven L2 Flush
+The cluster shutdown mode is where the PDCORTEXA53, PDL2, and PDCPU power islands
+are shut down and all previous states are lost. To power down the cluster, apply the
+following sequence.
+1. Ensure that all cores are in shutdown mode, see Individual MPCore Shutdown Mode.
+2. The MPCore asserts the pl_acpinact signal to idle the ACP. This is necessary to prevent
+ACP transactions from allocating new entries in the L2 cache during the hardware cache
+flush. For more information about the pl_acpinact signal, see Answer Record 70383.
+3. Assert L2FLUSHREQ High.
+4. Hold L2FLUSHREQ High until L2FLUSHDONE is asserted.
+5. Deassert L2FLUSHREQ.
+6. Assert ACINACTM. Wait until the STANDBYWFIL2 output is asserted to indicate that the
+L2 cache memory is idle.
+7. Activate the cluster output clamps.
+8. Remove power from the PDCORTEXA53 and PDL2 power domains.
+The Zynq UltraScale+ MPSoC provides the ability to power off each of the four APU
+processors independent of the other processors. Each processor power domain includes an
+associated Neon core. The control for the power gating is dynamic and is handled by the
+power management software running on the platform management unit (PMU).
+Clocks and Resets
+Each of the APU cores can be independently reset. The APU MPCore reset can be triggered
+by the FPD system watchdog timer (FPD_SWDT) or a software register write. However, the
+APU is reset without gracefully terminating requests to/from the APU. The FPD system reset
+(FPD_SRST) is used in cases of catastrophic failure in the FPD system. The APU reset is
+primarily for software debug.
+Programming steps for a software-generated reset:
+1. Enable the reset request interrupt in the PMU. Write a 1 to one or more bits [APUx] in
+the PMU_GLOBAL.REQ_SWRST_INT_EN register.
+2. Trigger the interrupt request. Write a 1 to one or more bits [APU{0:3}] in the
+REQ_SWRST_TRIG register.
+Send FeedbackZynq UltraScale+ Device TRM 62
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+The clock subsystem provides two clocks to the APU MPCore; one at the full clock rate and
+one at half the clock rate. The reference clock generator is described in Chapter 37, PS Clock
+Subsystem.
+Performance Monitors
+The Cortex-A53 MPCore processor includes performance monitors that implement the Arm
+PMUv3 architecture. The performance monitors enable gathering of various statistics on the
+operation of the processor and its memory system during runtime. They provide useful
+information about the behavior of the processor for use when debugging or profiling code.
+The performance monitor provides six counters. Each counter can count any of the events
+available in the processor.
+System Registers
+Table 3-2 describes the APU registers.
+IMPORTANT: Do not perform a load/store exclusive to the device memory unless a workaround for the
+Arm® processor Cortex-A53 MPCore (MP030) product errata notice 829070 for APU registers is
+implemented. Speculative data reads might be performed to device memory.
+Table 3-2: APU System Control Registers
+Register name Overview
+ERR_CTRL Control register
+ISR Interrupt status register
+IMR Interrupt mask register
+IEN Interrupt enable register
+IDS Interrupt disable register
+CONFIG_0 CPU core configuration
+CONFIG_1 L2 configuration
+RVBARADDR{0:3}{L,H} Reset vector base address
+ACE_CTRL ACE control register
+SNOOP_CTRL Snoop control register
+PWRCTL Power control register
+PWRSTAT Power status register
+Send FeedbackZynq UltraScale+ Device TRM 63
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+System Memory Virtualization Using SMMU
+Address Translation
+The SMMU translates the virtual addresses within each operating environment into physical
+addresses of the system and is described in this section. The transaction protection
+mechanism of the SMMU is described in Chapter 16, System Protection Units.
+Since the MPSoC system can support multiple operating systems with each guest OS
+supporting multiple application environments, the SMMU provides two stages of address
+translation. The first stage separates memory space for the operating systems and is
+managed by the hypervisor. The second stage separates application memory space within
+an OS and is managed by the host operating system. The programming of the address
+translation is coordinated with the MMUs in the MPCores and any MMUs in the PL to build
+the multitasking, heterogeneous system that shares one physically addressed memory
+subsystem.
+• First-stage hardware address translation for virtualized, multiple-guest operating
+systems. Virtual address (VA) to intermediate physical address (IPA).
+° Hypervisor software programs the first-stage address translation unit to virtualize
+the addresses of bus masters other than the processors, e.g., DMA units and PL
+masters.
+° Associates each bus master with its intermediate virtual memory space of its OS.
+• Second-stage hardware address translation for multi-application operating systems.
+Intermediate physical address (IPA) to physical address (PA).
+° Guest OS software programs the second-stage translation unit to manage the
+addressing of the memory mapped resources for each application program.
+° Associates the intermediate virtual memory address to the system’s physical
+address space.
+The SMMU has the translation buffer and control units.
+Note: The SMMU TCU uses the same master ID as that the one used for R5_0 so the security
+protection units cannot differentiate between the two masters. To mitigate this issue coherency can
+be disabled for the RPU so R5_0 is forced to access DDR through S0 port and SMMU TCU to S1 and
+S2 ports.
+Translation Buffer Unit
+The translation buffer unit (TBU) contains a translation look-aside buffer (TLB) that caches
+page tables maintained by the translation control unit (TCU). The SMMU implements a TBU
+for system masters as shown in Figure 15-1 in Chapter 15, PS Interconnect.
+Send FeedbackZynq UltraScale+ Device TRM 64
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Translation Control Unit
+The TCU controls and manages the address translation tables for the TBUs.
+TBU Entry Updates
+The TCU uses a private AXI stream interface to update the translation tables in the TBUs.
+Figure 3-7 shows how the two address translation stages in the SMMU can be used in the
+system with the APU MPCore, GPU, and other masters. The location of the six TBUs is shown
+in Figure 15-1 in Chapter 15, PS Interconnect.
+SMMU Architecture
+The SMMU performs address translation of an incoming AXI address and AXI ID (mapped to
+context) to an outgoing address (PA). The Arm SMMU architecture also supports the
+concept of translation regimes, in which a required memory access might require two
+stages of address translation. The SMMU supports the following.
+• Aarch32 short (32-bit) descriptor. Supports up to a 32-bit VA and 32-bit PA.
+• Aarch32 long (64-bit) descriptor. Supports up to a 32-bit VA and 40-bit PA.
+• Aarch64 (64-bit) descriptor. Supports up to a 49-bit VA and 48-bit PA.
+X-Ref Target - Figure 3-7
+Figure 3-7: Example of SMMU Locations in the System
+Cache Coherent Interconnect (CCI)
+DDR Memory Subsystem
+Cache
+Coherent
+Master 1
+Cache
+Coherent
+Master n
+Interconnect
+Noncoherent
+Master 1
+Noncoherent
+Master n
+Interconnect
+SMMU TBU
+Stage 1
+SMMU TBU
+Stages 1
+and 2
+SMMU TBU
+Stages 1
+and 2
+MMU Stage
+1 and 2
+L1 Cache
+GPU
+Masters
+MMU
+Stage 1
+Cache
+Coherent Interconnect
+L2 Cache
+APU MPCore
+CPU 0
+CPU 1
+CPU 2
+CPU 3
+X15290-090817
+CPUx
+Send FeedbackZynq UltraScale+ Device TRM 65
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Stage 1 SMMU Translation
+Stage 1 translation is intended to assist the operating system, both when running natively
+or inside a hypervisor. Stage 1 translation works similarly to a traditional (single stage) CPU
+MMU. Normally, an operating system causes fragmentation of physical memory by
+continuously allocating and freeing memory space on the heap, both for kernel and
+applications. A virtualized system that includes a fragmented model between IPA and PA
+spaces (where multiple guest operating systems are sharing the same physical memory) is
+not advised because of this issue.
+A typical solution, to allocate large contiguous physical memory, is to pre-allocate such
+buffers. This is very inefficient because the buffer is only required at runtime. Also, in a
+virtualized system, a pre-allocated solution requires the hypervisor to allocate any
+contiguous buffers to the guest operating system, which could require hypervisor
+modifications.
+For a DMA device to operate on fragmented physical memory, a DMA scatter-gather
+mechanism is typically used, which increases software complexity and adds performance
+overhead. Also, some devices are not capable of accessing the full memory range, such as
+32-bit devices in a 64-bit system. One solution is to provide a bounce buffer—an
+intermediate area of memory at a low address that acts as a bridge. The operating system
+allocates pages in an address space visible to the device and uses them as buffer pages for
+DMA to and from the operating system. Once the I/O completes, the content of the buffer
+pages is copied by the operating system into its final destination. There is significant
+overhead to this operation, which can be avoided with the use of SMMU. I/O virtualization
+can be achieved by using stage 1 (for native operating systems) and by stage 1 or 2 (for
+guest operating systems).
+Stage 2 SMMU Translation
+The SMMU stage 2 translations remove the need for the hypervisor to manage shadow
+translation tables, which simplifies hypervisor and improves performance. With stage 2
+address translation (Figure 3-8), the SMMU enables a guest operating system to directly
+configure the DMA capable devices in the system.
+The SMMU can also be configured to ensure that devices operating on behalf of one guest
+operating system are prevented from corrupting memory of another guest operating
+system.
+Send FeedbackZynq UltraScale+ Device TRM 66
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Providing hardware separation between the two stages of address translation allows a clear
+definition of the ownership of the two different stages between the guest operating system
+(stage 1) and the hypervisor (stage 2). Translation faults are routed to the appropriate level
+of software. Management functions (TLB management, MMU enabling, register
+configurations) are handled at the appropriate stage of the translation process, improving
+performance by reducing the number of entries in the VM.
+Stage 1 translations are supported for both secure and non-secure translation contexts.
+Stage 2 translations are only supported for non-secure translation contexts. For non-secure
+operations, the typical usage model for two-stage address translation is as follows.
+• The non-secure operating system defines the stage 1 address translations for
+application and operating system level operations. The operating system does this as
+though it is defining mapping from VA to PA, but it is actually defining the mapping
+from VAs to IPA.
+X-Ref Target - Figure 3-8
+Figure 3-8: SMMU Stage 2 Address Translation
+Bn
+A0 An
+Guest OS0
+B0 Bn
+Guest OSm
+Hypervisor
+CPU
+MMU
+Memory
+Accessing
+Devices
+System Memory
+SystemMMU
+B0
+Guest OSm
+4GB
+B0
+Bn
+0
+Stoge 1 Address Translation
+Stage 1: Translations
+Managed by Guest OS
+An
+A0
+Guest OS0
+4GB
+A0
+An
+0
+Stage 1 Address Translation
+Intermediate Physical
+Address (IPA) Space
+Virtual Address
+(VA) Space
+4GB
+B0
+4GB
+An
+Bn
+A0
+Stage 1 Address Translation
+Physical Address
+(PA) Space
+0 0
+Stage 2: Translations
+Managed by Hypervisor
+4GB
+X15291-103117
+Send FeedbackZynq UltraScale+ Device TRM 67
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+• The hypervisor defines the stage 2 address translation that maps the IPA to PA. It does
+this as part of its virtualization of one or more non-secure guest operating systems.
+TLB Maintenance Operations
+SMMU TLB maintenance operations (for example, TLB invalidates) can be initiated in one of
+the two ways.
+• Accessing SMMU memory-mapped registers.
+• Broadcasting TLB maintenance operations to the SMMU through the distributed virtual
+memory (DVM) bus. Clearing TLB entries through broadcast messages can significantly
+improve system performance by freeing-up TLB entries. TLB maintenance-message
+broadcasting is an important feature of the SMMU architecture.
+SMMU Clocks and Resets
+The SMMU AXI interfaces are clocked by the TOPSW_MAIN_CLK clock in the AXI
+interconnect for the FPD. The clock generator is described in Chapter 37, PS Clock
+Subsystem. The SMMU reset is in the FPD reset domainZynq UltraScale+ Device TRM 41
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+• Large physical address reach enables the processor to access beyond 4 GB of physical
+memory.
+• TrustZone technology ensures reliable implementation of security applications.
+Arm v8 Architecture
+The Arm v8-A is the next generation 64-bit Arm architecture. Arm v8 is backward
+compatible to Arm v7 (i.e., a 32-bit Arm v7 binary will run on an Arm v8 processor).
+Although the Arm v8 is backward compatible with the Arm v7 architecture, the Cortex-A53
+MPCore is not necessarily backward compatible with Cortex-A9 architecture. This is because
+some of the Cortex-A9 sub-system functions (e.g., Cortex-A9 L2 control registers) were
+implementation specific and not part of the Arm v7 architecture.
+Arm v8 supports two architecture states.
+• 64-bit execution state (AArch64)
+• 32-bit execution state (AArch32)
+AArch32 is compatible with Arm v7; however, it is enhanced to support some features
+included in AArch64 execution state (for example, load-acquire and store-release). Both
+execution states support advanced single-instruction multiple-data (SIMD) and
+floating-point extension for integer and floating-point. Also, both states support
+cryptography extension for the advanced encryption standard (AES)
+encryption/decryption, SHA1/256, and RSA/ECC.
+Send FeedbackZynq UltraScale+ Device TRM 42
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Figure 3-1 shows the block diagram of the APU.
+The Arm v8 exception model defines exception levels EL0–EL3, where:
+• EL0 has the lowest software execution privilege. Execution at EL0 is called unprivileged
+execution.
+Increased exception levels, from 1 to 3, indicate an increased software execution
+privilege.
+• EL1 provides support for basic non-secure state.
+• EL2 provides support for processor virtualization.
+• EL3 provides support for a secure state.
+The APU MPCore processor implements all the exception levels (EL0–EL3) and supports
+both execution states (AArch64 and AArch32) at each exception level.
+X-Ref Target - Figure 3-1
+Figure 3-1: APU Block Diagram
+APU
+GIC
+Cortex-A53 MPCore
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Cortex-A53
+FPU/NEON/Crypto
+32K L1
+ICache
+32K L1
+DCache
+Debug/
+Timers
+Snoop Control Unit (SCU)
+L2 Cache 1MB
+IRQ/vIRQ
+FIQ/vFIQ
+Timers
+Interrupts
+System Counter
+(in LPD) SPI Interrupts FPD Core Switch CoreSight
+64-bit counter
+APB, TS
+ATB
+32-bit AXI
+128-bit ACP
+CCI
+128-bit ACE
+X15286-080318
+Send FeedbackZynq UltraScale+ Device TRM 43
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+When a Cortex-A53 MPCore processor is brought up in 32-bit mode using the
+APU_CONFIG0 [VINITHI] parameter register, its exception table cannot be relocated at run
+time. The V[13] bit of the system control register defines the base address of the exception
+vector.
+See the Zynq UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3] for more
+information.
+Figure 3-2 shows a top-level functional diagram of the Cortex-A53 MPCore processor.
+X-Ref Target - Figure 3-2
+Figure 3-2: APU Block Diagram
+Cortex-A53 Processor
+APB Decoder APB ROM APB Multiplexer CTM
+Governor
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 0 Governor
+Core 0
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 1 Governor
+Core 1
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 2 Governor
+Core 2
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+CTI Retention
+Control
+Debug Over
+Power Down
+Arch
+Timer
+Clock and
+Reset
+GIC CPU
+interface
+Core 3 Governor
+Core 3
+FPU and NEON
+Extension
+Crypto
+Extension
+L1
+ICache
+L1
+DCache
+Debug and
+Trace
+Level 2 Memory System
+L2 Cache SCU ACE
+Master Bus Interface ACP Slave
+X15287-092916
+Send FeedbackZynq UltraScale+ Device TRM 44
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Security State
+An Arm v8 includes the EL3 exception level that provides the following security states, each
+with an associated memory address space.
+• In the secure state, the processor can access both the secure memory address space
+and the non-secure memory address space. When executing at EL3, the processor can
+access all the system control resources.
+• In the non-secure state, the processor can access only the non-secure memory address
+space and cannot access the secure system control resources.
+Secure and non-secure AXI transactions are sent through the system using the TrustZone
+protocols.
+For more information on the Arm v8 security states, see APU MPCore TrustZone Model in
+Chapter 16.
+APU Functional Units
+The following sections describe the main Cortex-A53 MPCore processor components and
+their functions.
+• Instruction Fetch Unit
+• Data Processing Unit
+• Advanced SIMD and Floating-point Extension
+• Cryptography Extension
+• Translation Lookaside Buffer
+• Data-side Memory System
+• L2 Memory Subsystem
+• Cache Protection
+• Debug and Trace
+• Generic Interrupt Controller
+• Timers
+Send FeedbackZynq UltraScale+ Device TRM 45
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Instruction Fetch Unit
+The instruction fetch unit (IFU) contains the instruction cache controller and its associated
+linefill buffer. The Cortex-A53 MPCore instruction cache is 2-way set associative and uses
+virtually-indexed physically-tagged (VIPT) cache lines holding up to 16 A32 instructions,
+16 32-bit T32 instructions, 16 A64 instructions, or up to 32 16-bit T32 instructions.
+The IFU obtains instructions from the instruction cache or from external memory and
+predicts the outcome of branches in the instruction stream, and then passes the
+instructions to the data-processing unit (DPU) for processing.
+Data Processing Unit
+The data-processing unit (DPU) holds most of the program-visible processor states, such as
+general-purpose registers and system registers. It provides configuration and control of the
+memory system and its associated functionality. It decodes and executes instructions while
+operating on data held in the registers, in accordance with the Arm v8-A architecture.
+Instructions are fed to the DPU from the IFU. The DPU executes instructions that require
+data to be transferred to or from the memory system by interfacing to the data-cache unit
+(DCU), which manages all load and store operations.
+Advanced SIMD and Floating-point Extension
+Advanced SIMD and floating-point extension implements Arm NEON technology; a media
+and signal processing architecture that adds instructions targeted at audio, video, 3D
+graphics, image, and speech processing. Advanced SIMD instructions are available in
+AArch64 and AArch32 states.
+Cryptography Extension
+The cryptography extension supports the Arm v8 cryptography extensions. The
+cryptography extension adds new A64, A32, and T32 instructions to advanced SIMD that
+accelerate the following.
+• Advanced encryption standard (AES) encryption and decryption.
+• Secure-hash algorithm (SHA) functions SHA-1, SHA-224, and SHA-256.
+• Finite-field arithmetic used in algorithms such as Galois/counter mode.
+Translation Lookaside Buffer
+The translation lookaside buffer (TLB) contains the main TLB and handles all translation
+table walk operations for the processor. TLB entries are stored inside a 512-entry, 4-way
+set-associative RAM.
+Send FeedbackZynq UltraScale+ Device TRM 46
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Data-side Memory System
+The data-cache unit (DCU) consists of the following sub-blocks.
+• The level 1 (L1) data-cache controller that generates the control signals for the
+associated embedded tag, data, and dirty RAMs, and arbitrates between the various
+sources requesting access to the memory resources. The data cache is 4-way set
+associative and uses a physically-indexed physically-tagged (PIPT) scheme for lookup
+that enables unambiguous address management in the system.
+• The load/store pipeline that interfaces with the DPU and main TLB.
+• The system controller that performs cache and TLB maintenance operations directly on
+the data cache and on the instruction cache through an interface with the IFU.
+• An interface to receive coherency requests from the snoop-control unit (SCU).
+Store Buffer
+The store buffer (STB) holds store operations when they have left the load/store pipeline
+and are committed by the DPU. The STB can request access to the cache RAMs in the DCU,
+request the BIU to initiate linefills, or request the BIU to write the data out on the external
+write channel. External data writes are through the SCU. The STB can merge the following.
+• Several store transactions into a single transaction if they are to the same 128-bit
+aligned address.
+• Multiple writes into an AXI or CHI write burst. The STB is also used to queue
+maintenance operations before they are broadcast to other cores in the Cortex-A53
+MPCore CPU cluster.
+The Cortex-A53 MPCore L1 memory system consists of separate L1 instruction and data
+caches. It also consists of two levels of TLBs.
+• Separate micro TLBs for both instruction and data sides.
+• Unified main TLB that handles misses from micro TLBs.
+Bus Interface Unit and SCU Interface
+The bus interface unit (BIU) contains the SCU interface and buffers to decouple the
+interface from the cache and STB. The BIU interface and the SCU always operate at the
+processor frequency.
+Send FeedbackZynq UltraScale+ Device TRM 47
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Snoop Control Unit
+The integrated snoop-control unit (SCU) connects the APU MPCore and an accelerator
+coherency port (ACP) used in Zynq UltraScale+ MPSoCs. The SCU also has duplicate copies
+of the L1 data-cache tags for coherency support. The SCU is clocked synchronously and at
+the same frequency as the processors.
+The SCU contains buffers that can handle direct cache-to-cache transfers between
+processors without having to read or write any data to the external memory system.
+Cache-line migration enables dirty-cache lines to be moved between processors, and there
+is no requirement to write back transferred cache-line data to the external memory system.
+The Cortex-A53 MPCore processor uses the MOESI protocol to maintain data coherency
+between multiple cores.
+L2 Memory Subsystem
+The Cortex-A53 MPCore processor’s L2 memory system size is 1 MB. It contains the L2
+cache pipeline and all logic required to maintain memory coherence between the cores of
+the cluster. It has the following features:
+• An SCU that connects the cores to the external memory system through the master
+memory interface. The SCU maintains data-cache coherency between the APU MPCore
+and arbitrates L2 requests from the cores.
+• The L2 cache is 16-way set-associative physically-addressed.
+• The L2 cache tags are looked up in parallel with the SCU duplicate tags. If both the L2
+tag and SCU duplicate tag hit, a read accesses the L2 cache in preference to snooping
+one of the other processors.
+Cache Protection
+The Cortex-A53 MPCore processor supports cache protection in the form of ECC on RAM
+instances in the processor using two separate protection options.
+• SCU-L2 cache protection
+• CPU cache protection
+These options enable the Cortex-A53 MPCore processor to detect and correct a one-bit
+error in any RAM and detect two-bit errors in some RAMs.
+Cortex-A53 MPCore RAMs are protected against single-event-upset (SEU) such that the
+processor system can detect and continue making progress without data corruption. Some
+RAMs have parity single-error detect (SED) capability, while others have ECC single-error
+correct, double-error detect (SECDED) capability.
+Note: The L1 instruction cache is protected by parity bits. It does not implement error correction
+code.
+Send FeedbackZynq UltraScale+ Device TRM 48
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+The processor can make progress and remain functionally correct when there is a single-bit
+error in any RAM. If there are multiple single-bit errors in more than one RAM, or within
+different protection granules within the same RAM, then the processor also remains
+functionally correct. If there is a double-bit error in a single RAM within the same protection
+granule, then the behavior depends on the RAM.
+• For RAMs with ECC capability, the error is detected and reported if the error is in a
+cache line containing dirty data.
+• For RAMs with only parity, a double-bit error is not detected and therefore, could cause
+data corruption.
+Interrupts upon an error event allow for the system to take the proper action, including
+flushing and re-loading caches, logging the error, etc. Multi-bit upsets (MBU) are avoided
+by proper interleaving, choice of ECC, and parity coding.
+Debug and Trace
+The Cortex-A53 MPCore processor supports a range of debug and trace features including
+the following.
+• Arm v8 debug features in each core.
+• ETMv4 instruction trace unit for each core.
+• CoreSight™ cross-trigger interface (CTI).
+• CoreSight cross-trigger matrix (CTM)
+• Debug ROM.
+Generic Interrupt Controller
+The Cortex-A53 MPCore uses an external generic interrupt controller GIC-400 to support
+interrupts. It is a GICv2 implementation and provides support for hardware virtualization.
+For a detailed overview on GICv2 and system interrupts, refer to Chapter 13, Interrupts.
+Timers
+The Cortex-A53 MPCore processor implements the Arm generic timer architecture. For a
+detailed overview on APU timers, refer to Chapter 14, Timers and Counters.
+Send FeedbackZynq UltraScale+ Device TRM 49
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+APU Memory Management Unit
+In the AArch32 state, the Arm v8 address translation system resembles the Arm v7 address
+translation system with large physical-address extensions (LPAE) and virtualization
+extensions.
+In AArch64 state, the Arm v8 address translation system resembles an extension to the long
+descriptor format address translation system to support the expanded virtual and physical
+address spaces. For more information regarding the address translation formats, see the
+Arm® Architecture Reference Manual Arm v8, for the Arm v8-A architecture profile.
+The memory management unit (MMU) controls table-walk hardware that accesses
+translation tables in main memory. The MMU translates virtual addresses to physical
+addresses. The MMU provides fine-grained memory system control through a set of
+virtual-to-physical address mappings and memory attributes held in page tables. These are
+loaded into the translation lookaside buffer (TLB) when a location is accessed.
+Address translations can have one or two stages. Each stage produces output LSBs without
+a lookup. Each stage walks through multiple levels of translation. Figure 3-3 and Figure 3-4
+show an example block translation and a page translation, respectively.
+Send FeedbackZynq UltraScale+ Device TRM 50
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+X-Ref Target - Figure 3-3
+Figure 3-3: Block Translation
+VA TTBR select
+63 41
+Level 2 index
+29
+Physical address [28:0]
+28 0
+TTBRx
+PA PA[47:29] Physical address [28:0]
+63 0
+Page table entry
+Level 2 page table with 8192 entries
+Page table entry
+contains PA [47:29]
+Index in table
+Page table
+base address
+Low bits of virtual
+address form low bits
+of physical address
+Virtual address from core
+X16949-092916
+Send FeedbackZynq UltraScale+ Device TRM 51
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+X-Ref Target - Figure 3-4
+Figure 3-4: Page Translation
+VA TTBR select
+63 41
+Level 2 index
+29
+PA [15:0]
+28 0
+TTBRx
+PA PA[47:16] PA [15:0]
+L2 page table
+Page table entry
+contains PA [47:29]
+Page table Index in table
+base address
+Low bits of virtual
+address form low bits
+of physical address
+Level 3 index
+1615
+63 0
+L3 page table
+63 0
+Page table
+base address
+Virtual address from core
+X16950-092916
+Send FeedbackZynq UltraScale+ Device TRM 52
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+System Virtualization
+In some designs, multiple operating systems are required to run on the APU MPCore.
+Running multiple guest operating systems on a CPU cluster requires hardware virtualization
+support to virtualize the processor system into multiple virtual machines (VM) to allow each
+guest operating system to run on its VM.
+Operating systems are generally designed to run on native hardware. The system expects to
+be executing in the most privileged mode and assumes total control over the whole system.
+In a virtualized environment, it is the VM that runs in privileged mode, while the operating
+system is executing at a lower privilege level.
+When booting, a typical operating system configures the processor, memories, I/O devices,
+and peripherals. When executing, it expects exclusive access to such devices, including
+changing peripherals' configuration dynamically, directly managing the interrupt controller,
+replacing MMU page table entries (PTE), and initiating DMA transfers.
+When running de-privileged inside a virtual machine, the guest operating system is not able
+to execute the privileged instructions necessary to configure and drive the hardware
+directly.
+The VM must manage these functions. In addition, the VM could be hosting multiple guest
+operating systems. Therefore, direct modification of shared devices and memory requires
+cautious arbitration schemes.
+The level of abstraction required to address this, and the inherent software complexity and
+performance overhead, are specific to the characteristics of the architecture, the hardware,
+and the guest operating systems. The main approaches can be broadly categorized in two
+groups.
+• Full virtualization
+• Paravirtualization
+In full virtualization, the guest operating system is not aware that it is virtualized, and it
+does not require any modification. The VM traps and handles all privileged and sensitive
+instruction sequences, while user-level instructions run unmodified at native speed.
+In paravirtualization the guest operating system is modified to have direct access to the VM
+through hyper-calls or hypervisor calls. A special API is exposed by the VM to allow guest
+operating systems to execute privileged and sensitive instruction sequences.
+The Arm Cortex-A53 exception level-2 (EL2) provides processor virtualization. The Arm v8
+supports virtualization extension to achieve full virtualization with near native guest
+operating system performance.
+Send FeedbackZynq UltraScale+ Device TRM 53
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+There are four key hardware components for virtualization.
+• APU Virtualization
+• Interrupt Virtualization
+• Timer Virtualization
+• System Memory Virtualization Using SMMU Address Translation
+APU Virtualization
+A processor element is in hypervisor mode when it is executing at EL2 in the AArch32 state.
+An exception return from hypervisor mode to software running at EL1 or EL0 is performed
+using the ERET instruction.
+EL2 provides a set of features that support virtualizing the non-secure state of an Arm v8-A
+implementation. The basic model of a virtualized system involves the following.
+• A hypervisor software, running in EL2, is responsible for switching between virtual
+machines. A virtual machine is comprised of non-secure EL1 and non-secure EL0.
+• A number of guest operating systems, that each run in non-secure EL1, on a virtual
+machine.
+• For each guest operating system, there are applications that usually run in non-secure
+EL0, on a virtual machine.
+The hypervisor assigns a virtual machine identifier (VMID) to each virtual machine. EL2 is
+implemented only in a non-secure state, to support guest operating system management.
+EL2 provides information in the following areas.
+• Provides virtual values for the contents of a small number of identification registers. A
+read of one of these registers by a guest operating system or the applications for a
+guest operating system returns the virtual value.
+• Traps various operations, including memory management operations and accesses to
+many other registers. A trapped operation generates an exception that is taken to EL2.
+• Routes interrupts to the appropriate area.
+° The current guest operating system.
+° A guest operating system that is not currently running.
+° The hypervisor.
+Send FeedbackZynq UltraScale+ Device TRM 54
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+In a non-secure state the following occurs.
+• The implementation provides an independent translation regime for memory accesses
+from EL2.
+• For the EL1 and EL0 translation regime, address translation occurs in two stages.
+° Stage 1 maps the virtual address (VA) to an intermediate physical address (IPA). This
+is managed at EL1, usually by a guest operating system. The guest operating system
+believes that the IPA is the physical address (PA).
+° Stage 2 maps the IPA to the PA. This is managed at EL2. The guest operating system
+might be completely unaware of this stage. Hypervisor creates the stage 2
+translation table.
+Figure 3-5 shows the Arm v8 execution modes discussed in this section.
+Note: The following notes refer to Figure 3-5.
+1. AArch64 is permitted only if EL1 is using AArch64.
+2. AArch64 is permitted only if EL2 is using AArch64.
+X-Ref Target - Figure 3-5
+Figure 3-5: Arm v8 Execution Modes
+Non-secure State
+App 0
+AArch64 or
+AArch32
+App n
+AArch64 or
+AArch32
+App 0
+AArch64 or
+AArch32
+App n
+AArch64 or
+AArch32
+Supervisor (Guest OS1)
+AArch64 or AArch32
+Supervisor (Guest OS2)
+AArch64 or AArch32
+Hypervisor Mode
+AArch64 or AArch32
+EL0
+EL1
+EL2
+SVC
+HVC
+SMC
+Secure Monitor Mode
+Supervisor (Secure OS)
+AArch64 or AArch32
+App 0
+AArch64 or
+AArch32
+App n
+AArch64 or
+AArch32
+EL3
+Secure State
+X15288-101617
+Send FeedbackZynq UltraScale+ Device TRM 55
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+The hypervisor directly controls the allocation of the actual physical memory, thereby
+fulfilling its role of arbiter of the shared physical resources. This requires two stages
+(VAIPA, and IPAPA) of address translation. Figure 3-6 shows the traditional versus
+virtualized systems addresses in the translation stage.
+Interrupt Virtualization
+The APU GIC v2 interrupt virtualization is a mechanism to aid interrupt handling, with native
+distinction of interrupt destined to secure-monitor, hypervisors, currently active guest
+operating systems, or non-currently-active guest operating systems. This reduces the
+complexity of handling interrupts using software emulation techniques in the hypervisor.
+For detailed overview on the APU GIC, refer to Chapter 13, Interrupts.
+Timer Virtualization
+The Arm generic timers include support for timer virtualization. Generic timers provide a
+counter that measures (in real-time) the passing of time, and a timer for each CPU. The CPU
+timers are programmed to raise an interrupt to the CPU after a certain amount of time has
+passed, as per the counter.
+Timers are likely to be used by both hypervisors and guest operating systems. However, to
+provide isolation and retain control, the timers used by the hypervisor cannot be directly
+configured and manipulated by guest operating systems. Refer to Chapter 14, Timers and
+Counters for further details.
+System Coherency
+The devices which require interaction with the CPU also share data with the CPU. However,
+when the CPU produces the (shared) data, the data is normally cached to improve CPU
+performance. Similarly, some devices have caches to improve their performance. There are
+two ways to share data between devices and CPUs.
+X-Ref Target - Figure 3-6
+Figure 3-6: Traditional versus Virtualized Systems Address Translation Stage
+Applications
+OS
+Hardware
+Applications
+Guest OS
+VM
+Hardware
+Traditional System Virtualized System
+Virtual Address (VA)
+Intermediate Physical Address (IPA)
+Physical Address (PA)
+Virtual Address (VA)
+Physical Address (PA)
+X15289-092916
+Send FeedbackZynq UltraScale+ Device TRM 56
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+• Software coherency
+• Hardware coherency
+In software coherency, software (as a producer) must flush CPU caches before devices can
+read shared data from memory. And, if the device produces the data, then software (as a
+consumer) must invalidate CPU caches before using the data produced by the device.
+The hardware coherency (I/O coherency) can provide data coherence by having device
+memory requests snoop CPU caches. This speeds up data sharing significantly (by avoiding
+cache flush/invalidate), and simplifies software.
+I/O Coherency
+The Cortex-A53 MPCore processor has two options for I/O coherency.
+• Accelerator coherency port (ACP) port
+• Cache-coherent interconnect (CCI) ACE-Lite ports
+The CCI ACE-Lite ports provide I/O coherency. The CCI ACE-Lite ports will snoop APU caches
+only if the request is marked coherent. All of the PS masters can be optionally configured as
+I/O coherent (including the RPU but excluding the FPD DMA unit). The RPU can be
+configured for direct DDR memory access by bypassing I/O coherency.
+Full Two-way Coherency
+Full coherent masters can snoop each other’s caches. Full coherency is provided through
+the CCI ACE-Lite ports. The Cortex-A53 MPCore supports a CCI ACE-Lite port, however, CCI
+ACE-Lite support must be implemented in the PL.
+Send FeedbackZynq UltraScale+ Device TRM 57
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+ACE Interface
+The Zynq UltraScale+ MPSoCs interface to the cache-coherent interconnect (CCI) only
+supports the AXI coherency extension (ACE). ACE is an extension to the AXI protocol and
+provides the following enhancements. See Chapter 35, PS-PL AXI Interfaces.
+• Support for hardware cache coherency.
+• Barrier transactions that ensure transaction ordering.
+System-level coherency enables the sharing of memory by system components without the
+software requirement to perform software cache maintenance to maintain coherency
+between caches. Regions of memory are coherent if writes to the same memory location by
+two components are observable in the same order by all components.
+The ACE coherency protocol ensures that all masters observe the correct data value at any
+given address location by enforcing that only one copy exists whenever a store occurs to
+the location. After each store to a location, other masters can obtain a new copy of the data
+for their own local cache, allowing multiple copies to exist. Refer to the Arm® AMBA® AXI
+and ACE protocol specification for a detailed overview.
+ACP Interface
+The accelerator coherency port (ACP) is a 128-bit AXI slave interface on the snoop control
+unit (SCU) that provides an asynchronous cache-coherent access point directly from the PL
+to the APU. See Chapter 35, PS-PL AXI Interfaces.
+APU Power Management
+The Cortex-A53 MPCore processor provides mechanisms and support to control both
+dynamic and static power dissipation. The individual cores in the Cortex-A53 processor
+support four main levels of power management. This section describes the following.
+• Power Islands
+• Power Modes
+• Event communication using a wait for event (WFE) or a send event (SEV) instruction. See
+Table 35-7.
+• Communication with the platform management unit (PMU). See Chapter 6, Platform
+Management Unit.
+Send FeedbackZynq UltraScale+ Device TRM 58
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Power Islands
+Table 3-1 shows the power islands supported by the Cortex-A53 processor.
+Power Modes
+The power islands can be controlled independently to give several combinations of
+powered-up and powered-down islands. The supported power modes in the APU MPCore
+are listed.
+• Normal State
+• Standby State
+• Individual MPCore Shutdown Mode
+• Cluster Shutdown Mode with System Driven L2 Flush
+• Cluster shutdown the MPCore without system driven L2 flush.
+Normal State
+The normal mode of operation is where all of the processor functionality is available. The
+Cortex-A53 processor uses gated clocks and gates to disable inputs to unused functional
+blocks. Only the logic in use to perform an operation consumes any dynamic power.
+Standby State
+The following sections describe the methods to enter a standby state.
+MPCore Wait for Interrupt
+The Wait for Interrupt (WFI) feature of the Arm v8-A architecture puts the processor in a
+low-power state by disabling most of the clocks in the MPCore while keeping the MPCore
+powered up. Apart from the small dynamic power overhead on the logic used to enable the
+MPCore to wake up from a WFI low-power state, the power draw is reduced to only include
+the static leakage current variable. Software indicates that the MPCore can enter the WFI
+low-power state by executing the WFI instruction.
+Table 3-1: APU MPCore Power Islands
+Power Island Description
+CORTEXA53 Includes the SCU, the L2 cache controller, and the debug registers that are described
+as being in the debug domain. This domain is a part of the PS full-power domain (FPD).
+PDL2 Includes the L2 cache RAM, L2 tag RAM, L2 victim RAM, and the SCU duplicate tag
+RAM.
+PDCPU[4] This represents core 0, core 1, core 2, and core 3. It includes the advanced SIMD and
+floating-point extensions, the L1 TLB, L1 cache RAMs, and debug registers.
+Send FeedbackZynq UltraScale+ Device TRM 59
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+When the MPCore is executing the WFI instruction, the MPCore waits for all instructions in
+the MPCore to retire before entering the idle or low-power state. The WFI instruction
+ensures that all explicit memory accesses that occurred before the WFI instruction in the
+order of the program are retired. For example, the WFI instruction ensures that the
+following instructions receive the required data or responses from the L2 memory system.
+• Load instructions
+• Cache and TLB maintenance operations
+• Store exclusive instructions
+In addition, the WFI instruction ensures that stored instructions update the cache or are
+issued to the SCU.
+MPCore Wait for Event
+The Wait for Event (WFE) feature of the Arm v8-A architecture is a locking mechanism that
+puts the MPCore in a low-power state by disabling most of the clocks in the MPCore while
+keeping the MPCore powered up. Apart from the small dynamic power overhead on the
+logic used to enable the MPCore to wake up from the WFE low-power state, the power draw
+is reduced to only include the static leakage current variable.
+A MPCore enters into a WFE low-power state by executing the WFE instruction. When
+executing the WFE instruction, the MPCore waits for all instructions in the MPCore to
+complete before entering the idle or low-power state.
+If the event register is set, a WFE does not put the MPCore into a standby state, but the WFE
+clears the event register.
+While the MPCore is in the WFE low-power state, the clocks in the MPCore are temporarily
+enabled (without causing the MPCore to exit the WFE low-power state), when any of the
+following events are detected.
+• An L2 snoop request that must be serviced by the MPCore L1 data cache.
+• A cache or TLB maintenance operation that must be serviced by the MPCore L1
+instruction cache, data cache, or TLB.
+• An APB access to the debug or trace registers residing in the MPCore power domain.
+L2 Wait for Interrupt
+When all the cores are in a WFI low-power state, the shared L2 memory system logic that is
+common to all the cores also enter a WFI low-power state.
+Send FeedbackZynq UltraScale+ Device TRM 60
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Individual MPCore Shutdown Mode
+In the individual MPCore shutdown mode, the PDCPU power island for an individual
+MPCore is shut down and all states are lost.
+Use these steps to power down the MPCore.
+1. Disable the data cache, by clearing the SCTLR.C bit, or the HSCTLR.C bit if in Hyp mode.
+This prevents more data cache allocations and causes cacheable memory attributes to
+change to normal, non-cacheable. Subsequent loads and stores do not access the L1 or
+L2 caches.
+2. Clean and invalidate all data from the L1 data cache. The L2 duplicate snoop tag RAM
+for this MPCore is empty. This prevents any new data cache snoops or data cache
+maintenance operations from other MPCore in the cluster being issued to this core.
+3. Disable any data coherency with other MPCores in the cluster by clearing the
+CPUECTLR.SMPEN bit. Clearing the SMPEN bit enables the MPCore to be taken out of
+coherency by preventing the MPCore from receiving cache or TLB maintenance
+operations broadcast by other MPCores in the cluster.
+4. Execute an ISB instruction to ensure that all of the register changes from the previous
+steps are completed.
+5. Execute a DSB SY instruction to ensure completion of all cache, TLB, and branch
+predictor maintenance operations issued by any MPCore in the cluster device before the
+SMPEN bit is cleared.
+6. Execute a WFI instruction and wait until the STANDBYWFI output is asserted to indicate
+that the MPCore is in an idle and a low-power state.
+7. Deassert DBGPWRDUP Low. This prevents any external debug access to the MPCore.
+8. Activate the MPCore output clamps.
+9. Remove power from the PDCPU power domain.
+To power up the MPCore, apply the following sequence.
+1. Assert nCPUPORESET Low. Ensure DBGPWRDUP is held Low to prevent any external
+debug access to the MPCore.
+2. Apply power to the PDCPU power domain. Keep the state of the signals nCPUPORESET
+and DBGPWRDUP Low.
+3. Release the MPCore output clamps.
+4. Deassert the resets.
+5. Set the SMPEN bit to 1 to enable snooping into the MPCore.
+6. Assert DBGPWRDUP High to allow external debug access to the MPCore.
+Send FeedbackZynq UltraScale+ Device TRM 61
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+7. If required, use software to restore the state of the MPCore to its the state prior to
+power-down.
+Cluster Shutdown Mode with System Driven L2 Flush
+The cluster shutdown mode is where the PDCORTEXA53, PDL2, and PDCPU power islands
+are shut down and all previous states are lost. To power down the cluster, apply the
+following sequence.
+1. Ensure that all cores are in shutdown mode, see Individual MPCore Shutdown Mode.
+2. The MPCore asserts the pl_acpinact signal to idle the ACP. This is necessary to prevent
+ACP transactions from allocating new entries in the L2 cache during the hardware cache
+flush. For more information about the pl_acpinact signal, see Answer Record 70383.
+3. Assert L2FLUSHREQ High.
+4. Hold L2FLUSHREQ High until L2FLUSHDONE is asserted.
+5. Deassert L2FLUSHREQ.
+6. Assert ACINACTM. Wait until the STANDBYWFIL2 output is asserted to indicate that the
+L2 cache memory is idle.
+7. Activate the cluster output clamps.
+8. Remove power from the PDCORTEXA53 and PDL2 power domains.
+The Zynq UltraScale+ MPSoC provides the ability to power off each of the four APU
+processors independent of the other processors. Each processor power domain includes an
+associated Neon core. The control for the power gating is dynamic and is handled by the
+power management software running on the platform management unit (PMU).
+Clocks and Resets
+Each of the APU cores can be independently reset. The APU MPCore reset can be triggered
+by the FPD system watchdog timer (FPD_SWDT) or a software register write. However, the
+APU is reset without gracefully terminating requests to/from the APU. The FPD system reset
+(FPD_SRST) is used in cases of catastrophic failure in the FPD system. The APU reset is
+primarily for software debug.
+Programming steps for a software-generated reset:
+1. Enable the reset request interrupt in the PMU. Write a 1 to one or more bits [APUx] in
+the PMU_GLOBAL.REQ_SWRST_INT_EN register.
+2. Trigger the interrupt request. Write a 1 to one or more bits [APU{0:3}] in the
+REQ_SWRST_TRIG register.
+Send FeedbackZynq UltraScale+ Device TRM 62
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+The clock subsystem provides two clocks to the APU MPCore; one at the full clock rate and
+one at half the clock rate. The reference clock generator is described in Chapter 37, PS Clock
+Subsystem.
+Performance Monitors
+The Cortex-A53 MPCore processor includes performance monitors that implement the Arm
+PMUv3 architecture. The performance monitors enable gathering of various statistics on the
+operation of the processor and its memory system during runtime. They provide useful
+information about the behavior of the processor for use when debugging or profiling code.
+The performance monitor provides six counters. Each counter can count any of the events
+available in the processor.
+System Registers
+Table 3-2 describes the APU registers.
+IMPORTANT: Do not perform a load/store exclusive to the device memory unless a workaround for the
+Arm® processor Cortex-A53 MPCore (MP030) product errata notice 829070 for APU registers is
+implemented. Speculative data reads might be performed to device memory.
+Table 3-2: APU System Control Registers
+Register name Overview
+ERR_CTRL Control register
+ISR Interrupt status register
+IMR Interrupt mask register
+IEN Interrupt enable register
+IDS Interrupt disable register
+CONFIG_0 CPU core configuration
+CONFIG_1 L2 configuration
+RVBARADDR{0:3}{L,H} Reset vector base address
+ACE_CTRL ACE control register
+SNOOP_CTRL Snoop control register
+PWRCTL Power control register
+PWRSTAT Power status register
+Send FeedbackZynq UltraScale+ Device TRM 63
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+System Memory Virtualization Using SMMU
+Address Translation
+The SMMU translates the virtual addresses within each operating environment into physical
+addresses of the system and is described in this section. The transaction protection
+mechanism of the SMMU is described in Chapter 16, System Protection Units.
+Since the MPSoC system can support multiple operating systems with each guest OS
+supporting multiple application environments, the SMMU provides two stages of address
+translation. The first stage separates memory space for the operating systems and is
+managed by the hypervisor. The second stage separates application memory space within
+an OS and is managed by the host operating system. The programming of the address
+translation is coordinated with the MMUs in the MPCores and any MMUs in the PL to build
+the multitasking, heterogeneous system that shares one physically addressed memory
+subsystem.
+• First-stage hardware address translation for virtualized, multiple-guest operating
+systems. Virtual address (VA) to intermediate physical address (IPA).
+° Hypervisor software programs the first-stage address translation unit to virtualize
+the addresses of bus masters other than the processors, e.g., DMA units and PL
+masters.
+° Associates each bus master with its intermediate virtual memory space of its OS.
+• Second-stage hardware address translation for multi-application operating systems.
+Intermediate physical address (IPA) to physical address (PA).
+° Guest OS software programs the second-stage translation unit to manage the
+addressing of the memory mapped resources for each application program.
+° Associates the intermediate virtual memory address to the system’s physical
+address space.
+The SMMU has the translation buffer and control units.
+Note: The SMMU TCU uses the same master ID as that the one used for R5_0 so the security
+protection units cannot differentiate between the two masters. To mitigate this issue coherency can
+be disabled for the RPU so R5_0 is forced to access DDR through S0 port and SMMU TCU to S1 and
+S2 ports.
+Translation Buffer Unit
+The translation buffer unit (TBU) contains a translation look-aside buffer (TLB) that caches
+page tables maintained by the translation control unit (TCU). The SMMU implements a TBU
+for system masters as shown in Figure 15-1 in Chapter 15, PS Interconnect.
+Send FeedbackZynq UltraScale+ Device TRM 64
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Translation Control Unit
+The TCU controls and manages the address translation tables for the TBUs.
+TBU Entry Updates
+The TCU uses a private AXI stream interface to update the translation tables in the TBUs.
+Figure 3-7 shows how the two address translation stages in the SMMU can be used in the
+system with the APU MPCore, GPU, and other masters. The location of the six TBUs is shown
+in Figure 15-1 in Chapter 15, PS Interconnect.
+SMMU Architecture
+The SMMU performs address translation of an incoming AXI address and AXI ID (mapped to
+context) to an outgoing address (PA). The Arm SMMU architecture also supports the
+concept of translation regimes, in which a required memory access might require two
+stages of address translation. The SMMU supports the following.
+• Aarch32 short (32-bit) descriptor. Supports up to a 32-bit VA and 32-bit PA.
+• Aarch32 long (64-bit) descriptor. Supports up to a 32-bit VA and 40-bit PA.
+• Aarch64 (64-bit) descriptor. Supports up to a 49-bit VA and 48-bit PA.
+X-Ref Target - Figure 3-7
+Figure 3-7: Example of SMMU Locations in the System
+Cache Coherent Interconnect (CCI)
+DDR Memory Subsystem
+Cache
+Coherent
+Master 1
+Cache
+Coherent
+Master n
+Interconnect
+Noncoherent
+Master 1
+Noncoherent
+Master n
+Interconnect
+SMMU TBU
+Stage 1
+SMMU TBU
+Stages 1
+and 2
+SMMU TBU
+Stages 1
+and 2
+MMU Stage
+1 and 2
+L1 Cache
+GPU
+Masters
+MMU
+Stage 1
+Cache
+Coherent Interconnect
+L2 Cache
+APU MPCore
+CPU 0
+CPU 1
+CPU 2
+CPU 3
+X15290-090817
+CPUx
+Send FeedbackZynq UltraScale+ Device TRM 65
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Stage 1 SMMU Translation
+Stage 1 translation is intended to assist the operating system, both when running natively
+or inside a hypervisor. Stage 1 translation works similarly to a traditional (single stage) CPU
+MMU. Normally, an operating system causes fragmentation of physical memory by
+continuously allocating and freeing memory space on the heap, both for kernel and
+applications. A virtualized system that includes a fragmented model between IPA and PA
+spaces (where multiple guest operating systems are sharing the same physical memory) is
+not advised because of this issue.
+A typical solution, to allocate large contiguous physical memory, is to pre-allocate such
+buffers. This is very inefficient because the buffer is only required at runtime. Also, in a
+virtualized system, a pre-allocated solution requires the hypervisor to allocate any
+contiguous buffers to the guest operating system, which could require hypervisor
+modifications.
+For a DMA device to operate on fragmented physical memory, a DMA scatter-gather
+mechanism is typically used, which increases software complexity and adds performance
+overhead. Also, some devices are not capable of accessing the full memory range, such as
+32-bit devices in a 64-bit system. One solution is to provide a bounce buffer—an
+intermediate area of memory at a low address that acts as a bridge. The operating system
+allocates pages in an address space visible to the device and uses them as buffer pages for
+DMA to and from the operating system. Once the I/O completes, the content of the buffer
+pages is copied by the operating system into its final destination. There is significant
+overhead to this operation, which can be avoided with the use of SMMU. I/O virtualization
+can be achieved by using stage 1 (for native operating systems) and by stage 1 or 2 (for
+guest operating systems).
+Stage 2 SMMU Translation
+The SMMU stage 2 translations remove the need for the hypervisor to manage shadow
+translation tables, which simplifies hypervisor and improves performance. With stage 2
+address translation (Figure 3-8), the SMMU enables a guest operating system to directly
+configure the DMA capable devices in the system.
+The SMMU can also be configured to ensure that devices operating on behalf of one guest
+operating system are prevented from corrupting memory of another guest operating
+system.
+Send FeedbackZynq UltraScale+ Device TRM 66
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+Providing hardware separation between the two stages of address translation allows a clear
+definition of the ownership of the two different stages between the guest operating system
+(stage 1) and the hypervisor (stage 2). Translation faults are routed to the appropriate level
+of software. Management functions (TLB management, MMU enabling, register
+configurations) are handled at the appropriate stage of the translation process, improving
+performance by reducing the number of entries in the VM.
+Stage 1 translations are supported for both secure and non-secure translation contexts.
+Stage 2 translations are only supported for non-secure translation contexts. For non-secure
+operations, the typical usage model for two-stage address translation is as follows.
+• The non-secure operating system defines the stage 1 address translations for
+application and operating system level operations. The operating system does this as
+though it is defining mapping from VA to PA, but it is actually defining the mapping
+from VAs to IPA.
+X-Ref Target - Figure 3-8
+Figure 3-8: SMMU Stage 2 Address Translation
+Bn
+A0 An
+Guest OS0
+B0 Bn
+Guest OSm
+Hypervisor
+CPU
+MMU
+Memory
+Accessing
+Devices
+System Memory
+SystemMMU
+B0
+Guest OSm
+4GB
+B0
+Bn
+0
+Stoge 1 Address Translation
+Stage 1: Translations
+Managed by Guest OS
+An
+A0
+Guest OS0
+4GB
+A0
+An
+0
+Stage 1 Address Translation
+Intermediate Physical
+Address (IPA) Space
+Virtual Address
+(VA) Space
+4GB
+B0
+4GB
+An
+Bn
+A0
+Stage 1 Address Translation
+Physical Address
+(PA) Space
+0 0
+Stage 2: Translations
+Managed by Hypervisor
+4GB
+X15291-103117
+Send FeedbackZynq UltraScale+ Device TRM 67
+UG1085 (v2.5) March 21, 2025
+Chapter 3: Application Processing Unit
+• The hypervisor defines the stage 2 address translation that maps the IPA to PA. It does
+this as part of its virtualization of one or more non-secure guest operating systems.
+TLB Maintenance Operations
+SMMU TLB maintenance operations (for example, TLB invalidates) can be initiated in one of
+the two ways.
+• Accessing SMMU memory-mapped registers.
+• Broadcasting TLB maintenance operations to the SMMU through the distributed virtual
+memory (DVM) bus. Clearing TLB entries through broadcast messages can significantly
+improve system performance by freeing-up TLB entries. TLB maintenance-message
+broadcasting is an important feature of the SMMU architecture.
+SMMU Clocks and Resets
+The SMMU AXI interfaces are clocked by the TOPSW_MAIN_CLK clock in the AXI
+interconnect for the FPD. The clock generator is described in Chapter 37, PS Clock
+Subsystem. The SMMU reset is in the FPD reset domain.

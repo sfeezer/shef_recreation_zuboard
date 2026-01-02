@@ -1,0 +1,2118 @@
+Chapter 12
+Security
+Introduction
+The increasing ubiquity of AMD devices makes protecting the intellectual property (IP)
+within them as important as protecting the data processed by the device. As security
+threats have increased, the range of security threats or potential weaknesses that must be
+considered to deploy secure products has grown as well. The Zynq UltraScale+ MPSoC
+provides features to help secure applications running on the SoC. These features include
+the following.
+• Encryption and authentication of configuration files.
+• Hardened crypto-accelerators for use by the user application.
+• Secure methods of storing cryptographic keys.
+• Methods for detecting and responding to tamper events.
+The sections in this chapter describe these features and their use.
+The hardware provides many features to detect security intrusions (see Developing
+Tamper-Resistant Designs with Zynq UltraScale+ Devices, XAPP1323 [Ref 32]). This
+document provides guidance and practical examples to help protect the user IP and
+sensitive data within a system. This protection (in the form of tamper resistance) needs to
+be effective before, during, and after the device has been securely booted with a software
+image or configured with a programmable logic (PL) bitstream. Sensitive data can include
+the software and configuration data that sets up the functionality of the device logic, critical
+data, or parameters that might be included in the boot image (i.e., initial memory contents
+and initial state). It also includes external data that is dynamically brought in and out of the
+device during post-boot normal operation.
+Send FeedbackZynq UltraScale+ Device TRM 249
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Device and Data Security
+Configuration Security Unit (CSU) Introduction
+At the center of the device security is the configuration security unit (CSU). The CSU is
+composed of two main blocks as shown in Figure 12-1. On the left is the secure processor
+block (SPB) that contains a triple redundant processor for controlling boot operation. It also
+contains an associated ROM, a small private RAM, the physically unclonable function (PUF),
+and the necessary control/status registers required to support all secure operations. The
+component on the right is the crypto interface block (CIB) and contains the AES-GCM, DMA,
+SHA-3, RSA, and PCAP interfaces.
+Runtime access to the CSU can be controlled via the AMD peripheral protection unit (XPPU).
+The CSU has a number of responsibilities, including the following.
+• Secure boot.
+• Tamper monitoring and response.
+• Secure key storage and management.
+• Cryptographic hardware acceleration.
+Send FeedbackZynq UltraScale+ Device TRM 250
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Secure Processor Block
+The triple-redundant CSU processor provides a highly reliable and robust processing unit
+for secure boot. The 128 KB CSU ROM is used to store the secure immutable ROM code
+program. The ROM code passes an integrity check using the SHA-3 prior to being executed.
+The 32 KB CSU RAM is used as a local secure data storage, and also includes ECC.
+The features of the secure processor block are listed here.
+• Triple redundant MicroBlaze.
+° Not user accessible.
+° Operates through first error and halts on second error.
+• Internal, uninterruptible clock source.
+• Dedicated internal RAM protected by ECC.
+X-Ref Target - Figure 12-1
+Figure 12-1: Configuration Security Unit Block Diagram
+CSU PMU Switch
+CSU ROM
+Validation
+ROM
+(128 KB)
+RAM
+(32 KB)
+CSU Triple
+Redundant
+MicroBlaze
+SHA-3
+384
+AESGCM
+256
+Secure Stream Switch
+PCAP
+CSU DMA
+CSU
+Registers
+Key
+Management
+To PL
+Configuration
+PMU ROM
+Validation
+To/From LPD Main Switch
+Tamper
+Sources INTC
+ECC
+BBRAM
+eFUSE
+PUF
+Operation
+KUP
+Family
+CSU
+Local
+Registers
+PUF RSA
+Multiplier
+Security Processor Block Crypto Interface Block
+X15318-052418
+Send FeedbackZynq UltraScale+ Device TRM 251
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• Dedicated internal boot ROM protected by SHA-3 integrity check.
+• PUF for generation of a device-unique encryption key.
+Crypto Interface Block
+The features of the CIB include the following.
+• Secure stream switch for managing data exchange with cryptographic cores.
+• SHA-3/384 hardened core.
+• AES-GCM-256 hardened core.
+• RSA exponential multiplier accelerator hardened core.
+• Secure key management including BBRAM and eFUSE key storage.
+• Processor configuration access port (PCAP).
+In secure configurations, the RSA and SHA-3/384 are used to authenticate the image and
+the AES-GCM is used to decrypt the image. During boot, the CIB and SPB run on the internal
+clock oscillator. After boot, the CIB clock can be sourced from a faster PLL clock to increase
+the performance of the user-accessible crypto blocks.
+Data is moved into and out from the CIB using a direct memory access controller
+(CSU_DMA) and the secure stream switch (SSS). The Secure Stream Switch in Chapter 11
+outlines the options for data movement. See Secure Stream Switch and CSU DMA in
+Chapter 11, Boot and Configuration for more information on DMA between cryptographic
+accelerators and memory. The CIB also contains key vaults and key management
+functionality for keys used during boot, as well as post boot for cryptographic acceleration.
+Access to the PL is provided via the PCAP interface. See PL Configuration in Chapter 11 for
+more information. Table 11-12 lists CSU registers for performing cryptographic functions,
+as well as other CSU security critical functionality.
+CSU Resets
+The different secure blocks of the CSU are reset by writing to the registers in Table 12-1.
+Write 1 to assert reset, write 0 to deassert reset.
+Table 12-1: CSU Reset Registers
+Component Reset Register Name
+AES-GCM aes_reset
+PCAP pcap_reset
+SHA-3/384 sha_reset
+Send FeedbackZynq UltraScale+ Device TRM 252
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Register Access
+Access to some CSU and PMU registers is restricted (black list) unless a #define is set, see
+the Zynq UltraScale+ MPSoC Software Developer’s Guide (UG1137) [Ref 3].
+Tamper Monitoring and Response
+The primary function of the CSU SPB post-boot is to monitor the system for a tamper event.
+Table 12-2 lists the twelve different monitoring functions that can be configured.
+• The PS system monitor (SYSMON unit) triggering limits for voltage and temperature
+alarms are user defined and configured.
+° The csu_tamper_4 and csu_tamper_5 registers generate an over and under
+temperature alarm when the PS SYSMON unit “threshold mode” is set to 1.
+• The PL SEU alarm is a runtime health check of the programmable logic.
+• Activity on the external PSJTAG interface pins can be detected from within the device
+and reported on the JTAG toggle detect alarm.
+• The CSU can act as a centralized tamper monitor and response hub for a system.
+• Single external tamper detect signal through MIO.
+The csu_tamper_x registers are write to clear (WTC) so that once a tamper is detected, the
+tamper alarm can be cleared by writing to the corresponding register.
+Table 12-2: Tamper and Control Registers Channels
+Register Event Source
+csu_tamper_12 PS SYSMON voltage alarm for PS GTR (VTT and VCC are both monitored).
+csu_tamper_11 PS SYSMON voltage alarm for PSIO bank 3.
+csu_tamper_10 PS SYSMON voltage alarm for PSIO bank 0/1/2 (all three banks).
+csu_tamper_9 PS SYSMON voltage alarm for VCC_PSINTFP_DDR.
+csu_tamper_8 PS SYSMON voltage alarm for VCC_PSAUX.
+csu_tamper_7 PS SYSMON voltage alarm for VCC_PSINTFP.
+csu_tamper_6 PS SYSMON voltage alarm for VCC_PSINTLP.
+csu_tamper_5 PS SYSMON upper and lower temperature alarms for FPD.
+csu_tamper_4 PS SYSMON upper and lower temperature alarms for LPD.
+csu_tamper_3 PL single event upset (SEU) error.
+csu_tamper_2 JTAG toggle detect.(1)
+csu_tamper_1 Input signal via MIO pin.(2)
+Send FeedbackZynq UltraScale+ Device TRM 253
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+The external tamper detect signals on MIO are listed in Table 12-3.
+After a tamper event occurs, how the CSU responds is user configurable. Table 12-4
+indicates which bit in the tamper response registers to set to obtain a specific tamper
+response for each tamper event. Multiple tamper response bits can be set for each tamper
+event. When more than one response bit [3:0] is set, the highest MSB that is set determines
+the tamper response. If bit [4] and one of the bits [3:0] are set, the BBRAM key is erased and
+the CSU generates the response associated with the MSB. For example, if bits 1, 2, and 4 are
+set, the BBRAM key is erased and secure lockdown occurs (no reset).
+The registers are readable but can only be set on write accesses. Specifically, once a specific
+tamper response is selected for a given tamper event, the bit selecting that response
+cannot be cleared except by a POR. This prevents incorrect or rogue software from
+accidentally decreasing the tamper response penalty. Tamper responses can only be added.
+csu_tamper_0 CSU register.
+Notes:
+1. The tamper event is caused by toggling the TDI or TMS input signals on the dedicated JTAG pins. The PJTAG
+interface signals on the MIO are not monitored. The JTAG toggle detect system interrupt is persistent and cannot
+be cleared until a power-on reset (POR) is done. If this response is chosen, the interrupt must be disabled
+(masked) after detection to prevent an endless interrupt loop.
+2. Assert the MIO tamper input (tamper 1) High until the Tamper Response occurs as configured by the
+csu_tamper_1 register (Table 12-4). If the system is reset using the PS_RESET_B, then de-assert the MIO tamper
+signal before releasing PS_RESET_B.
+Table 12-3: External Tamper Detect Signal on MIO
+CSU Signal MIO Pins I/O Default Input Value to
+Controller
+ext_tamper 18,19,20,21,22,23,24,25,26,31,32,33 I 0
+Table 12-4: Tamper Monitor and Response Bits
+Bit [4:0] Response
+1 xxxx Erase the BBRAM key and the response based on the MSB of bits [3:0], if any are set.(1) (3)
+x 1xxx Secure lockdown and 3-states all I/O pins including MIO, PS dedicated, and PL.(2)
+x 01xx Secure lockdown.
+x 001x System reset.
+x 0001 System interrupt (GIC IRQ# 117).
+Notes:
+1. For example, if bit 4, 3, and 2 are all set, the tamper event erases the BBRAM, generates a secure lockdown, and
+3-states on all I/Os.
+2. The CSU hardware 3-states the PL I/Os and the CSU ROM code writes 1s to the MIO_MST_TRI {0:2} registers.
+3. Bit 4 is set for all CSU_TAMPER registers except for the CSU_TAMPER_0 register. For the CSU_TAMPER_0 register,
+BBRAM is cleared using Bit 5.
+Table 12-2: Tamper and Control Registers Channels (Cont’d)
+Register Event Source
+Send FeedbackZynq UltraScale+ Device TRM 254
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Lockdown
+Non-Secure Lockdown
+Non-secure lockdown is initiated by the CSU ROM when a lockdown event occurs in a
+non-secure boot mode.
+Secure Lockdown
+Secure lockdown is a device state that occurs when:
+• A tamper event occurs when tamper monitor and response bits 2 or 3 are set for a
+given tamper event source.
+• A failure occurs during secure boot. Very early in the secure boot process all failures
+will result in secure lockdown. Once image loading has started, failures will only result
+in secure lockdown if the SEC_LK_eFUSE is programmed (see Figure 12-7).
+Secure lockdowns are processed by the CSU ROM. The CSU ROM performs the following
+steps during a secure lockdown:
+1. Tri-state the MIOs.
+2. Zeroize the AES keys and reset the AES-GCM core.
+3. Reset the APUs.
+4. Reset the RPUs.
+5. Disable the SRST pin.
+6. Enable LPD/FPD isolation.
+7. Enable the JTAG security gates (if not already enabled).
+8. Toggle PROG_B to PL (this will clear whatever configuration is in the PL).
+9. Instruct PMU to perform its lockdown.
+10. PMU runs MBIST on the LPD, FPD and PMU.
+11. PMU waits for PL housecleaning to complete.
+12. PMU puts all blocks in reset.
+13. PMU runs SCAN clear on the LPD and FPD if the LPD_SC and FPD_SC eFUSEs are
+programmed.
+14. Secure Lockdown complete is asserted.
+15. Optional (disabled by eFUSE)
+a. PMU set bootmode to JTAG.
+b. (optional) PMU triggers internal POR.
+Send FeedbackZynq UltraScale+ Device TRM 255
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+c. (optional) PS reboots, enabling the BSCAN capabilities. See Figure 12-7 for more
+details.
+Emulating a Tamper Event
+During system design and test, a tamper event can be emulated to ensure the system is
+functioning correctly. The csu_tamper_trig register, combined with the csu_tamper_0
+register, provides a mechanism for testing tamper responses. An example of emulating a
+tamper response is as follows.
+1. Write to the csu_tamper_trig register.
+2. The associated tamper response in csu_tamper_0 is executed.
+3. The csu_tamper_trig register self-clears.
+Staged Response to a Tamper Event
+Systems might require multiple responses to a tamper event. The csu_tamper_trig register,
+combined with the csu_tamper_0 register, provides a way to have a two-staged response to
+a tamper event. An example of building a staged response is as follows.
+1. Set bit 0 in csu_tamper_6 (i.e., generate an IRQ when VCCINT_LPD is out of range).
+2. Set bit 2 in csu_tamper_0 (i.e., enter secure lockdown).
+3. Tamper event occurs. VCCINT_LPD goes out of range.
+4. The csu_tamper_6 causes an IRQ to be set.
+5. User software responds to IRQ and clears the tamper.
+6. User software performs some additional action, such as logging or zeroing of
+configuration or data.
+7. User software writes to csu_tamper_trig register.
+8. Csu_tamper_0 response is executed. The device goes into secure lockdown.
+The tamper events can be securely and permanently logged for later analysis. Logging can
+be done within the device through a user eFUSE.
+Key Management
+The AES crypto engine has access to a diverse set of key sources. Non-volatile key sources
+include eFUSEs, BBRAM, a PUF key encryption key (KEK), and a family key. These keys
+maintain their values even when the device is powered-down. Volatile key sources include
+an operational key and a key update register key.
+Send FeedbackZynq UltraScale+ Device TRM 256
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+The device key source selection is exclusively done by the CSU ROM based on the
+authenticated boot image header. A device key can be from any of the following sources
+(see Figure 12-2).
+• BBRAM
+• Boot
+• eFUSE
+• Family
+• Operational
+• PUF KEK
+In addition to the BBRAM and eFUSE key storage locations, the Zynq UltraScale+ MPSoC
+also allows for the device key to be stored externally in the boot flash. This key can be
+stored in its obfuscated form (i.e., encrypted with the family key) or in its black form (i.e.,
+encrypted with the PUF KEK).
+A device key (a key used to boot the device) is selected by the CSU ROM based on the
+authenticated boot header or the ENC_ONLY eFUSE setting. To use the device key post
+boot, the following conditions must be met.
+• The device key is available post boot if the initial configuration files are encrypted or if
+the authentication only option is selected. See Hardware Root of Trust Only Boot
+(Auth_Only Option) for more information.
+Table 12-5: Types of Keys
+Key Name Description
+BBRAM The BBRAM key is stored in plain text form in a 256-bit RAM array.
+Boot The boot key register holds the decrypted key while the key is in use.
+eFUSE The eFUSE key is stored in eFUSEs. It can be either plain text, obfuscated (i.e., encrypted
+with the family key), or encrypted with the PUF KEK.
+Family
+The family key is a constant AES key value hard-coded into the devices. The same key is
+used across all devices in the Zynq UltraScale+ MPSoC family. This key is only used by
+the CSU ROM to decrypt an obfuscated key. The decrypted obfuscated key is used to
+decrypt the boot images. The obfuscated key can be stored in either eFUSE or the
+authenticated boot header. Because the family key is the same across all devices, the
+term obfuscated is used rather than encrypted to reflect the relative strength of the
+security mechanism.
+Operational
+The operational (OP) key is obtained by decrypting the secure header using a plain text
+key obtained from the other device key sources. For secure boot, this key is optional.
+Use of the OP key is specified in the boot header and minimizes the use of the device
+key, thus limiting its exposure.
+PUF KEK The PUF KEK is a key-encryption key that is generated by the PUF.
+Key update register
+(KUP)
+User provided key source. After boot, a user selected key can be used with the hardened
+AES accelerator.
+Send FeedbackZynq UltraScale+ Device TRM 257
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• The device key used during boot must be used for all image partitions. The key source
+used for partition decryption cannot be changed until the next POR. For example, it is
+not possible to encrypt some partitions with a BBRAM key and others with an eFUSE
+key. It is also not possible for some partitions to use the operational key and other
+partitions to not use the operational key.
+• The device key can be changed to the PUF KEK if all of the conditions in the section are
+fulfilled. See Secure Non-Volatile Storage for more information.
+Using only the device key post boot is not restricted. A user key can also be loaded into the
+KUP. The aes_key_src register can be used to select between the device key and the key
+update key. Figure 12-2 shows the key selection process and the protections in place.
+Battery-Backed RAM
+The BBRAM module is one of the available options for storing the device AES key. The
+BBRAM is a static RAM array. When the device has power on the PS_VCCAUX supply, the
+BBRAM is powered by the PS_VCCAUX supply. When the PS_VCCAUX supply is switched off,
+the device automatically switches the BBRAM power over to PS_VCCBATT. The key stored in
+BBRAM can only be stored in its unencrypted form (i.e., red). It cannot be obfuscated
+(family) or encrypted (black). The BBRAM can also be cleared, which is valuable as a tamper
+response.
+BBRAM Programming
+The BBRAM key memory space is 288-bits. The BBRAM can be programmed by system
+software running on an RPU or APU processor, or via the PJTAG interface on MIO that
+connects to the Arm DAP controller and becomes an AXI bus master. The BBRAM block
+diagram is shown in Figure 12-3. The BBRAM and eFUSE programming details are described
+in the Programming BBRAM and eFUSEs Application Note (XAPP1319) [Ref 20].
+X-Ref Target - Figure 12-2
+Figure 12-2: Key Selection
+BBRAM
+Boot
+eFUSE
+Family
+Operation
+Lock A Lock B
+AES-GCM
+Key
+Update
+ROM
+Controlled
+CSU
+ROM Valid
+CSU
+Secure Boot
+AES Key Source
+Register
+Selectable
+Device Key
+PUF
+X15319-031617
+Send FeedbackZynq UltraScale+ Device TRM 258
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+BBRAM Readback Protections
+In previous generations of AMD devices, the AES key stored in battery-backed RAM
+(BBRAM) could be read out for validation. The BBRAM had a protocol mechanism in which
+the key was erased prior to being able to program and verify the key. Although these
+protocol protection mechanisms still exist, the readback path for the key has been removed.
+The Zynq UltraScale+ MPSoC does not allow read back of the AES key in its BBRAM. Instead,
+when the key is written, a CRC32 value of that key is provided. After the key has been
+written, while in programming mode, the device verifies that the key in storage matches the
+provided CRC32 value. The device then provides a pass or fail result. CRC32 can be verified
+in programming mode only. Issuing a POR will exit programming mode, and reentering
+programming mode clears the AES key.
+BBRAM Zeroization
+The AES key in BBRAM can be erased using an active write to 0's controlled by an internal
+zeroization signal. A status bit is provided to confirm that the key is all 0's.
+BBRAM Key Agility
+The AES key in BBRAM can be securely updated from within the device while the device is
+in operation. Once the key is updated, subsequent boots of the device will use the new key.
+X-Ref Target - Figure 12-3
+Figure 12-3: BBRAM Programming Interface
+BBRAM Control
+288-bit BBRAM
+256-bit BBRAM Key
+to CSU
+APB
+ws addr
+X17981-092516
+Send FeedbackZynq UltraScale+ Device TRM 259
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+eFUSE
+The eFUSE array contains a block of 256 eFUSEs that can provide a key to the AES-256
+crypto engine. This block of eFUSEs has dedicated read and write disables controlled by
+additional eFUSEs. The eFUSE key can be stored in plain text form (red), obfuscated form
+(gray), or encrypted form (black).
+eFUSE Programming
+The eFUSEs can be programmed by system software running on an RPU or APU processor
+or via the PJTAG interface (on MIO) that connects to the Arm DAP controller and becomes
+an AXI bus master. In both cases, the eFUSE programming registers are accessed.
+The XilSKey macro library provides a convenient structure to program the eFUSEs. For
+details on eFUSE programming, see the Programming BBRAM and eFUSEs Application Note
+(XAPP1319) [Ref 20].
+eFUSE Readback Protections
+In previous generations of AMD devices, the key stored in the eFUSEs could be read out for
+validation. There were options to close the readback path by blowing additional eFUSEs.
+This readback path has been removed. The Zynq UltraScale+ MPSoC does not allow read
+back. Instead, when the key is written, a CRC32 value of that key is provided. After the key
+has been written, the device verifies that the key in storage matches the provided CRC32.
+The device then provides a pass or fail result. The read disable eFUSE now prevents the
+CRC32 validation from occurring.
+eFUSE Zeroization
+Although the eFUSE key can by "oneized" by blowing all the eFUSEs from inside the device,
+it is unclear how much value this provides from a security point of view. Care must be taken
+to ensure that the key cannot be observed using a simple power analysis (SPA) attack
+during the blowing of the key bits. It is also possible for an adversary to manipulate external
+voltages and clocks to compromise successful eFUSE programming.
+Key Update Register
+The key update register is used during boot to support the key rolling feature, where the
+different AES key must be loaded multiple times. After boot, any key can be loaded into this
+register via APB by software running on the PS. A 256-bit KUP key is stored in the eight AES
+key update registers.
+Operational Key
+The OP key is a register that holds the key decrypted from the secure header of the boot
+image. See Minimizing Use of the AES Boot Key (OP Key Option) for more details.
+Send FeedbackZynq UltraScale+ Device TRM 260
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Storing Keys in Obfuscated Form
+As shown in Figure 12-4, the user key is encrypted with the family key, which is embedded
+in the metal layers of the device. This family key is the same for all devices in the Zynq
+UltraScale+ MPSoC family. The result is referred to as the obfuscated key. The term
+obfuscated is used instead of encrypted to reflect the relative strength of the security
+mechanism. The obfuscated key can reside in either the authenticated boot header or
+eFUSEs. During boot, the CSU ROM takes the obfuscated key, decrypts it with the family key,
+and then uses the resulting user key to decrypt the boot images.
+The AMD development tools (bootgen) can be used to create a boot image with the
+obfuscated key. The family key is not distributed with the AMD development tools. To
+receive the family key, contact amd.com. For more information on generating boot images
+with the obfuscated key, see “Chapter 8: Security Features” in the Zynq UltraScale+ MPSoC
+Software Developer’s Guide (UG1137) [Ref 3].
+Storing Keys in Encrypted Form (Black)
+The black key storage solution, as shown in Figure 12-5, uses a cryptographically strong
+KEK generated from a PUF to encrypt the user key. The resulting black key can then be
+stored either in eFUSEs or as part of the authenticated boot header resident in external
+memory. The black key storage provides the following advantages.
+• The user key is the same for all devices. Consequently, the encrypted boot images are
+the same for all devices that use the same user key.
+X-Ref Target - Figure 12-4
+Figure 12-4: Obfuscated Key
+Zynq UltraScale+ MPSoC
+Obfuscated Key
+Secret Red Key
+Family Key
+Family Key
+Secret Red Key
+Secret Red Key
+User
+Image
+Boot Media
+(SD or
+Quad-SPI)
+AES-GCM
+AES-GCM
+AES-GCM
+AES-GCM
+Obfuscated Key Load
+Encrypted Image
+Encrypted
+Image
+Unencrypted
+Image
+X18021-031617
+Send FeedbackZynq UltraScale+ Device TRM 261
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• The PUF KEK is unique for each device. Consequently, the black key stored with the
+device is unique for each device.
+• The PUF KEK value is only known by the device (cannot be read by the user).
+The silicon manufacturing process includes inherent, random, and uncontrollable variations
+that cause unique and different characteristics from device to device. The AMD devices
+operate within these variations and device functionality is not affected. PUFs are tiny
+circuits that exploit these chip-unique variations to generate unique keys. The type of PUF
+used to generate the KEK is also an important consideration. The Zynq UltraScale+ MPSoC
+PUF uses an asymmetric technology (i.e., a ring oscillator based type PUF licensed from
+Verayo), which is different from the device key storage technology (e.g., SRAM or eFUSE).
+This asymmetric technology increases the security level above what can be achieved with a
+single technology.
+IMPORTANT: PUF regeneration can only be performed when authentication is enabled. The PUF is
+disabled in the encrypt-only secure boot mode.
+PUF Helper Data
+The PUF uses approximately 4 Kb of helper data to help the PUF recreate the original KEK
+value over the complete guaranteed operating temperature and voltage range over the life
+of the part. The helper data consists of a Syndrome value, an Aux value, and a Chash value
+(see Table 12-6). The helper data can either be stored in eFUSEs or in the boot image.
+X-Ref Target - Figure 12-5
+Figure 12-5: Black Key Storage
+Secret “Red” Key Key Encoder
+Encrypted
+“Black” Key
+Device Unique
+Key Decoder
+Secret “Red” Key
+during config
+Only
+PUF
+Device Unique
+User PROM
+Design
+Secret “Red” Key
+AES-GCM
+Encrypted
+Bitstream/
+FSBL
+Encrypted
+Bitstream/
+FSBL
+AES-GCM
+Unencrypted
+Bitstream/
+FSBL
+FPGA/SoC
+X18921-032117
+Send FeedbackZynq UltraScale+ Device TRM 262
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+PUF Operations
+Access to the PUF is restricted by the CSU. The CSU offers the PUF as a CSU service. The PUF
+can be accessed through the CSU registers. The CSU supports the user commands listed in
+Table 12-7.
+Figure 12-6 shows a block diagram of how the PUF is connected inside the CSU.
+Table 12-6: PUF Helper Data
+Field Size (Bits) Description
+Syndrome 4060
+These bits aid the PUF in recovering the proper PUF signature given
+slight variations in the ring oscillators over temperature, voltage, and
+time
+Aux 24 This is a Hamming code that allows the PUF to perform some level of
+error correction on the PUF signature.
+Chash 32
+This is a hash of the PUF signature that allows the PUF to recognize if
+the regenerated signature is correct.
+• If the CHASH is not programmed, then BH black key can be used so
+long as (EITHER bh_auth or rsa_en) is used.
+• If the CHASH is programmed, then the eFUSE black key can be used
+so long as (EITHER bh_auth or rsa_en is used) AND the efuse
+syndrome data has not been invalidated.
+• If the CHASH is programmed, then the BH black key can be used so
+long as (EITHER bh_auth or rsa_en) is used AND the efuse syndrome
+data has been invalidated.
+Table 12-7: CSU User Commands
+Command Description
+Registration Create a new KEK and associated helper data (first time).
+Re-registration Create a new KEK and associated new helper data.
+Reuse Encrypt/decrypt with the existing KEK and associated helper data (valid for
+eFUSE helper data only).
+Send FeedbackZynq UltraScale+ Device TRM 263
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+The PUF undergoes a registration process when a key is initially loaded into the device. The
+registration process initializes the PUF so that a KEK is created. The registration software
+can then use the KEK to encrypt the user key and program the eFUSEs. Alternatively, the
+encrypted user key can be output for inclusion into a boot image. The registration software
+also programs the helper data into the eFUSEs. Alternatively, the helper data can be output
+for inclusion into a boot image. The helper data and the encrypted user key must be stored
+in the same location (i.e., both in eFUSE or both in the boot image).
+When the device powers on, the CSU bootROM examines the authenticated boot image
+header. The boot image header contains information on whether the PUF is used, where the
+encrypted key is stored (eFUSE or boot image), and where the helper data is stored (eFUSE
+or boot image). The CSU then initializes the PUF, loads the helper data, and regenerates the
+KEK. This process is called regeneration. Once the KEK is regenerated, the CSU bootROM
+can use it to decrypt the user key, which is then used to decrypt the rest of the boot image.
+PUF Control eFUSEs
+The eFUSEs listed in Table 12-8 control additional PUF behaviors.
+X-Ref Target - Figure 12-6
+Figure 12-6: Block Diagram of PUF Connection in CSU
+CSU
+MicroBlaze
+CSU
+AXIM
+CSU
+Private Registers
+PUF
+CSU
+APB
+CSU
+Registers
+Key
+dev_key_sel
+AES eFUSE
+4K PUF syndrome data
+eFUSE
+APB
+X18925-080318
+Table 12-8: PUF Control eFUSEs
+eFUSE Name Description
+REG_DIS Disables registrations of the PUF.
+SYN_INVALID Invalidates the helper data contained in the eFUSEs.
+SYN_LOCK Prevents modification of the helper data contained in the
+eFUSEs.
+Send FeedbackZynq UltraScale+ Device TRM 264
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+PUF Characterization, Testing, and Ordering
+The Zynq UltraScale+ MPSoC PUF Characterization Report (RPT236) is an AMD proprietary
+document that covers additional characterization testing performed on the PUF. This
+characterization covers the PUF's stability (i.e., ability to accurately regenerate the KEK) over
+the voltage, temperature, and aging. It also covers characterization of the entropy, or
+security strength, of the KEK. Contact your local AMD FAE or sales person for details on how
+to obtain a copy of the report.
+Special ordering codes are required for devices where additional manufacturing tests have
+been performed on the PUF to help ensure entropy (i.e., key strength).
+Key Management Summary
+The device provides a variety of options for securing both boot images and user data. Boot
+image keys can be stored in BBRAM, eFUSE, or in the boot image itself. These keys can be
+in plain text (red), obfuscated with the family key, or encrypted with the PUF KEK (black).
+These options are described in Table 12-9.
+Protecting Test Interfaces
+JTAG Interface Protections
+On power-up, the default boot state is secure, and the JTAG interface only accepts a limited
+set of commands. These commands are listed here.
+• IDCODE
+• HIGHZ_I/O (applies only to PS I/O)
+• JTAG_STATUS
+• PS_ERROR_STATUS
+Table 12-9: Boot Image Keys
+Features BBRAM eFUSE Boot Image
+Programming method Internal via software
+External via JTAG
+Internal via software
+External via JTAG
+PUF registration
+software
+Bootgen
+Bootgen + PUF
+Registration software
+Program verification CRC32 Only CRC32 Only N/A
+Key state during storage Red Red, black, or
+obfuscated
+Black or obfuscated
+In-use protections Temporary storage in registers, not RAM.
+Transferred in parallel, not serial.
+Boot: DPA counter measures and zeroization after use.
+Send FeedbackZynq UltraScale+ Device TRM 265
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• BYPASS
+The device can boot up in secure and non-secure mode. The two secure boot modes are
+hardware root of trust and encrypt only.
+Figure 12-7 shows the JTAG capabilities throughout the secure and non-secure boot
+process. For non-secure boots, once the boot is complete, either successfully or
+unsuccessfully, the full suite of JTAG commands are enabled.
+For secure boots, if the boot is completed successfully, the authenticated software is
+capable of enabling the additional JTAG commands. Otherwise, only the IDCODE, HIGHZ_IO,
+BYPASS, JTAG_STATUS, and PS_ERROR_STATUS commands are available. Since the
+PS_ERROR_STATUS pin is driven by GPO of the PMU, when the PMU is reset the
+PS_ERROR_STATUS will be cleared. However, at the end of the secure lockdown, if the option
+to reboot into JTAG for boundary scan debug is on, then the PMU will get reset and the
+ERROR_STATUS pin will be deserted. It should be noted that this reset event doesn’t clear
+the JTAG_ERROR_STATUS register, which can be read via the JTAG_ERROR_STATUS
+instruction on the JTAG TAP. In the event of a failed secure boot, the JTAG capabilities are
+dependent on how the device was provisioned.
+• Programming the SEC_LK eFUSE forces every failed secure boot to enter secure
+lockdown.
+• In the event that SEC_LK is not programmed:
+° User integration and test is supported via commanding authentication and
+encryption through the boot header. See Integration and Test Support (BH RSA
+Option) for more details. In the event of a failed secure boot, JTAG is enabled.
+° For fielded systems, where authentication or encryption is forced upon every boot,
+the device enables the BSCAN capabilities only to support continuity testing. In this
+state, internal memory and registers are zeroized, and both the A53s and the R5s
+are held in reset.
+Send FeedbackZynq UltraScale+ Device TRM 266
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+In addition to disabling specific JTAG commands, specific JTAG sites are disabled by default
+on power-on by software-controlled security gates. Triple redundancy is used to maintain
+the state of these security gates. The location of these gates is shown in Figure 39-1 in
+Chapter 39, System Test and Debug.
+Finally, there is an eFUSE that completely disables the JTAG interface in all situations. Only
+BYPASS and IDCODE are allowed when the JTAG_DIS eFUSE is programmed.
+X-Ref Target - Figure 12-7
+Figure 12-7: JTAG Interface Protections
+PS RESET
+(PORB = 0)
+PS in Boot
+Successful Boot
+Non-Secure
+Failed Boot
+Non-Secure
+Successful Secure
+Boot
+Failed Secure Boot
+Secure Lockdown
+JTAG Enabled
+Disable
+Reboot Fuse
+Blown?
+(SEC_LK)
+Secure Lockdown
+AES or RSA eFuse
+Blown Or
+PreviousBootEnc
+JTAG Boot
+Full JTAG Access
+Enable BSCAN
+Device Held in Reset
+Yes
+No
+Yes
+IDCODE, BYPASS, ERROR_STATUS,
+JTAG_STATUS, HIGHZ_IO
+IDCODE, BYPASS, ERROR_STATUS,
+JTAG_STATUS, HIGHZ_IO,
+EXTEST, PRELOAD/SAMPLE
+IDCODE, BYPASS, ERROR_STATUS,
+JTAG_STATUS, HIGHZ_IO, EXTEST,
+PRELOAD/SAMPLE, DAP, PL Support
+Authenticated SW
+enables JTAG?
+JTAG not Enabled
+Yes
+No
+SOFT RESET
+PS in Boot
+SOFT RESET
+PS in Boot
+Secure BSCAN
+Mode
+No
+X18920-120418
+Send FeedbackZynq UltraScale+ Device TRM 267
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+PL Clearing
+The CSU contains the PCAP interface. The PCAP interface can be used to monitor the
+configuration memory's health in the PL. The PCAP CSU.pcap_prog [pcfg_prog_b] register
+bit can be used to erase the configuration memory in the PL and the CSU.pcap_status can
+be used to actively verify the contents have been erased. This provides a means of using PL
+configuration memory clearing as a tamper response.
+A POR or soft reset, by default, clears the PL. There are applications where independence is
+needed between the PS and PL. To enable these applications, the ability to gate the
+reset/reprogramming of the PL is added through the PROG_GATE circuit. The PROG_GATE
+circuit can be controlled by the PMU_GLOBAL. PS_CNTRL.PROG_GATE and PROG_ENABLE
+bits as listed in Table 12-10
+After a successful configuration, SW can write to this register and configure the PROG_GATE
+circuit so that a soft reset to the PS does not clear the PL.
+The behavior can be changed by programming any one of the three PROG_GATE[2:0]
+eFUSEs. These eFUSEs override the PROG_GATE circuit and force the PL to always be cleared
+upon a PS reset. The PROG_GATE[2:0] eFUSEs can be observed in the SEC_CTRL register in
+the eFUSE registers.
+Device DNA Identifiers
+Each device has a unique 96-bit DNA identifier number to improve security. No two devices
+have the same DNA. A DNA identifier number exists in the PL and the PS.
+AMD recommends using the PL-based DNA identifier for secure applications that depend
+on an unchangeable and unique device identifier. There is a PS-based DNA identifier, but it
+is possible that one or more of its bits could be changed.
+Note: The PL and PS DNA identifiers might not be exactly the same as shipped by AMD.
+The PL DNA identifier cannot be changed (all PL DNA bits are read-only). Table 12-11 lists
+the device DNA identifiers.
+Table 12-10: PROG_GATE Circuit Control
+Prog_Enable Prog_Gate Description
+0 0 Previous control maintained (This is the reset/power on state. The
+PROG_GATE circuit powers on with the PS able to reset the PL).
+0 1 pcfg_prog_b is blocked – PS reset does not reset the PL.
+1 0 pcfg_prog_b is not blocked – PS reset does reset the PL.
+1 1 Invalid condition.
+Send FeedbackZynq UltraScale+ Device TRM 268
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Error Output Disable
+Many secure applications have requirements to disable error notifications to the outside
+world. These applications want to disable the PS_ERROR_OUT and PS_ERROR_STATUS
+signals. The registers that control these signals are described in Table 6-16 in Chapter 6,
+Platform Management Unit. The user software must be loaded and executing to control
+these registers.
+The ERR_DIS eFUSE permanently disables reading of the PS_ERROR_STATUS register from
+the external JTAG chain.
+Cryptographic Acceleration
+AES-GCM
+The AES-GCM core has a 32-bit word-based data interface with support for a 256-bit key.
+The AES-GCM mode supports encryption and decryption, multiple key sources, and built-in
+message integrity check.
+Note: The AES engine operates on a 32-bit boundary.
+The AES-GCM-256 core allows for the following key sources.
+• BBRAM key
+• eFUSE device key
+• Operation key (OPKEY)
+• Key update register (KUP)
+• Family key (for obfuscated key storage)
+Table 12-11: Device DNA Identifiers
+Identifier Length Read-only? Read Access Methods
+PL DNA 96 bits Yes, always.
+Method 1: instantiate the PL DNA_PORTE2 primitive
+Method 2: connect to the JTAG PL TAP controller
+and use the FUSE_DNA instruction
+Note: For more details, see the UltraScale Architecture
+Configuration User Guide (UG570) [Ref 33].
+PS DNA 96 bits No, not all bits.
+Access the read-only EFUSE.DNA_x registers at
+addresses:
+• DNA_0: 0xFFCC_100C
+• DNA_1: 0xFFCC_1010
+• DNA_2: 0xFFCC_1014
+Note: The SDK API, XilSKey_ZynqMp_EfusePs_ReadDna,
+returns the PS DNA value.
+Send FeedbackZynq UltraScale+ Device TRM 269
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• PUF key-encryption-key (KEK) (for black key storage)
+Initialization Vector Register
+The four initialization vector (IV) registers combined create a larger 128 bit value. This
+128-bit values contains two separate fields. The first field resides in the first three AES IV
+registers (aes_iv_0, aes_iv_1, and aes_iv_2) and contains the 96-bit AES-GCM initialization
+vector (IV). The 96-bit AES-GCM IV is specified by the AES-GCM standard and initializes the
+counts used in this AES mode. The fourth register (aes_iv_3) contains the decrypt length
+count (DLC). The DLC specifies the data size of the next block. The DLC is used when the key
+rolling feature is enabled in the boot image. Table 12-12 shows the IV vector format.
+Programming AES-GCM Engine
+The XilSecure library provides APIs to access the AES-GCM core. For more information, see
+the AES-GCM chapter in the Standalone Library Documentation: BSP/ and Libraries
+Document Collection (UG643) [Ref 16].
+SHA-3/384
+The SHA hardware accelerator included in the Zynq UltraScale+ MPSoC implements the
+SHA-3 algorithm and produces a 384-bit digest. It is used together with the RSA accelerator
+to provide image authentication. It is also used to perform an integrity check of the CSU
+and PMU ROMs prior to execution. The SHA-3 block generates a 384-bit digest value. If a
+design requires a 256-bit digest, use the least significant 256 bits of the digest (see
+Recommendation for Applications Using Approved Hash Algorithms NIST Special Publication
+800-107 [Ref 56]).
+The hash function is calculated on blocks that are 832-bits long (104 bytes). Only whole
+blocks can be processed through the SHA. All messages processed by the SHA-3
+accelerator must be appropriately padded. See SHA-3 Standard: Permutation-Based Hash
+and Extendable-Output Functions, NIST FIPS PUB 202 [Ref 57] for padding requirements.
+SHA3-384 padding should be M || 01 || 10 * 1.
+Programming SHA-3 Engine
+The XilSecure library provides APIs to access the SHA core. See the SHA-3 chapter in the
+Standalone Library Documentation: BPS and Libraries Document Collection (UG643) [Ref 23].
+Table 12-12: Initialization Vector Format
+127 32 0
+GCM IV
+DLC
+(Decrypt
+length
+count)
+96-bit random value
+Next block
+data size
+(key rolling)
+Send FeedbackZynq UltraScale+ Device TRM 270
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+RSA Accelerator
+The Zynq UltraScale+ MPSoC includes an RSA accelerator for public and private key
+operations. The RSA accelerator supports the following features.
+• Implements a modular exponentiation engine.
+• Support for R*R mod M pre-calculation.
+• Support for multiple RSA key sizes including 2048, 3072, and 4096. Only the key size of
+4096 is supported during boot. For all key sizes supported, see the Standalone Library
+Documentation: BSP and Libraries Document Collection (UG643) [Ref 23].
+• Implements efficient processing of a short public exponent.
+Programming the RSA Engine
+The XilSecure library provides APIs to access the RSA accelerator. See the RSA chapter in the
+Standalone Library Documentation: BSP and Libraries Document Collection (UG643) [Ref 23].
+Information regarding the performance of cryptographic acceleration, within two different
+software architectures, is provided in Accelerating Cryptographic Performance on the Zynq
+UltraScale+ MPSoC (WP512) [Ref 37].
+Secure Non-Volatile Storage
+In addition to storing the user key in encrypted form, the PUF can also be used to
+encrypt/decrypt data to store in external memory. This use case provides a secure
+non-volatile solution. In cases where the PUF helper data is stored in eFUSEs and RSA
+authentication is enabled, the regeneration process can be used by the user’s application
+software to regenerate the KEK. This KEK can then be used to encrypt data, such as
+additional user keys, using the device unique KEK. This encrypted user data can then be
+stored off-chip or in the user eFUSEs and decrypted using the same process at a later time.
+See the External Secure Storage Using the PUF Application Note (XAPP1333) [Ref 34].
+Note: When the PUF is used in this manner, it becomes the device key and the device key selection
+cannot be changed back to the BBRAM or eFUSE key without a power on reset. The user can still
+choose between the Key Update Register and the PUF (see Figure 12-2.)
+Security Related eFUSEs
+PS eFUSEs
+An eFUSE is a small, one-time programmable, non-volatile memory element. The eFUSE
+arrays store various types of important information. The definition of each bit of an eFUSE
+is represented in the eFUSE map shown in Table 12-13. The device caches the eFUSE values
+into registers so that reading the eFUSE value means reading the eFUSE cache and not the
+physical device eFUSEs. Loading the eFUSE cache occurs during the pre-boot phase, via a
+register command (EFUSE.EFUSE_CACHE_LOAD) or automatically when the XilSKey library is
+Send FeedbackZynq UltraScale+ Device TRM 271
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+used. Reading is done from the eFUSE registers at 0xFFCC0000 (see the Zynq UltraScale+
+MPSoC Register Reference (UG1087) [Ref 4]).
+Because readback is not available on the AES key, a CRC check has been built in to validate
+that the AES key eFUSE has been programmed correctly. Before the CRC check can be
+performed on a newly programmed eFUSE, the eFUSE cache must be reloaded.
+eFUSEs can be programmed using the XilSKey library. Inputs are provided in the application
+header file xilskey_efuseps_zynqmp_input.h. The corresponding macro names are
+listed in Table 12-13. For PUF usage, input is provided via the
+xilskey_puf_registration.h file. For more information on XilSKey library usage, see
+the AMD library documentation.
+For details on how to program eFUSEs, see Programming BBRAM and eFUSEs Application
+Note (XAPP1319) [Ref 20].
+Table 12-13: Zynq UltraScale+ MPSoC Security eFUSEs
+Size Name Description XilSKey Name:
+XSK_EFUSEPS_
+32 USER_{0:7}
+256 user defined eFUSEs:
+Note: In the input.h file (see text), write data in the
+XSK_EFUSEPS_USER{0:7}_FUSES macro and execute the write by
+setting the XSK_EFUSEPS_USER{0:7}_FUSE macro = True.
+USER{0:7}_FUSE
+1 USER_WRLK
+8 user-defined eFUSE locks.
+USER_WRLK columns:
+0: Locks USER_0,
+1: Locks USER_1,
+...
+7: Locks USER_7,
+Note: Each eFUSE permanently locks the entire corresponding
+user-defined USER_{0:7} eFUSE row so it cannot be changed.
+USER_WRLK_{0:7}
+1 LBIST_EN Enables logic BIST to run during boot. LBIST_EN
+3 LPD_SC
+Enables zeroization of registers in low power domain (LPD) during boot.
+Note: Any of the eFUSE programmed will perform zeroization. AMD
+recommends programming all of them.
+LPD_SC_EN
+3 FPD_SC
+Enables zeroization of registers in full power domain (FPD) during boot.
+Note: MGTs must be powered to perform zeroization of the FPD.
+Note: Any of the eFUSE programmed will perform zeroization. AMD
+recommends programming all of them.
+FPD_SC_EN
+3 PBR_BOOT_
+ERROR
+When programmed, boot is halted on any PMU error.
+PBR_BOOT_ERR
+32 CHASH
+PUF helper data N/A - handled by PUF
+registration software
+directly.
+24 AUX
+PUF helper data: ECC vector N/A - handled by PUF
+registration software
+directly.
+1 SYN_INVLD Invalidates PUF helper data stored in eFUSEs. XSK_PUF_SYN_INVALID
+1 SYN_LOCK Locks PUF helper data from future programming. XSK_PUF_SYN_WRLK
+1 REG_DIS Disables PUF registration. XSK_PUF_REGISTER_DISABLE
+Send FeedbackZynq UltraScale+ Device TRM 272
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+1 AES_RD Disables the AES key CRC integrity check for eFUSE key storage. AES_RD_LOCK
+1 AES_WR Locks AES key from future programming. AES_WR_LOCK
+1 ENC_ONLY(1)(2)
+When programmed, all partitions are required to be encrypted. AMD
+recommends using this only if security is required and the hardware
+root of trust (RSA_EN) is not used.
+ENC_ONLY
+1 BBRAM_DIS Disables the use of the AES key stored in BBRAM. BBRAM_DISABLE
+1 ERR_DIS
+Prohibits error messages from being read via JTAG (ERROR_STATUS
+register).
+Note: The error is still readable from inside the device.
+ERR_DISABLE
+1 JTAG_DIS(1) Disables JTAG. IDCODE and BYPASS are the only allowed commands. JTAG_DISABLE
+1 DFT_DIS(1) Disables design for test (DFT) boot mode. DFT_DISABLE
+3 PROG_GATE
+When programmed, these fuses prohibit the PROG_GATE feature from
+being engaged. If any of these are programmed, the PL is always reset
+when the PS is reset.
+Note: Only one eFUSE needs to be programed to prohibit the
+PROG_GATE feature from being engaged. AMD recommends
+programming all three.
+PROG_GATE_DISABLE
+1 SEC_LK When programmed, the device does not enable BSCAN capability while
+in secure lockdown. SECURE_LOCK
+15 RSA_EN(1)(2)
+When any one of the eFUSEs is programmed, every boot must be
+authenticated using RSA. AMD recommends programming all 15
+eFUSEs.
+RSA_ENABLE
+1 PPK0_WR Primary public key write lock. When programmed, this prohibits future
+programming of PPK0. PPK0_WR_LOCK
+2 PPK0_INVLD When either of the eFUSEs are programmed, PPK0 is revocated. AMD
+recommends programming both eFUSEs when revocating PPK0. PPK0_INVLD
+1 PPK1 WR Primary public key write lock. When programmed this prohibits future
+programming of PPK1. PPK1_WR_LOCK
+2 PPK1_INVLD When either of the eFUSEs are programmed, PPK1 is revocated. AMD
+recommends programming both eFUSEs when revocating PPK1. PPK1_INVLD
+32 SPK_ID
+Secondary public key ID.
+Note: Write the SPK ID bits into the XSK_EFUSEPS_SPK_ID eFUSE array
+and set XSK_EFUSEPS_SPKID = True.
+SPK_ID
+256 AES
+User AES key
+Note: Write data in the XSK_EFUSEPS_AES_KEY macro and execute
+the write by setting the XSK_EFUSEPS_WRITE_AES_KEY
+macro = True.
+AES_KEY
+384 PPK0
+User primary public key0 HASH
+Note: Write data in the XSK_EFUSEPS_PPK0_HASH macro. To
+program 256 bits, use the LSBs and set
+XSK_EFUSEPS_PPK0_IS_SHA3 = False. To program 384 bits, set
+XSK_EFUSEPS_PPK0_IS_SHA3 = True. Execute the write by setting
+the XSK_EFUSEPS_WRITE_PPK0_HASH macro = True.
+PPK0_HASH
+Table 12-13: Zynq UltraScale+ MPSoC Security eFUSEs (Cont’d)
+Size Name Description XilSKey Name:
+XSK_EFUSEPS_
+Send FeedbackZynq UltraScale+ Device TRM 273
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+PL eFUSEs
+In addition to the eFUSEs available in the PS, there are 128 eFUSEs available within the PL.
+Any value can be programmed into these eFUSEs, which are available via the
+FUSE_USER_128 register. A description of the eFUSEs is provided in the UltraScale
+Architecture Configuration User Guide (UG570) [Ref 33]. The programming and reading of
+the eFUSEs is described in the Internal Programming of BBRAM and eFUSEs Application Note
+(XAPP1283) [Ref 35].
+Secure Boot
+Secure Boot Introduction
+The Zynq UltraScale+ device supports two secure boot modes: hardware root of trust or
+encrypt only. The hardware root of trust uses asymmetric authentication with optional
+encryption to provide confidentiality, integrity, and authentication of the boot and
+configuration files. An alternative to the hardware root of trust is the encrypt only secure
+boot, which is a boot mechanism that does not utilize asymmetric authentication but
+requires that all configuration loaded must be encrypted and authenticated using
+AES-GCM.
+Secure Boot Summary
+There are a number of functional blocks involved in the secure boot process, including the
+following.
+• Dedicated hardware state machines
+384 PPK1
+User primary public key1 HASH
+Note: Write data in the XSK_EFUSEPS_PPK1_HASH macro. To program
+256 bits, use the LSBs and set XSK_EFUSEPS_PPK1_IS_SHA3 = False. To
+program 384 bits, set XSK_EFUSEPS_PPK1_IS_SHA3 = True. Execute the
+write by setting the XSK_EFUSEPS_WRITE_PPK1_HASH macro = True.
+PPK1_HASH
+N/A PUF_HD
+Syndrome of PUF HD. These eFUSEs are programmed using AMD
+provided software, Xilskey
+N/A - handled by PUF
+registration software
+directly.
+Note:
+1. IMPORTANT. Programming any of the noted eFUSE settings preclude AMD test access. Consequently, AMD does not accept
+return material authorization (RMA) requests.
+2. When the ENC_ONLY or RSA_EN eFUSE is blown, the JTAG boot mode is no longer available. If this was the only mechanism
+used to program the boot flash, a secondary means should be employed. AMD recommends some other form of in-system
+flash programming and not relying on booting the device successfully to update the flash contents.
+Table 12-13: Zynq UltraScale+ MPSoC Security eFUSEs (Cont’d)
+Size Name Description XilSKey Name:
+XSK_EFUSEPS_
+Send FeedbackZynq UltraScale+ Device TRM 274
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• Platform management unit (PMU)
+• Configuration and security unit (CSU)
+The high level boot flow summary is shown in Figure 12-8.
+Once power is valid to the device, the dedicated hardware state machines perform a series
+of mandatory and optional tasks. The device includes test logic used by the developer for
+device verification and test. The test interfaces power up in a known secure state. The
+registers in the PMU are zeroized, which means zeros are written to them, and the zeros are
+readback to confirm they were written correctly. Optionally, a logic built in self test (LBIST)
+can be performed during boot. This option is enabled by programming the LBIST_EN eFUSE.
+LBIST is commonly used in functional safety applications, see Chapter 8, Functional Safety
+for more details on what circuits of the device are covered via LBIST.
+Note: Extra boot time is required when running LBIST.
+Finally, the dedicated hardware sends the PMU immutable ROM code through the
+SHA-3/384 engine and compares the calculated cryptographic checksum to the golden
+copy stored in the device. If the cryptographic checksums match, the integrity of the PMU
+ROM is validated and the reset to the PMU is released. If any of these tasks fail, an error flag
+X-Ref Target - Figure 12-8
+Figure 12-8: High-Level Boot Flow
+Test I/F Lockdown
+Zeroize PMU Registers
+Run LBIST1
+SHA3/384 Integrity
+Check of PMU ROM
+Release Reset to PMU
+Zeroize Registers
+LPD/FPD1
+Zeroize PMU RAM
+Voltage Checks
+(LPD, AUX, I/O)
+Zeroize memories on CSU,
+LPD and FPD
+SHA3/384 Integrity Check
+of CSU ROM
+Release Reset to CSU
+Enforces HW Root of Trust when enabled
+Enforces Security “State”
+Validate Integrity of User Public Key
+Public Key Revocation
+FSBL and PMU FW1
+Authentication/Decryption1
+Zeroize storage elements after processing
+(including fallback)
+Release Reset to RPU/APU
+HW PMU CSU
+CSU Secure Load of FSBL and Tamper Monitoring
+PMU FW1
+PMU Release
+CSU
+HW Release
+PMU
+Power
+Valid
+NOTE:
+1. Optional.
+Power Monitoring
+X18922-092820
+Send FeedbackZynq UltraScale+ Device TRM 275
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+is set in the JTAG error status register (readable through JTAG). To prevent the error
+message from being readable through the JTAG error status register, the ERR_DIS eFUSE can
+be programmed.
+The PMU performs a number of mandatory and optional security operations as listed in
+Table 12-14. See Chapter 6, Platform Management Unit for more information.
+Once these security operations are complete, the PMU sends the CSU immutable ROM code
+through the SHA-3/384 engine and compares the calculated cryptographic checksum to the
+golden copy stored in the device. If the cryptographic checksums match, the integrity of the
+CSU ROM is validated and the reset to the CSU is released. If any of these tasks fail, an error
+flag is set in the JTAG error status register (readable through JTAG). The error message can
+be prevented from being read through the JTAG error status register by programming the
+ERR_DIS eFUSE. In the event of a PMU error, the default operation of the device is to
+continue the boot process and release the reset to the CSU. Once the design comes online,
+it can read the status of all the error messages from inside the device and determine
+whether or not to continue to operate. To make the device automatically go into lockdown
+when an error occurs during the boot process, the PBR_BOOT_ERROR eFUSE can be
+programmed.
+The CSU is the center of the secure boot process. It enforces the hardware root of trust or
+encrypt only secure boot steps when they are enabled. The CSU also maintains the security
+state of the device by prohibiting the transition from a secure state to an unsecure state, or
+from an unsecure state to a secure state without a full POR. Once the FSBL (and, if
+applicable, the PMUFW) has been loaded securely, the CSU zeroizes the storage elements of
+the cryptographic engines and releases the reset to the specified processing unit (APU or
+RPU).
+Table 12-14: PMU Security Operations
+Security Operation Description Optional?
+Zeroize low power domain
+(LPD) registers
+When the LPD_SC eFUSE is programmed, the PMU
+zeroizes all registers in the LPD. Yes
+Zeroize full power domain
+(FPD) registers
+When the FPD_SC eFUSE is programmed, the PMU
+zeroizes all registers in the FPD.
+Note: The MGTs must be powered during full-power domain
+zeroization.
+Yes
+Zeroize PMU RAM The PMU RAM has zeros written to it, and read back to
+confirm the write is successful. No
+Voltage checks The PMU checks the supply voltage of the LPD, AUX, and
+dedicated I/O to confirm that the voltages are within
+specifications.
+No
+Zeroize memories The PMU zeroizes memories located in the CSU, LPD, and
+FPD. No
+Send FeedbackZynq UltraScale+ Device TRM 276
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Hardware Root Of Trust Secure Boot Details
+The Zynq UltraScale+ MPSoC hardware root of trust is based on the RSA-4096 asymmetric
+authentication algorithm in conjunction with SHA-3/384. There are two key pairs used in
+the Zynq UltraScale+ MPSoC, and consequently two public key types: the primary public
+key (PPK) and the secondary public key (SPK). Table 12-15 lists the characteristics of each
+public key type.
+There are two PPKs; the full public key is stored in external memory (e.g., flash) and a
+SHA-3/384 hash of the public key is stored in eFUSEs on the device. The CSU, during the
+boot process, validates the integrity of the public key stored in external memory using the
+hash stored in eFUSEs. The PPKs can be revoked. The main purpose of the PPK is to
+authenticate the SPK.
+There are 32 SPKs available for the bootloader (FSBL) and up to 256 SPKs available for all
+other partitions depending on which SPK revocation method is used (standard or
+enhanced). The SPK is delivered via the authenticated boot image, and is consequently
+protected against modification. The SPKs can also be revoked and are used to authenticate
+everything else.
+There are a number of considerations when utilizing the hardware root of trust capabilities.
+These are discussed in detail in Device Provisioning, Boot Operation, and Key Revocation.
+Table 12-15: Public Keys
+Public Key Number Location Revocation Notes
+Primary (PPK)
+2 External memory and
+hash in eFUSEs.
+Can be revoked. Only used to authenticate SPK and
+authentication header.
+Secondary (SPK)
+Up to 256 Boot image. Can be revoked. Signed by PPK. Used to authenticate
+everything else.
+Send FeedbackZynq UltraScale+ Device TRM 277
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Device Provisioning
+Before the device can boot with the root of trust, a minimum amount of user information
+must be programmed or provisioned into the device. At a minimum, the hardware root of
+trust must be enabled and a hash of the user public key must be programmed into the
+device. Figure 12-9 shows the critical eFUSEs that must be programmed.
+The generation of the primary and secondary key pairs is a user decision. Utilizing AMD
+tools, a hash of the each of the PPKs is obtained and programmed into the eFUSE locations
+on the device. If desired, the secondary public key identification (ID) can be programmed to
+a non-zero value.
+IMPORTANT: The Zynq Ultrascale+ MPSoC supports two PPKs. Both PPK hash values shall be
+programmed before fielding a system.
+Finally, the hardware root of trust must be enabled by programming the fifteen (15) RSA
+enable eFUSEs. While programming, any one of the fifteen forces every boot to be
+authenticated. It is recommended that all 15 are programmed. The enable eFUSEs are
+implemented redundantly as a countermeasure against advanced physical modification
+attacks such as those using a focused ion beam (FIB).
+X-Ref Target - Figure 12-9
+Figure 12-9: Device Provisioning
+MPSoC
+RSA Enable
+(15 eFUSEs)
+Public Key
+Hash (eFUSEs)
+Valid
+?
+Public Key
+Hash (eFUSEs)
+Valid
+?
+SPK ID
+(32 eFUSEs)
+On-chip Memory
+X18923-032117
+Send FeedbackZynq UltraScale+ Device TRM 278
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Boot Operation
+Figure 12-10 shows the top-level hardware root of trust boot flow used to authenticate, and
+optionally decrypt, the FSBL.
+Note: PMUFW is optional.
+The process starts by determining which PPK to use and then validating the PPK integrity.
+Since the public key is stored in the boot image in external memory, it be must assumed
+that an adversary could tamper with it. Consequently, the CSU reads the public key from
+external memory, calculates its cryptographic checksum using the SHA-3/384 engine, and
+then compares it to the value stored in eFUSEs. If they match, the integrity of the public key
+has been validated and the boot can continue.
+The secondary public key, and its associated ID, are then read, stored in on-chip memory
+(OCM), and authenticated using the PPK. Once the SPK and SPK ID have been
+authenticated, the CSU checks the ID that was bound to the SPK in the boot image to the ID
+that is stored in eFUSEs. If the IDs match, the SPK is valid and the boot can continue.
+The SPK is then used to verify the authenticity of the entirety of the boot image. The CSU
+authenticates the FSBL, and optionally the PMUFW, while in internal memory. If encrypted,
+the CSU also performs the decryption.
+Note: Encrypting the configuration files is optional.
+IMPORTANT: The CSU processes the FSBL and PMUFW as two separation partitions. Consequently, if
+the FSBL and PMUFW are encrypted, the AES key and IV are reused, which is a violation of the standard.
+If the FSBL and PMUFW must both be encrypted, the PMUFW must be loaded by the FSBL, and not the
+CSU.
+At this stage, control is handed over to the user and the user is responsible for maintaining
+the chain of trust. The remaining secure boot process is configurable by the user. An
+example of a hardware root of trust secure boot process is shown in Figure 12-10.
+Send FeedbackZynq UltraScale+ Device TRM 279
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+In this example, the FSBL is responsible for securely loading Arm trusted firmware (ATF),
+U-Boot, and the PL bitstream, all of which can be considered individual partitions and
+authenticated or encrypted separately. The FSBL executing at EL3 is responsible for all of
+the security checks (i.e., PPK integrity check and PPK and SPK revocation checks), as well as
+the actual authentication or decryption of the partitions. The hardware accelerators are
+used by the FSBL to authenticate or decrypt each partition.
+ATF is loaded into OCM and authenticated or decrypted. U-Boot is authenticated or
+decrypted in external memory because it is too large for internal memory. Bitstreams are
+always first loaded from Flash into DDR, for systems that have DDR, regardless of security
+settings. In DDR-less systems, the bitstream remains in the Flash for the authentication,
+decryption and loading steps. If the bitstream is authenticated, then the bitstream is first
+validated using the RSA algorithm. If authentication passes, it is then sent from its source
+location (DDR or Flash) to the PCAP or to the AES decryptor and then onto PCAP. As this
+causes the bitstream to be read twice, once for authentication and a second time for
+decryption/loading, additional steps using internal OCM memory as a temporary buffer are
+X-Ref Target - Figure 12-10
+Figure 12-10: Hardware Root of Trust Secure Boot Example
+.BIT
+PMU PMU
+RAM
+CSU
+CSU RAM
+OCM
+APU
+RPU
+PL
+DDR
+CRAM
+Release
+CSU
+reset
+PMU
+ROM
+Load FSBL and
+PMUFW (Optional)
+CSU
+ROM
+PMU
+FW Includes XILFPGA, XILSECURE, framework, warm restart, etc.
+FSBL Securely load ATF, Uboot and bitstream
+Executes out of OCM for security reasons
+ATF Executes out of OCM for security reasons
+RPU
+SW
+Linux
+UBoot
+Authenticated or decrypted in external memory,
+or using the secure OCM method
+On-chip
+Memories
+X21037-070218
+Time
+Send FeedbackZynq UltraScale+ Device TRM 280
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+taken to ensure the bitstream is not modified between these two reads. For more details on
+this secure OCM method of loading bitstreams, see the “Bitstream Authentication Using
+External Memory” section in the Zynq UltraScale+ MPSoC Software Developer’s Guide
+(UG1137) [Ref 3]. If any of these partitions fail authentication or decryption, the FSBL sets
+the multi-boot register and initiates a soft reset. The boot process starts over with the CSU
+looking for a valid boot image in memory. If a valid boot image is not found, the device
+goes into secure lockdown and requires a POR to exit.
+To complete the secure boot process, Linux and the software to be executed on the RPU
+(RPU SW) must be securely loaded by U-Boot. Linux and the RPU SW might be part of the
+boot.bin or they might be a single partition image that is resident in a different physical
+memory. In either case, U-Boot does not perform the authentication or decryption but
+rather calls the XilSecure library, which was securely loaded as part of the PMUFW. The
+XilSecure library executes out of internal PMU RAM, performs all of the security checks (i.e.,
+PPK integrity check and PPK and SPK revocation checks), and uses the CSU accelerators to
+do the authentication or decryption. In the event of an authentication or decryption failure,
+the XilSecure library passes the failure status to U-Boot.
+System Configuration
+Systems with external DRAM
+The HWRoT secure boot can be achieved differently in systems with external DRAM based
+on specific requirements and whether the external DRAM is considered secure.
+Note: 2019.1 development tools, or subsequent releases, are used.
+• Non-bitstream partitions are authenticated and/or decrypted by the FSBL or XilSecure.
+In both cases, the external DRAM, which is the final destination, is considered secure.
+° The FSBL will copy the partition data from external non-volatile memory to the
+specified DRAM address and then authenticate and/or decrypt in place.
+° XilSecure, when called, will authenticate and/or decrypt at the destination DRAM
+address. The partition must be copied into external DRAM before calling XilSecure.
+• Bitstream partitions can be loaded by the FSBL or XilFPGA.
+° The bitstream partition can be authenticated and/or decrypted in external DRAM by
+XilSecure and then loaded, in plain-text form, using XilFPGA. In this scenario, the
+external DRAM is assumed secure since authentication and decryption occurs in
+external DRAM.
+° The bitstream partition can be authenticated by XilFPGA while in external DRAM.
+Once authentication is complete, XilFPGA will read the partition into the device
+where it is decrypted by the AES engine and then loaded into the programmable
+logic. Since authentication is performed in external DRAM, the external DRAM is
+assumed to be secure.
+Send FeedbackZynq UltraScale+ Device TRM 281
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+° The FSBL or XilFPGA can be used to authenticate and decrypt the bitstream using
+the Secure OCM method. This method does not require the DRAM to be secure.
+Systems without external DRAM
+Secure boot in systems without external DRAM is supported when the FSBL is used to load
+the bitstream and non-bitstream partitions.
+• Non-bitstream partitions can only be loaded by the FSBL. The FSBL will copy the
+partition data from external non-volatile memory to the internal memory location and
+then authenticate and/or decrypt in place. XilSecure does not support loading a
+non-bitstream directly from external non-volatile memory.
+• Bitstream partitions can only be loaded by the FSBL. The FSBL utilizes the Secure OCM
+method to load the bitstream. XilFPGA does not support loading a bitstream directly
+from external non-volatile memory.
+Secure boot in systems with external DRAM can be achieved differently based on specific
+requirements and whether the external DRAM is considered secure.
+Note: 2019.1 development tools, or subsequent releases, are used.
+• Non-bitstream partitions are decrypted by the FSBL or XilSecure. In both cases, the
+external DRAM, which is the final destination, is considered secure.
+° The FSBL will copy the partition data from external non-volatile memory to the
+specified DRAM address and then decrypt in place.
+° XilSecure, when called, will decrypt at the destination DRAM address. The partition
+must be loaded into external DRAM before calling XilSecure.
+• Bitstream partitions can be loaded in multiple ways in systems with external DRAM.
+° The bitstream partition could be decrypted in external DRAM by XilSecure and then
+loaded, in plain-text form, using XilFPGA. In this scenario, the external DRAM is
+assumed secure.
+° XilFPGA can be called to read the bitstream partition into the device where it is
+decrypted by the AES engine and then loaded into the programmable logic. The
+partition must be loaded into external DRAM before calling XilFPGA. Since the
+decryption is performed internal to the device, this method does not require the
+DRAM to be secure.
+Secure boot in systems without external DRAM is supported when FSBL is used to load the
+bitstream and non-bitstream partitions.
+• Non-bitstream partitions (e.g. application software) can only be loaded by the FSBL.
+The FSBL will copy the partition data from external non-volatile memory to the internal
+memory location and then decrypt in place. XilSecure does not support loading a
+non-bitstream directly from external non-volatile memory.
+Send FeedbackZynq UltraScale+ Device TRM 282
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+• Bitstream partitions can only be loaded by the FSBL. The FSBL will read the partition
+data from external non-volatile memory and then send it for decryption and load into
+the configuration memory. XilFPGA does not support loading a bitstream directly from
+external non-volatile memory.
+DPA Resistance
+DPA resistance is achieved by authentication before decryption and by key rolling.
+Authentication before decryption, using the RSA algorithm, prevents an adversary from
+acquiring additional data per key by substituting their own data for the data contained in
+the boot image. Key rolling limits the amount of data encrypted on any given key. The
+amount of data encrypted by a key is configurable by the user.
+Rolling Keys
+The AES-GCM accelerator supports the rolling keys feature, where the entire encrypted
+image is represented in terms of smaller AES encrypted messages. Each message is
+encrypted using its own unique key. The initial key is stored at the key source on the device
+(e.g., BBRAM or eFUSE), while keys for each successive message are encrypted (wrapped) in
+the prior message. During boot, all partitions can be decrypted through key rolling. In
+Figure 12-11, “IV” illustrates the decryption flow and image format for the PMU firmware
+and FSBL. The same format is used for other partitions.
+Send FeedbackZynq UltraScale+ Device TRM 283
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+X-Ref Target - Figure 12-11
+Figure 12-11: Key Rolling
+Secure Header Tag
+PMUFW
+(Optional)
+FSBL
+PMUFW
+Block 0
+PMUFW
+Block 1
+PMUFW
+Block N
+PMUFW
+Block 0
+Block 1 Key
+AESGCM
+Encrypted
+PMUFW
+Block 0
+ENC Block 1 Key
+GCM Tag0
+PMUFW
+Block 1
+Block 2 Key
+AESGCM
+Encrypted
+PMUFW
+Block 1
+ENC Block 2 Key
+GCM Tag1
+PMUFW
+Block N
+Dummy Key
+AESGCM
+Encrypted
+PMUFW
+Block N
+ENC Dummy Key
+GCM TagN
+AESGCM Encrypted Secure Header
+Block 1 IV
+ENC Block 1 IV
+ENC Block 2 IV
+Block 2 IV
+Dummy IV
+ENC Dummy IV
+Block 0 IV from boot header
+Optional Key
+Part of
+Boot Image
+Secure Header Tag
+FSBL
+Block 0
+FSBL
+Block 1
+FSBL
+Block N
+FSBL
+Block 0
+Block 1 Key
+AESGCM
+Encrypted
+FSBL
+Block 0
+ENC Block 1 Key
+GCM Tag0
+FSBL
+Block 1
+Block 2 Key
+AESGCM
+Encrypted
+FSBL
+Block 1
+ENC Block 2 Key
+GCM Tag1
+FSBL
+Block N
+Dummy Key
+AESGCM
+Encrypted
+FSBL
+Block N
+ENC Dummy Key
+GCM TagN
+AESGCM Encrypted Secure Header
+Block 1 IV
+ENC Block 1 IV
+ENC Block 2 IV
+Block 2 IV
+Dummy IV
+ENC Dummy IV
+Block 0 IV from boot header
+Optional Key
+OP key
+present in secure
+header?
+Use Device Key
+No
+Use OP
+Key
+Yes
+OP Key
+Present?
+Use Device Key
+No
+Use OP
+Key
+Yes
+Device Key
+Device Key
+X17980-092820
+Send FeedbackZynq UltraScale+ Device TRM 284
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Integration and Test Support (BH RSA Option)
+Developing secure systems is always a challenge due to the limited, or non-existent,
+integration and test capabilities that exist once secure features are enabled. To assist
+integration and test efforts, the ability to command a hardware root of trust via the
+configuration file is provided. The BH RSA option is set in bootgen. This commands the
+device to boot using the root of trust without having to program the eFUSEs that force
+authentication. Authenticated or unauthenticated boots can now be performed during the
+integration and test phase. The functionality that is not performed in this mode include the
+following.
+• Does not validate the integrity of the PPK (this would require eFUSEs to be
+programmed).
+• Does not validate the SPK ID (this would require eFUSEs to be programmed).
+Clearly this mode should not be used in a fielded system since this portion of the
+configuration file is not authenticated and could easily be modified by an adversary. If the
+BH RSA option is set and the RSA_EN eFUSEs are programmed to force authentication, the
+device will go back to boot and continue to search for a valid boot image. If a valid boot image is
+not found then the device will enter secure lockdown.
+Hardware Root of Trust Only Boot (Auth_Only Option)
+The CSU automatically locks out the AES key, stored in either BBRAM or eFUSEs, as a key
+source to the AES engine if the FSBL is not encrypted. This prevents using the BBRAM or
+eFUSE as the key source to the AES engine during run-time applications.
+Note: A user key can still be used by loading it into the key update register (KUP).
+Systems that choose not to encrypt the FSBL and employ only the hardware root of trust
+boot mechanism can still use the AES key, post-boot, if the Auth-Only option is set.
+After a hardware root of trust boot, to leverage the AES cryptographic accelerator and use
+the key stored in either the BBRAM or eFUSE as a potential key source, the Auth Only option
+must be selected in bootgen.
+Note: This option is part of the configuration file that is authenticated.
+Key Revocation
+Key revocation is an integral part of any public key system. Whether keys are being changed
+and revoked due to good key management practices or in the unfortunate case where a
+private key is compromised, the ability to revoke a key is a necessary function. This section
+describes how to revoke both the PPK and SPK, as well as how to use the revocation as a
+permanent and temporary penalty.
+Send FeedbackZynq UltraScale+ Device TRM 285
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+PPK Revocation
+There are two PPKs in Zynq UltraScale+ MPSoC. Each PPK has a set of invalid bits,
+(PPK0_INVLD and PPK1_INVLD) implemented as eFUSEs, that can be programmed to
+permanently revoke the PPK from use. If either of these eFUSEs is programmed, the PPK is
+revoked. Figure 12-12 shows a notional and proposed method to perform a remote update
+forced by the revocation of the PPK.
+X-Ref Target - Figure 12-12
+Figure 12-12: PPK Revocation
+DesignPPK0
+operational
+Remote update:
+download designPPK1
+DesignPPK0 update
+multi-boot register
+DesignPPK0 initiate
+SW reset
+Device boots with
+designPPK1
+Boot successful?
+DesignPPK1 is
+operational
+DesignPPK1 updates
+golden Image (if
+needed)
+DesignPPK1 revokes
+PPK0
+CSU ROM updates
+multi-boot register
+and initiates reset
+Golden designPPK0
+operational
+yes no
+X18914-032117
+Send FeedbackZynq UltraScale+ Device TRM 286
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+In the notional system, it is assumed that resident in external memory is the design
+authenticated with PPK0 (DesignPPK0) and a golden image, also signed with PPK0 (Golden
+DesignPPK0). Some applications choose to use a golden image as a backup. The golden
+image is not full-featured, but provides basic diagnostic and communication in the event of
+a failed boot of the primary image. Again, this is a representative system used to describe
+the process of updating a system in the event of a primary key revocation, and not a
+requirement.
+The initial design, DesignPPK0, is notified when a remote update is being performed (in
+many cases the design itself is responsible for supporting the remote update). DesignPPK0
+writes to the multi-boot register and then initiates a reset. DesignPPK1 is booted, and if
+successful, begins operation. DesignPPK1 should update the golden image (if necessary) and
+then program the eFUSEs to revoke PPK0. In the event of a failed boot, the CSU updates the
+multi-boot register and initiates a reset. As the golden image is stored at a higher address
+in external memory, it is ultimately loaded and communication is established. For more
+information on the golden image, see Golden Image Search in Chapter 11.
+Standard SPK Revocation
+Revocation of the SPK is very different than the PPK since the SPK, and its associated ID, are
+delivered to the Zynq UltraScale+ MPSoC as part of the programming image and
+authenticated with the PPK. To revoke an SPK, change the SPK ID implemented as eFUSEs
+inside of the device. If a device boots with an old SPK and SPK ID, the CSU recognizes that
+the IDs do not match and keeps the device from booting. Figure 12-13 shows a notional
+and proposed method to perform a remote update forced by the revocation of the SPK.
+There are two very important steps that are performed to avoid any complications in the
+revocation process.
+Send FeedbackZynq UltraScale+ Device TRM 287
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+X-Ref Target - Figure 12-13
+Figure 12-13: SPK Revocation
+DesignPPK0
+operational
+Remote update:
+download designSPK1
+DesignSPK0 update
+multi-boot register
+DesignSPK0 initiate
+SW reset
+Device boots with
+designSPK1
+Boot successful?
+DesignSPK1 is
+operational
+CSU ROM updates
+multi-boot register
+and initiates reset
+Potential hang
+yes no
+DesignSPK0 verify
+remote update
+DesignSPK0 changes
+SPK ID
+DesignSPK0 readback
+SPK ID and verify
+X18915-032117
+Send FeedbackZynq UltraScale+ Device TRM 288
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Once the new design, DesignSPK1, is loaded into external memory, DesignSPK0 verifies the
+integrity of DesignSPK1. The method to verify the integrity of DesignSPK1 is a user decision.
+One recommendation is to send a hash of DesignSPK1 with the remote update. DesignSPK0
+could then read back DesignSPK1 from external memory, calculate its hash, and then
+compare it to what was delivered. DesignSPK0 now revokes the SPK by changing the
+programming of a new SPK ID into the SPK ID eFUSEs. DesignSPK0 reads back the SPK ID to
+confirm it was programmed correctly. Once these verification steps have been performed,
+DesignSPK0 can now update the multi-boot register and initiate a software reset for the
+system to boot using DesignSPK1.
+Enhanced SPK Revocation
+An alternative method of SPK revocation, called enhanced SPK revocation, utilizes the user
+eFUSEs (USER_{0:7}) in addition to the SPK ID eFUSEs. This approach provides these
+advantages over the standard SPK revocation method:
+• An increase in the number of revocations – up to 256
+• Allows each partition to have its own SPK, which allows one partition to be invalidated
+without invalidating all partitions
+• Reduces the risk of failure during an upgrade process
+IMPORTANT: The enhanced SPK revocation is not applicable for the FSBL loaded by the CSU ROM. The
+standard SPK revocation is used on the FSBL. Everything else that is securely loaded during the boot
+process can use the enhanced SPK method.
+The enhanced SPK revocation uses the user eFUSEs, rather than SPK ID eFUSEs to determine
+if an SPK has been revoked. Since the user eFUSEs are a general purpose resource, it is
+important to allocate as many eFUSEs as are required in the architecture to avoid conflict.
+Note: All user eFUSEs do not have to be used. As many eFUSEs as needed can be allocated.
+When using enhanced SPK revocation, the user eFUSE represents which SPK has been
+revoked, thereby allowing many SPKs to be valid at one time. Revocation of the SPK occurs
+when the specific user eFUSE has been programmed. The authenticated boot image
+specifies which revocation method is employed and the FSBL, XilSecure, and XilFPGA
+libraries check the appropriate eFUSEs (user or SPK ID). A user specifies which revocation
+method to use, on a partition by partition basis, by selecting either user-efuse or spk-efuse
+for the spk_select option in the BIF file. For more details, see the Bootgen User Guide
+(UG1283) [Ref 36].
+Send FeedbackZynq UltraScale+ Device TRM 289
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Figure 12-14 below compares and contrasts the standard and enhanced SPK revocation
+methods.
+Revocation as a Tamper Penalty
+Key revocation has a valuable dual use role. Revocation can be used to inflict a penalty
+when a tamper event is detected. Programming both PPK invalid bits makes the device
+permanently inoperable (also known as a brick). While in some applications bricking the
+device is valuable, in other applications a temporary disabling is desired. In this situation,
+the SPK ID can be modified as a result of a tamper condition. This keeps the device from
+booting until the authorized user creates a new boot image with the correct SPK and SPK ID.
+In this scenario, the penalty is temporary until a new boot image is loaded, either remotely
+or when a system is returned to a depot.
+Encrypt Only Secure Boot Details
+The Zynq UltraScale+ MPSoC hardware encrypt only secure boot is based solely on the
+confidentiality and symmetric authentication provided by AES-GCM. The encrypt only
+secure boot mode is enabled by programming the ENC_ONLY eFUSE. This eFUSE forces the
+device to decrypt every partition using the AES-GCM key stored in the eFUSEs.
+X-Ref Target - Figure 12-14
+Figure 12-14: Key Revocation in Boot Image
+Key Revoked Using
+SPKID eFUSEs
+Key Revoked Using
+USER eFUSEs
+Partition n
+Partition 2
+Partition 1
+FSBL
+Image Tables
+Boot Header
+SPK0
+SPK0
+SPK0
+SPK0
+Partition n
+Partition 2
+Partition 1
+FSBL
+Image Tables
+Boot Header
+SPK3
+SPK2
+SPK1
+SPK0
+Standard SPK Revocation Enhanced SPK Revocation
+X22150-121818
+Send FeedbackZynq UltraScale+ Device TRM 290
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+The CSU, FSBL, XilSecure, and XilFPGA libraries loaded by the CSU decrypts every partition
+(e.g., FSBL, PMUFW, ATF, bitstream, U-Boot, etc.) loaded. The CSU ROM reads the ENC_ONLY
+eFUSE, sees that it is programmed and then automatically decrypts the FSBL. Since the CSU
+processes the FSBL and PMUFW as two separation partitions, the AES key and IV are reused
+if the PMUFW is part of the bootloader. The reuse of the AES key and IV is a violation of the
+AES standard. Consequently, the PMUFW must be loaded by the FSBL, and not the CSU, in
+the encrypt only secure boot mode. Once the FSBL has been decrypted and authenticated
+(using symmetric authentication provided by AES-GCM) in internal memory, the CSU
+releases the reset to the specified processing unit (APU or RPU). At this stage, control is
+handed over to the user and the user is responsible for maintaining the established security.
+The remaining secure boot process is configurable by the user. An example of an encrypt
+only secure boot process is shown in Figure 12-15.
+In this example, the FSBL decrypts the Arm trusted firmware (ATF), U-Boot, and the PL
+bitstream, which are all individual partitions. The FSBL executing at EL3 and using the
+X-Ref Target - Figure 12-15
+Figure 12-15: Encrypt Only Secure Boot Example
+X24642-092920
+.BIT
+PMU PMU
+RAM
+CSU
+CSU RAM
+OCM
+APU
+RPU
+PL
+DDR
+CRAM
+Release
+CSU
+reset
+PMU
+ROM
+Load and decrypt
+FSBL
+CSU
+ROM
+PMU
+FW
+Includes XILFPGA, XILSECURE, framework, warm restart, etc.
+FSBL
+Loads and decrypts ATF, Uboot, and bitstream
+Executes out of OCM for security reasons
+ATF Executes out of OCM for security reasons
+RPU
+SW
+Linux
+UBoot
+On-chip
+Memories
+Loads and decrypts Linux and RPU SW
+Time
+Send FeedbackZynq UltraScale+ Device TRM 291
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+AES-GCM accelerator decrypts each partition using the device key stored in either eFUSE or
+BBRAM. However, the eFUSE key must be used when you use ENC_ONLY.
+IMPORTANT: If the bitstream is encrypted with the device key, the key stored in eFUSE or BBRAM, the
+bitstream must be decrypted and loaded by the FSBL. If the bitstream is encrypted with a user-provided
+key, U-Boot and Linux can command the bitstream load and decryption via the XILFPGA library. For
+more details, see the Loading Bitstreams section.
+IMPORTANT: The PUF is disabled and not supported for use in the encrypt only secure boot mode.
+If any of these partitions fail the decryption GCM-tag check, the FSBL sets the multi-boot
+register and initiates a soft reset. The boot process starts over with the CSU looking for a
+valid boot image in memory. If a valid boot image is not found, the device goes into secure
+lockdown and requires a POR to exit.
+To complete the secure boot process, Linux and the RPU SW must be decrypted and loaded
+by U-Boot. Linux and the RPU SW can be part of the boot.bin or they can be a single
+partition image that is resident in a different physical memory. In either case, U-Boot does
+not perform the decryption but rather calls the XilSecure library, which was securely loaded
+as part of the PMUFW. XilSecure executes out of internal PMU RAM and uses the AES-GCM
+accelerator to perform the decryption.
+Note: Partitions that are decrypted by U-Boot must be encrypted with a user-provided key and not
+the device key.The user-provided key is identified via the XilSecure API.
+If there is a decryption failure, while using the GCM-tag check, XilSecure passes the failure
+status to U-Boot.
+There are two important considerations of the encrypt only secure boot mode that may
+require you to provide system-level protections. First, the partitions are not authenticated
+before decryption. The symmetric authentication occurs at the end of the decryption cycle.
+This means that the device is subject to a DPA random-data attack. Hence, you should
+provide system-level protections if the DPA attack vector is a concern. For more
+information, see DPA Resistance. Second, the boot and partition headers are not
+authenticated. Without authentication of these headers, anyone with access to the boot
+image, can modify the control fields resulting in incorrect secure boot behavior. One such
+example, is modification of the destination execution address. This address represents the
+start instruction address for a loaded partition. Anyone with access to the boot image could
+modify the address, causing the device to jump to an arbitrary memory location to modify
+or bypass the secure boot process. Hence, you should provide system-level protections if
+the lack of authentication of the boot and partition headers is a concern.
+Loading Bitstreams
+In the example secure boot processes described previously, the bitstream was loaded by the
+FSBL. The bitstream can also be loaded, authenticated, and/or decrypted by U-Boot or
+Send FeedbackZynq UltraScale+ Device TRM 292
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Linux. In this scenario, U-Boot or Linux calls the XilFPGA library, which was securely loaded
+as part of the PMUFW to perform the security operations. XilFPGA executes out of internal
+PMU RAM, performs all of the security checks, and uses the CSU accelerators to do the
+authentication and/or decryption.
+In the hardware root of trust secure boot mode, bitstreams can be authenticated, or
+authenticated and decrypted with either the device key or a user provided key. In the
+encrypt only secure boot mode, the bitstream is decrypted using the eFUSE device key
+loaded by the FSBL. Bitstream authentication and decryption is supported for the FSBL,
+standalone XilFPGA drivers, U-Boot and Linux using either device keys or user keys for both
+full bitstreams and partial reconfiguration bitstreams.
+Secure Boot Image Format
+The secure boot image format is shown in Figure 12-16.
+Send FeedbackZynq UltraScale+ Device TRM 293
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+There are multiple authentication certificates (AC) within a boot image. The authentication
+certificates include:
+• Header AC: authentication certificate for the image header table and partition headers.
+• Bootloader AC: authentication certificate for the bootloader (FSBL and optionally the
+PMUFW).
+• Partition AC: authentication certificate for each partition in the image.
+The equations for each signature within an AC (SPK, boot header, and partition) are listed
+here.
+• SPK signature – the 512 bytes of the SPK signature is generated by this calculation:
+X-Ref Target - Figure 12-16
+Figure 12-16: Secure Boot Image
+Boot Header 0x000-0xEC0
+Image Header Table
+Image Headers (IH1-Ihn)
+Partition Header 1
+Partition Header n
+Header AC
+BootLoader
+(FSBL and PMUFW (opt))
+BootLoader AC
+Partition 1
+Partition 1 AC
+Partition(n)
+Partition(n) AC
+BootLoader AC
+Partition 1 AC
+Partition n AC
+AC Header
+SPK IDHeader
+PPK(0/1)
+SPKHeader
+SPK Signature
+BH Signature
+Partition Signature
+Header AC
+User Defined Field
+PPK
+AC Header
+SPK IDBootLoader
+PPK(0/1)
+SPKBootLoader
+SPK Signature
+BH Signature
+Partition Signature
+User Defined Field
+PPK
+AC Header
+SPK IDPartition1
+PPK(0/1)
+SPKPartition1
+SPK Signature
+BH Signature
+Partition Signature
+User Defined Field
+PPK
+AC Header
+SPK IDPartition(n)
+PPK(0/1)
+SPKPartition(n)
+SPK Signature
+BH Signature
+Partition Signature
+User Defined Field
+PPK
+X18916-120518
+Send FeedbackZynq UltraScale+ Device TRM 294
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+° SPK signature = RSA(PSK, padding || SHA(SPK+ auth_header))
+• Boot header signature – the 512 bytes of the boot header signature is generated by
+this calculation:
+° Boot header signature = RSA(SSK, padding || SHA(boot header))
+• Partition signature – the 512 bytes of the partition signature is generated by this
+calculation:
+° Partition signature = RSA(SSK, padding || SHA(Partition + authentication
+certificate))
+Table 12-16 provides a summary of which asymmetric private key is used, and which SHA
+padding is used, for each signature within an AC
+Each part of the AC is described in the “Authentication Certificate” and “Authentication
+Certificate Header” sections in Chapter 16 of the Zynq UltraScale+ MPSoC Software
+Developer’s Guide (UG1137) [Ref 3].
+Table 12-16: Authentication Certificates Signatures
+AC Signature SHA Padding Used Private Key Used
+Header AC
+SPK signature Keccak if standard key revocation;
+NIST if enhanced key revocation PSK
+BH signature Keccak SSKHeader
+Header signature NIST SSKHeader
+BootLoader AC
+SPK signature Keccak PSK
+BH signature Keccak SSKBootLoader
+BootLoader signature Keccak SSKBootLoader
+Partition AC
+SPK signature Keccak if standard key revocation;
+NIST if enhanced key revocation PSK
+BH signature Keccak SSKPartition
+Partition signature NIST SSKPartition
+Send FeedbackZynq UltraScale+ Device TRM 295
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Table 12-17 summarizes the encryption and authentication attributes of each portion of the
+secure boot image.
+Table 12-17: Secure Boot Image Encryption and Authentication
+Boot Image Block Encrypted Authenticated(1) Notes
+Boot header No
+Yes - signed with user
+secondary secret key
+(SSK)
+Described in Table 11-4 and Table 11-5 of
+this TRM. A signature of the BH is
+provided in each AC.
+Image header table No Yes - signed with user SSK
+Described in the “Image Header Table”
+section of the Zynq UltraScale+ MPSoC
+Software Developer’s Guide (UG1137)
+[Ref 3].
+Image headers No Yes - signed with user SSK Not currently used.
+Partition headers No Yes - signed with user SSK
+Described in the “Partition Header
+Tables” section of the Zynq
+UltraScale+ MPSoC Software Developer’s
+Guide (UG1137) [Ref 3]. There is one
+partition header for each partition within
+the boot image.
+FSBL secure header
+Dependent
+on secure
+boot
+mode(2)
+Yes - signed with user SSK
+This is part of the FSBL that minimizes the
+use of the device key. The FSBL secure
+header contains the key and IV used to
+decrypt the FSBL. See Bootgen User Guide
+(UG1283) [Ref 36] for more details on
+Secure Header use. Only included when
+the OP key option is chosen. See
+Minimizing Use of the AES Boot Key (OP
+Key Option).
+FSBL
+Dependent
+on secure
+boot
+mode(2)
+Yes - signed with user SSK
+PMUFW secure header
+Dependent
+on secure
+boot
+mode(2)
+Yes - signed with user SSK
+This is part of the PMUFW and minimizes
+the use of the device key. The PMUFW
+Secure Header contains the key and IV
+used to decrypt the PMUFW. See Bootgen
+User Guide (UG1283) [Ref 36] for more
+details on Secure Header use.
+PMUFW
+Dependent
+on secure
+boot
+mode(2)
+Yes - signed with user SSK
+The PMUFW can be included as part of
+the bootloader and consequently loaded
+by the CSU. Alternatively, it can be its
+own partition.
+Partition secure header
+Dependent
+on secure
+boot
+mode(2)
+Yes - signed with user SSK
+This is part of the partition that minimizes
+the use of the other device key. The
+Partition secure header contains the key
+and IV used to decrypt the partition. See
+Bootgen User Guide (UG1283) [Ref 36] for
+more details on Secure Header use.
+Send FeedbackZynq UltraScale+ Device TRM 296
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+Boot Options
+Minimizing Use of the AES Boot Key (OP Key Option)
+Good key management practices includes minimizing the use of secret or private keys. This
+can be accomplished using the OP key option enabled in bootgen. When enabled, the
+encrypted secure header in the FSBL will contain nothing more than the OP key, which is
+user specified, and the initialization vector (IV) needed for the first block of the
+configuration file. The result is that the AES key stored on the device, in either the BBRAM
+or eFUSEs, is used for only 384 bits, which significantly limits its exposure to side channel
+attacks. Figure 12-17 explains how the OP key is used to minimize the use of the AES device
+key and integrate into the key rolling technique described in DPA Resistance.
+The device key is used to decrypt the secure header which results in the OP key and the IV
+of the first block of the FSBL. The first encrypted block of the FSBL (shown as Block0-CT) is
+then decrypted using the IV and OP key. The result is the decrypted version of the first FSBL
+block (shown as Block0-PT) and the key and IV needed to decrypt the next block. This
+process continues until the entire FSBL is decrypted. Note that this process is entirely
+Partition
+Dependent
+on secure
+boot
+mode(2)
+Yes - signed with user SSK
+Notes:
+1. In hardware root of trust secure boot mode.
+2. Required for encrypt only secure boot mode and optional for hardware root of trust secure boot mode.
+Table 12-17: Secure Boot Image Encryption and Authentication (Cont’d)
+Boot Image Block Encrypted Authenticated(1) Notes
+X-Ref Target - Figure 12-17
+Figure 12-17: OP Key
+Encrypted
+Secure Header DEC
+Device Key
+Block0 - IV
+OP Key
+Block0 - CT
+DEC
+Block1 - IV
+Block1 - Key
+Block0 - PT
+Block1 - CT
+DEC
+PT – PlainText
+CT –CipherText
+X18924-080318
+Send FeedbackZynq UltraScale+ Device TRM 297
+UG1085 (v2.5) March 21, 2025
+Chapter 12: Security
+transparent. The bootgen option and the value of the OP key are user specified, but the rest
+is handled automatically by the tools and silicon.
+Once the OP key is used, it becomes the device key and the device key selection cannot be
+changed back to the BBRAM or eFUSE key without a POR. The user can still choose between
+the KUP and the OP key (see Figure 12-2). When bootgen creates a single boot image with
+multiple encrypted partitions, it automatically encrypts the partitions with the OP key.
+However, if a customer chooses to create multiple boot images with encrypted partitions,
+the customer must provide bootgen the OP key value as the AES key so the partitions are
+encrypted correctly.
+Protect Device Key in Development Environment with OP Key
+The OP key has an added benefit in that it can be used to protect the device key in a
+development environment where some team members are responsible for managing the
+device key and other team members are not.
+For example, Team A (Secure Team) and Team B (Not Secure Team) work collaboratively to
+build an encrypted image without sharing the secret red key. Team A manages the secret
+red key. Team B builds encrypted images for development and test but does not have
+access to the secret red key. Team A encrypts the boot loader with the device key (using the
+OP key option) and delivers the encrypted bootloader to Team B. Team B encrypts all the
+other partitions using the OP key. Team B takes the encrypted partitions they created and
+the encrypted boot loader from Team A and uses bootgen to combine everything into a
+single boot.bin. For more details, see “Using OP Key to Protect the Device Key in a
+Development Environment” in Chapter 8 of the Zynq UltraScale+ MPSoC Software
+Developer’s Guide UG1137 [Ref 3].

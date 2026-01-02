@@ -1,0 +1,1180 @@
+Chapter 19
+DMA Controller
+Introduction
+The general purpose direct memory access (DMA) controller supports memory to memory
+and memory to I/O buffer transfers. There are two instances of the general purpose DMA
+controller: LPD DMA and FPD DMA. The LPD DMA can have I/O coherent access. The FPD
+DMA transfers are never hardware coherent with CCI. This chapter refers to the FPD and LPD
+DMA controllers collectively as DMA. The 8-channel LPD and FPD DMA controllers are
+architecturally identical except for coherency, command buffer size, and data width.
+• FPD DMA: 128-bit AXI data interface, 4 KB command buffer, non-coherent with CCI.
+• LPD DMA: 64-bit AXI data interface, 2 KB command buffer, I/O coherent with CCI.
+Features
+• AXI-4 interface, burst length is limited to 16 to provide AXI-3 compatibility.
+• Source (SRC) and destination (DST) payloads can start and end at any alignment. The
+DMA takes care of 4 KB boundary crossing.
+• Over fetching can be enabled/disabled per channel.
+• Each channel can be programmed as secure or non-secure.
+• Programmable number of outstanding transactions per channel on the source side. Up
+to 32 outstanding transactions supported on each AXI channel.
+• Periodic transaction scheduling. Period can be independently programmed per
+channel.
+• Simple register-based DMA and scatter gather (SG) DMA modes. Hybrid descriptor
+support in SG DMA mode.
+• Read-only DMA mode.
+° Read data is discarded in this mode.
+° Read-only feature is only supported in simple DMA mode.
+Note: For memory to I/O buffer transfers, the peripheral should support DMA transfers.
+Send FeedbackZynq UltraScale+ Device TRM 520
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+• Write-only DMA mode.
+° Data specified in the control register is written to DST address locations, no read
+command is issued.
+° Write-only feature is only supported in simple DMA mode.
+• Common buffer is automatically shared among all enabled DMA channels.
+• Support for DMA START, STOP, and PAUSE features.
+• Interrupt accounting support.
+• Descriptor prefetch support to maximize DMA efficiency. 100% efficiency with 128-bit
+aligned SRC and DST payloads.
+• Support for error recovery.
+• INCR and FIXED type burst supported. Fixed bursts are only supported in simple DMA
+mode.
+• Independent AXI burst length is supported on both the SRC and DST sides.
+• Flow control on a per channel basis via the PL EMIO interface.
+Send FeedbackZynq UltraScale+ Device TRM 521
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+DMA Controller Functional Description
+The Zynq UltraScale+ MPSoC DMA (Figure 19-1) is a general-purpose DMA for
+memory-to-memory, memory-to-I/O, I/O-to-memory, and I/O-to-I/O transfers.
+The DMA acts as an AXI-4 master. Each channel can be independently enabled or disabled
+at any time. DMA supports pause functionality per-channel, which allows software to pause
+the channel using a descriptor and allows software to program new sets of descriptors.
+Software can resume the channel once it has programmed a new set of descriptors.
+The DMA implements a common buffer that is sized to allow the DMA to utilize the full AXI
+bandwidth available. All channels share the common buffer. A common structure is
+automatically managed where software enables and disables the channel without concern
+for the allocation of buffer per channel. Each channel uses the available buffer on a first
+come first serve basis. Buffer utilization of each channel can be controlled by programming
+issuing capability of each channel and rate control. DMA supports two modes of operation,
+simple register-based DMA or scatter-gather DMA.
+The DMA implements independent SRC and DST descriptors that can transfer any size
+payload (up to 1 GB). Descriptor payloads can start and end at any alignment. For some AXI
+X-Ref Target - Figure 19-1
+Figure 19-1: DMA Block Diagram
+DMA
+Channel 1
+DMA
+Channel 7
+MUX
+Common
+Buffer
+Read
+Arbiter
+Write
+Arbiter
+Control and Status Registers APB
+DMA
+Channel 0
+RDATA
+AXI RD CMD AXI WR CMD
+WDATA
+X15366-121223
+Send FeedbackZynq UltraScale+ Device TRM 522
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+slaves, overfetch of data is not allowed on the read channel. For these slaves, software can
+disable overfetch. Software can independently enable/disable overfetch on each DMA
+channel. Over-fetch disable can significantly impact DMA efficiency (depends on payload
+alignment). AMD advises only using this feature if it is required by an AXI slave.
+DMA Architecture
+The major functional blocks are:
+• Common buffer
+• Arbiter
+° AXI read channel
+° AXI write channel
+• DMA engine channel(s)
+Common Buffer
+A common buffer is shared between the DMA channels to hold the AXI read transaction
+data before it goes out on an AXI write channel. The common buffer is sized to allow
+utilization of full AXI bandwidth. The size of the common buffer is 4 KB for FPD DMA and
+2 KB for LPD DMA.
+• Shares the full buffer space between enabled channels. When only one channel is
+enabled, it can use the full buffer memory space.
+• Does not utilize/reserve any space in the memory if a channel is disabled (from a
+previous enable).
+• In the event of an error, the DMA channel frees all occupied common buffer entries.
+• Shared buffer on a first-come first-served basis.
+• Software can limit the common buffer usage of a particular channel by programming
+read-issuing and rate-control registers. The design of the DMA ensures no starvation
+on any channel irrespective of their rate control and read issuing parameters.
+Send FeedbackZynq UltraScale+ Device TRM 523
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+AXI Read Arbiter
+Each DMA channel has two AXI read interfaces. One interface is used for reading data
+buffers and the other interface is used for reading buffer descriptors. The DMA implements
+round-robin arbitration. Arbitration is never granted to any request if the common buffer
+does not have enough space. This way the DMA does not put back pressure on the AXI read
+channel.
+If there is not enough space in the common buffer, the arbiter stays parked on the
+requesting channel until space is available.
+AXI Write Arbiter
+The DMA channels share an AXI write channel. The features of the write arbiter are listed.
+• Round-robin arbitration
+• Common buffer flush in the event of an error
+DMA Channel
+The DMA channel is responsible for the bulk of the DMA operation and management.
+DMA Data Flow
+This section outlines the DMA model, modes, and the buffer descriptor (BD) format.
+DMA Model
+The LPD and FPD DMA controllers each have eight DMA channels. Each channel is divided
+into two functional sides (in simple DMA mode) or two queues (in scatter-gather DMA
+mode), source (read) and destination (write).
+Send FeedbackZynq UltraScale+ Device TRM 524
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+The schematic in Figure 19-2 illustrates the source and destination side scatter-gather
+mode buffer descriptor arrays. The buffer descriptors point to their respective buffers. The
+DMA facilitates transfer of data from source (SRC) buffers to destination (DST) buffers. A
+source side descriptor can go to multiple destination side descriptors.
+DMA Modes
+Each DMA channel can be independently programmed in one of the following DMA modes
+as described in this section.
+Simple DMA Mode
+Simple DMA mode is also known as single-command mode because the DMA performs a
+data transfer upon receiving a command in a single command manner. In simple DMA
+mode, the DMA transfer parameters are specified in the control registers. The DMA channel
+uses these parameters to transfer the data from the SRC to the DST side. This is the single
+command mode where the DMA channel operation is done after finishing the transfer.
+Subsequent transfers require the following steps.
+1. Update the control registers with new transaction parameters.
+2. Enable the DMA channel.
+X-Ref Target - Figure 19-2
+Figure 19-2: SRC and DST Descriptors Pointing to Data Buffers
+Memory
+SRC DESC 0
+SRC DESC 1
+SRC DESC 2
+SRC DESC n
+SRC BUFFER 0
+SRC BUFFER 1
+SRC BUFFER 2
+SRC BUFFER n
+Source Buffer
+Descriptor Array
+...
+DST DESC 0
+DST DESC 1
+DST DESC 2
+DST DESC 3
+DST BUFFER 0
+DST BUFFER 1
+DST BUFFER 2
+DST BUFFER n
+Destination Buffer
+Descriptor Array
+...
+X15367-092516
+Send FeedbackZynq UltraScale+ Device TRM 525
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+The DMA channel only looks at the SRC size of the transaction. It is always assumed that the
+transaction size of the DST side is the same as the SRC side’s transaction size.
+There are simple DMA sub-modes. The read-only and write-only modes are only supported.
+in simple DMA mode. Each channel can be programmed in one of following sub modes.
+• In the read-only mode, the DMA channel reads the data (register specified location)
+but does not write the data anywhere. This feature can be used to scrub the memory.
+• In the write-only mode, the DMA channel reads preloaded data from the control
+registers and writes it to memory. The DMA channel does not read data from a memory
+location. Software loads the source data into the registers that are used to write the
+DST locations. In write-only mode, both SRC and DST registers need to be configured.
+Scatter Gather DMA Mode
+In scatter gather mode, DMA transfer parameters are specified in memory (descriptors) and
+parameters in APB registers are ignored. Software programs SRC and DST descriptors
+programs registers to point to the start of these descriptors in memory and enables a
+channel. Upon receiving a channel enable, the DMA channel fetches SRC and DST
+descriptors from memory and uses these parameters to perform the actual data transfer.
+The descriptors must be configured before enabling a channel.
+Descriptor Format
+In scatter-gather DMA mode, the channel reads the data from the address specified in the
+SRC descriptor and writes to a location specified by the DST descriptor. The DMA
+implements a hybrid descriptor to support descriptor storage in two formats.
+• Linear
+• Linked-list
+• Hybrid (multiple linear buffer descriptor arrays chained as a linked list)
+Software can make use of a hybrid descriptor to dynamically switch between linear and
+linked-list mode. The hybrid descriptor approach allows the DMA driver software to arrange
+descriptors in a contiguous array of BDs, or a linked list of BDs, or a mixed mode wherein
+contiguous arrays of BDs can be chained together to create a linked list of BD arrays. This
+approach allows the driver software to be designed in a manner wherein BDs can be
+allocated at initialization or in real time (and chained to a preceding BD). In applications
+where contiguous sets of memory are easily available, the software driver might not be able
+to manage a link list for descriptor storage. In this case, the descriptor can be stored in a
+linear array.
+Send FeedbackZynq UltraScale+ Device TRM 526
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+To support previously described cases, the DMA implements a hybrid descriptor. Each
+descriptor on the SRC and DST side implements a bit descriptor-element type, which
+indicates the type of the current descriptor. This allows software to switch between a linear
+and a link-list scheme dynamically. Figure 19-3 shows supported descriptor modes.
+X-Ref Target - Figure 19-3
+Figure 19-3: DMA Supported Descriptor Mode Use-cases in Scatter Gather Mode
+Dscr0
+Dscr1
+Dscr2
+Dscr3
+Dscr4
+Dscr5
+Dscr6
+Dscr7
+Dscr0
+Dscr1
+Dscr2
+Dscr3
+Dscr4
+Dscr5
+Dscr6
+Next Addr
+Dscr3
+Next Addr
+Dscr0
+Next Addr
+Dscr7
+Dscr8
+Dscr13
+Next Addr
+Dscr5
+Next Addr
+Dscr4
+Next Addr
+Dscr2
+Next Addr
+Dscr1
+Next Addr
+Linear Descriptor Mode Linked-List Descriptor Mode Hybrid Descriptor Mode
+128-bit Descriptor
+Descriptor Element
+Type = 0
+256-bit Descriptor
+Descriptor Element
+Type = 1
+128 and 256-bit Descriptor
+Descriptor Element Type = 0 and 1
+Linked-List Descriptor is Only
+Used on Page Boundary
+X15368-092516
+Send FeedbackZynq UltraScale+ Device TRM 527
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Linear Descriptor Use Case
+In the linear descriptor use case mode, BDs are stored in a linear array. In Figure 19-3, the
+first block shows the linear descriptor mode. This can be considered as one 4K page. Each
+descriptor is 128 bits and the DMA channel can fetch 256 bits on every descriptor read. This
+allows the DMA to fetch two descriptors in a single AXI read and reduces the number of
+descriptor fetches. Further details are shown in Table 19-1.
+• Each descriptor is 128 bits wide
+• Each descriptor must be 128-bit aligned
+• The descriptor element type is always 0 (in linear descriptor mode).
+Linked-list Descriptor Use Case
+Each descriptor is 256 bits wide, the first 128 bits store the descriptor information and the
+next 128 bits provide a pointer to the next descriptor. In this mode, the descriptor can be
+located anywhere in the memory (it might not be in the same 4K page).
+Further details are shown in Table 19-2.
+• Each descriptor is 256 bits wide
+• Each descriptor must be 256-bit aligned
+• The descriptor element type is always 1 (in link-list descriptor mode)
+• DMA channel can only fetch the next descriptor if it has read a current descriptor. Two
+descriptor fetches requires two AXI reads.
+Table 19-1: Buffer Descriptor Format in Linear Descriptor Mode
+ADDR LSB
+[31:0] WORD0
+RSVD
+[31:12]
+ADDR MSB
+[11:0] WORD1
+RSVD
+[31:29]
+SIZE
+[29:0] WORD2
+RSVD
+[31:5]
+CNTL
+[4:0] WORD3
+Table 19-2: Buffer Descriptor Format in Linked-list Descriptor Mode
+ADDR LSB
+[31:0] WORD0
+RSVD
+[31:12]
+ADDR MSB
+[11:0] WORD1
+RSVD
+[31:29]
+SIZE
+[29:0] WORD2
+RSVD
+[31:5]
+CNTL
+[4:0] WORD3
+Send FeedbackZynq UltraScale+ Device TRM 528
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Hybrid Descriptor Use Case
+Linear and link-list descriptor types can be chained to reduce software and hardware
+overhead. For example, if software allocates two noncontiguous 4 KB pages to store
+descriptors, then it can contiguously store BDs in the first page and make the last BD of the
+first page point to the first BD of the next available page. Because the next address pointer
+in linear descriptor is not required, this scheme reduces both memory usage and software
+overhead. The descriptor mode diagram (Figure 19-3) details this use case.
+• Each descriptor is aligned to its natural size.
+° Linear descriptor is 128-bit aligned.
+° Link-list descriptor is 256-bit aligned.
+Buffer Descriptor Summary
+• Both the SRC and DST descriptors must be aligned to their size.
+• For efficiency, a DMA can prefetch a descriptor.
+• The DMA never prefetches across the 4 KB boundary.
+• The circular descriptor should always have at least one link-list element.
+• Descriptors are not updated back to the memory. For instance, once a SRC/DST buffer
+descriptor is used by the DMA for data transfer, no updating of any field of SRC or DST
+buffer descriptor occurs to signal completion of a buffer descriptor to the software.
+• A completion interrupt, along with status (interrupt accounting), is supported. The
+software can read the content of ZDMA_CH_IRQ_SRC_ACCT/ZDMA_CH_IRQ_DST_ACCT
+to find the number of buffer descriptors processed.
+Buffer Descriptor Format
+The buffer descriptor (BD) format used in scatter gather (SG) mode is shown in Table 19-3.
+Both the SRC and DST implement the same format descriptor with a few exceptions. Similar
+words are implemented in the control registers, which can be used in simple DMA mode. By
+dividing the descriptor into 32-bit words and implementing them on the control registers,
+a consistent view is provided in both simple and SG mode.
+NEXT DSCR ADDR LSB
+[31:0] WORD4
+RSVD
+[31:12]
+NEXT DSCR ADDR MSB
+[11:0] WORD5
+RSVD
+[31:0] WORD6
+RSVD
+[31:0] WORD7
+Table 19-2: Buffer Descriptor Format in Linked-list Descriptor Mode (Cont’d)
+Send FeedbackZynq UltraScale+ Device TRM 529
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Table 19-3: Buffer Descriptor Format
+Word
+Number Field Name Size
+(bytes) Bits Description
+0 ADDR LSB 4 [31:0] Lower 32 bits of the address pointing to the data/payload buffer.
+1 ADDR MSB 4
+[11:0] Upper 12 bits of the address pointing to the data/payload buffer.
+[31:12] Reserved
+2 SIZE 4
+[29:0] Buffer size in bytes (1 G = 230)
+[31:30] Reserved
+3 CNTL 4
+[0]
+Coherency:
+0: AXI transactions generated to process the descriptor payload are
+marked non-coherent.
+1: AXI transactions generated to process the descriptor payload are
+marked coherent.
+Note: This bit has no effect for the FPD DMA controller.
+[1]
+DSCR element type:
+Each descriptor can be viewed as a 128/256-bit descriptor.
+0: Current descriptor size is 128 bits (linear)
+1: Current descriptor size is 256 bits (linked-list)
+[2]
+INTR
+0: Completion interrupt is not required
+1 (SRC-side): Interrupt is set at the completion of this element.
+Completion indicates that data is read, but it could be in the DMA
+buffer (and not yet written to destination).
+1 (DST-side): Interrupt is set at the completion of this element.
+Completion indicates that data is written to the destination location
+and BRESP is received.
+[4:3]
+CMD
+This field is valid only on a SRC descriptor and is reserved on a DST
+descriptor.
+00: Next DSCR is valid, the DMA channel continues with
+scatter-gather operation (in this case). Software must ensure that the
+next descriptor is valid.
+01: Pause after completing this descriptor. Software can use this
+command to pause the DMA operation and update the descriptors.
+Once software is done updating the descriptors, it can resume the
+channel from where it paused. If software has updated a descriptor to
+new location, it can resume the channel and tell it to fetch the
+descriptor from the new location. Pause mode allows software to
+keep the state of the channel and avoid the enable sequence.
+10: STOP after completing this descriptor. Once the DMA channel
+detects STOP, it finishes the current descriptor payload transfer and
+goes to IDLE. Any subsequent transfer requires the software to follow
+an enable sequence. STOP does not preserve the state of the channel.
+11: Reserved.
+[31:5] Reserved.
+Send FeedbackZynq UltraScale+ Device TRM 530
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+DMA Performance Requirements
+The DMA provides 100% efficiency in the following scenario.
+• Read and write descriptor payload are 128-bit aligned (in scatter-gather mode)
+• SRC and DST descriptors are 256-bit aligned
+• SRC and DST payload is >4 KB
+100% efficiency is achieved when there is no back pressure on the read and write AXI
+channels and DMA fully utilizes AXI read and write channels.
+DMA Interrupt Accounting
+The DMA channel does not update descriptors in memory. The feedback when the
+descriptor is done is provided by a SRC/DST done interrupt along with an interrupt
+accountings counter (control register). The following interrupt accounting scheme is
+implemented on each DMA channel, on both the SRC and DST sides.
+• The software can selectively request a completion interrupt on descriptors. Once a
+descriptor is processed, the DMA increments the interrupt accountings counter. The
+definition of a descriptor done is different on the SRC and DST sides.
+• A SRC descriptor done interrupt is generated once the DMA is done reading all the
+data corresponding to the source buffer descriptor. The SRC descriptor done interrupt
+does not guarantee that data is written at a destination location. Data can still be in a
+shared common buffer.
+4 NEXT
+ADDR LSB 4 [31:0] Lower 32 bits of the NEXT descriptor address. This field exists only if
+the DSCR element type is set as 1.
+5 NEXT
+ADDR MSB 4
+[11:0] Upper 12 bits of the NEXT descriptor address.
+[31:12]
+Reserved
+This field exists only if the DSCR element type is set as 1.
+6 Reserved 4 [31:0]
+Reserved
+This field exists only if the DSCR element type is set as 1.
+7 Reserved 4 [31:0]
+Reserved
+This field exists only if the DSCR element type is set as 1.
+Table 19-3: Buffer Descriptor Format (Cont’d)
+Word
+Number Field Name Size
+(bytes) Bits Description
+Send FeedbackZynq UltraScale+ Device TRM 531
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+• A DST descriptor done interrupt is generated once the DMA channel receives a
+response to the last AXI write of the buffer corresponding to the DMA buffer
+descriptor. The DST done interrupt ensures that data has been written to the memory
+location.
+An interrupt is generated to the software as soon as the interrupt accounting’s count
+transitions to non-zero. When the software takes this interrupt, it should also read the
+interrupt accountings register. Count provides the number of processed descriptors with
+interrupt enabled. This counter is cleared on read (due to coherency). Implementing this
+scheme eliminates the need for a timeout mechanism. It also provides flexibility to the
+software to enable an interrupt on a required descriptor.
+The DMA channel implements a separate 32-bit interrupt account counter for the source
+and destination sides. If the software does not read/clear the counter for a long time, this
+counter can overflow. The DMA generates an interrupt to indicate the overflow condition
+on the interrupt accounting counter. If a counter over flows on the last descriptor of a DMA
+transfer (DMA DONE), then the interrupt accounting counter overflow interrupt is
+generated two clock cycles after the DMA done interrupt due to asynchronous boundary
+crossing logic.
+DMA Over Fetch
+The DMA supports an AXI bus width of 128/64 bits. In the case where the source descriptor
+payload ends at a non-128/64 bit aligned boundary, the DMA channel fetches the last beat
+as the full-128/64 bit wide bus. This is considered an over fetch. The over fetch option can
+be disabled, if required. In the case where an over fetch is disabled and the SRC descriptor
+payload ends on a non-128/64 bit boundary, the DMA fetches any remaining bytes as a
+single byte AXI read.
+The example in Figure 19-4 uses a source descriptor size of 8190 bytes (with a start address
+at 0x000_0000 and end address at 0x0000_1FFD), a 128-bit wide AXI bus, and a burst
+length of 16, the DMA can fetch 256 bytes in a single AXI burst. Two scenarios are
+documented.
+Scenario 1: Over Fetch is Disabled
+• 31 AXI read command with burst length of 16 and AXI size of 16 bytes (7936 bytes
+fetched)
+• One AXI read command with burst length of 15 and AXI size of 16 bytes (240 bytes
+fetched)
+• To fetch the remaining 14 bytes, the DMA channel issues 14 single-beat AXI read
+commands with an AXI size of 1 byte.
+Send FeedbackZynq UltraScale+ Device TRM 532
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Scenario 2: Over Fetch is Enabled
+• 32 AXI burst length of 16 and AXI size of 16 bytes (8192 bytes fetched)
+RECOMMENDED: If the over fetch is disabled, it could significantly impact the performance of the DMA
+channel. AMD recommends only disabling the over fetch when absolutely necessary.
+X-Ref Target - Figure 19-4
+Figure 19-4: Over Fetch Scenarios
+Over Fetching
+Disabled
+To Fetch a Buffer of 8190 bytes
+Over Fetching
+Enabled
+To Fetch a Buffer of 8190 bytes
+0x0000_0000 0x0000_0000
+0x0000_1F00
+0x0000_1FF0
+0x0000_2000 0x0000_2000
+DMAC to Ignore
+Last 2 bytes
+32 Read Requests
+Each of Size 256 bytes
+(Burst Length: 16, AXI Size:16)
+Total Number of
+Bytes Read: 8192
+1 Read Request of size 240 bytes
+(Burst Length: 15, AXI Size:16)
+Total Number of
+Bytes Read: 8176
+31 Read Requests
+Each of Size 256 bytes
+(Burst Length: 16, AXI Size:16)
+Total Number of
+Bytes Read: 7936
+14 Read Requests
+Each of Size 1 byte
+(Burst Length: 1, AXI Size:1)
+Total Number of
+Bytes Read: 8190
+X15369-092516
+Send FeedbackZynq UltraScale+ Device TRM 533
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+DMA Transaction Control
+The transaction control mechanism is used to control the rate and number of read/write
+data transactions from a channel. The control parameters are applicable only to data
+transactions and not for descriptor read transactions.
+TIP: If the multiple rate control mechanism is enabled on a channel, a transaction is issued to
+arbitration when all enabled rate control mechanisms provide permission to issue that transaction.
+Data transactions on AXI read channels can be controlled per each channel using the
+following control mechanisms.
+Outstanding Transactions
+Each DMA channel provides a control register ZDMA_CH_CTRL1[SRC_ISSUE] where the
+software can program a maximum number of read outstanding transactions. The DMA
+channel uses this parameter to limit the number of outstanding read data transactions.
+Rate Control
+Each DMA channel can be independently programmed to issue transactions on a periodic
+basis. Higher priority channels can have a shorter interval between transactions. The lower
+priority channels can have a longer interval between transactions. The issue rate is
+independently controlled for each channel using an interval count that is programmed into
+the ZDMA_CH_RATE_CTRL [CNT] bit field. Rate control is enabled by setting
+ZDMA_CH_CTRL0 [RATE_CTRL] = 1. There are 16 pairs of registers for rate control (8
+channels in each LPD and FPD DMA unit).
+Enabling rate control causes the DMA channel to copy the interval count,
+ZDMA_CH_RATE_CTRL [CNT] bit field, into the channel's decrementing counter. This
+counter is decremented with every clock cycle. When the counter reaches 0, the DMA
+channel issues a transaction to the arbiter and again copies the interval count into the
+decrementing counter. The channel waits for the counter to reach 0 again, and then issues
+another transaction and reloads the counter. The cycle continues until disabled by setting
+[RATE_CTRL] = 0.
+Arbitration has no queue of its own and does not get full. Instead, it relies on the AXI
+queues. Bandwidth maximization depends on parameters such as transaction, length, and
+alignment.
+Rate control remains in effect until disabled. Therefore, when any new transactions begin,
+the previously programmed rate controls take effect (unless disabled).
+Send FeedbackZynq UltraScale+ Device TRM 534
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+TIP: When rate control is enabled, the read data transaction frequency is always equal to or less than
+the programmed rate control frequency (1/rate control count).
+Flow Control Interface
+Data transactions on the AXI write channel can only be controlled using the flow-control
+interface (FCI). The FCI is implemented per channel to provide read/write access flow
+control ability to the PL slave. The FCI can be independently controlled from each channel's
+control register. Software configures what accesses are flow controlled by the FCI
+(read/write).
+The PL slave provides credits to the DMA channel. Each credit is a permission for a single
+AXI transaction. When the FCI is attached to the SRC (read), there is a permission to
+generate one AXI data read transaction (write transaction when FCI is attached to DST
+(write)). Table 19-4 lists the FCI signals.
+IMPORTANT: The maximum number of credits accepted are 32.
+The timing diagram for the flow control interface is as shown in Figure 19-5.
+Table 19-4: Flow Control Interface Signals
+Signal Description
+pl2dma_clk PL clock: Signals from/to PL are synchronous to pl2dma_clk. The DMA handles all clock
+domain crossing.
+pl2dma_cvld Credit valid
+dma2pl_cack Credit acknowledgment:
+• Credits are accumulated when both pl2dma_cvld and dma2pl_cack are High (TRUE).
+• Each FCI can accumulate up to 32 credits.
+• If the FCI is not enabled, the credits are flushed.
+dma2pl_tvld Transaction valid
+pl2dma_tack Transaction acknowledgment: The DMA channel indicates that one write transaction is
+done (AXI write command was generated and a BRESP is received) when TVLD and
+TACK are TRUE.
+Send FeedbackZynq UltraScale+ Device TRM 535
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Software can configure FCI to flow control either the SRC or DST based on whether the DMA
+channel is reading from or writing to the PL slave.
+• FCI must be configured to flow control SRC if the DMA is reading from the PL slave.
+• FCI must be configured to flow control DST if the DMA is writing to the PL slave.
+X-Ref Target - Figure 19-5
+Figure 19-5: FCI Flow Control Interface
+X16933-092516
+Send FeedbackZynq UltraScale+ Device TRM 536
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+FCI Considerations
+• FCI is always disabled.
+• FCI is configured to flow control the SRC (read) side upon reset.
+• When FCI is enabled, both the SRC and DST sides use ARLEN for all AXI transactions.
+• Software configures the FCI interface to the correct side (SRC/DST).
+• In case of an error, the DMA channel waits until the transaction valid FIFO is empty
+before going to DONE with an error state.
+• The DMA channel will stop issuing write commands, if the PL slave does not provide a
+TACK in response to a TVLD for an extended time and the transaction FIFO goes full.
+When the FCI is attached to the DST side, the SRC transactions are limited by the threshold
+allowed in the common buffer. This threshold can be programmed by the PROG_CELL_CNT
+of the ZDMA_CH_FCI register in that channel. The DMA channel stops issuing data read
+commands once the number of occupied cells exceeds the programmed cell count
+threshold. If the write side of the channel is using FCI and the read side is not controlled,
+then the channel uses most of the common buffer. This limits the other channels. By using
+the threshold on common buffer usage, the channel's usage of the common buffer can be
+controlled.
+Once the channel is enabled with the FCI, the DMA channel accumulates incoming credits.
+Each channel can accumulate up to 32 credits. Each transaction consumes one credit.
+Channel will not issue a new transaction if credit is not available. Credit is consumed upon
+generation of read/write commands based on the FCI configuration. If the FCI is not
+enabled, it does not affect the generation of AXI commands on the SRC/DST.
+The FCI accepts credit from the PL slave as long as the credit FIFO is not full. Credits are
+flushed until the channel is enabled. Once a channel is enabled, a DMA channel uses credits
+to flow control the SRC/DST AXI commands. In the event of an error, the DMA channel
+performs an error-recovery sequence. Once done with error recovery, the channel clears
+both the FCI_EN and channel EN flags. Once it clears the FCI_EN, the DMA channel flushes
+all available and incoming credits until the next peripheral enable. The software provides
+channel state information to the PL slave (enable, pause, and error).
+The DMA channel provides a transaction valid notification to the PL slave on every AXI write
+transaction completion. A transaction valid is always generated on receiving a valid BRESP.
+Irrespective of any read/write association, a transaction valid always indicates completion of
+a write transaction. Software can calculate and provide the total number of valid
+transactions expected to complete the current DMA transaction to PL slave. PL slave can use
+a transaction valid to find where a DMA channel is in a current DMA transaction.
+Send FeedbackZynq UltraScale+ Device TRM 537
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+DMA Controller Register Overview
+Table 19-5 is an overview of the DMA controller registers.
+Table 19-5: DMA Controller Registers
+Register Name Description
+ZDMA_ERR_CTRL Enable/disable an error response.
+ZDMA_CH_ISR Interrupt status register for intrN. This is a sticky register that holds the value
+of the interrupt until cleared by a value of 1.
+ZDMA_CH_IMR Interrupt mask register for intrN. This is a read-only location and can be
+automatically altered by either the IDS or the IEN.
+ZDMA_CH_IEN Interrupt enable register. A write of 1 to this location will unmask the
+interrupt. (IMR: 0).
+ZDMA_CH_IDS Interrupt disable register. A write of 1 to this location will mask the interrupt.
+(IMR: 1).
+ZDMA_CH_CTRL0 Channel control register 0.
+ZDMA_CH_CTRL1 Channel control register 1.
+ZDMA_CH_FCI Channel flow control register.
+ZDMA_CH_STATUS Channel status register.
+ZDMA_CH_DATA_ATTR Channel DATA AXI parameter register.
+ZDMA_CH_DSCR_ATTR Channel DSCR AXI parameter register.
+ZDMA_CH_SRC_DSCR_WORD0 SRC DSCR word 0.
+ZDMA_CH_SRC_DSCR_WORD1 SRC DSCR word 1.
+ZDMA_CH_SRC_DSCR_WORD2 SRC DSCR word 2.
+ZDMA_CH_SRC_DSCR_WORD3 SRC DSCR word 3.
+ZDMA_CH_DST_DSCR_WORD0 DST DSCR word 0.
+ZDMA_CH_DST_DSCR_WORD1 DST DSCR word 1.
+ZDMA_CH_DST_DSCR_WORD2 DST DSCR word 2.
+ZDMA_CH_DST_DSCR_WORD3 DST DSCR word 3.
+ZDMA_CH_WR_ONLY_WORD0 Write-only data word 0.
+ZDMA_CH_WR_ONLY_WORD1 Write-only data word 1.
+ZDMA_CH_WR_ONLY_WORD2 Write-only data word 2.
+ZDMA_CH_WR_ONLY_WORD3 Write-only data word 3.
+ZDMA_CH_SRC_START_LSB SRC DSCR start address LSB register.
+ZDMA_CH_SRC_START_MSB SRC DSCR start address MSB register.
+ZDMA_CH_DST_START_LSB DST DSCR start address LSB register.
+ZDMA_CH_DST_START_MSB DST DSCR start address MSB register.
+ZDMA_CH_RATE_CTRL Rate control count register.
+Send FeedbackZynq UltraScale+ Device TRM 538
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+DMA Programming for Data Transfer
+This section describes the steps and the register configuration necessary to perform DMA
+transfers using various modes supported by the DMA.
+Simple Mode Programming
+Step 1
+Wait until the DMA is in an idle state by reading the STATE field of ZDMA_CH_STATUS and
+ensuring it is either 00 or 11. In the case where the DMA is in PAUSE state, follow the steps
+to bring the DMA out from PAUSE as described in Channel Paused.
+Step 2
+• Ensure that POINT_TYPE (bit 6) of the ZDMA_CH_CTRL0 register is 0.
+• Program the data source buffer address LSB into register
+ZDMA_CH_SRC_DSCR_WORD0.
+• Program the data source buffer address MSB into register
+ZDMA_CH_SRC_DSCR_WORD1.
+Step 3
+• Program the data destination buffer address LSB into register
+ZDMA_CH_DST_DSCR_WORD0.
+• Program the data destination buffer address MSB into register
+ZDMA_CH_DST_DSCR_WORD1.
+Step 4
+• In simple DMA mode, both the SRC and DST transaction sizes must be programmed.
+The DMA uses the SRC transaction size but it also requires programming both registers.
+Program the source data size into the ZDMA_CH_SRC_DSCR_WORD2 register.
+• Program the destination data transaction size into the ZDMA_CH_DST_DSCR_WORD2
+register. Make sure that the SRC and DST transaction sizes are the same.
+ZDMA_CH_IRQ_SRC_ACCT SRC interrupt account count register.
+ZDMA_CH_IRQ_DST_ACCT DST interrupt account count register.
+ZDMA_CH_CTRL2 DMA control register 2.
+Table 19-5: DMA Controller Registers (Cont’d)
+Register Name Description
+Send FeedbackZynq UltraScale+ Device TRM 539
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Step 5
+Optionally, enable an interrupt by setting INTR as a 1 in the ZDMA_CH_DST_DSCR_WORD3
+and/or ZDMA_CH_SRC_DSCR_WORD3 registers.
+Step 6
+In cases where the source and destination buffer are allocated as cache coherent or are
+flushed, there is no need to set COHRNT. Otherwise, if the source and destination buffer are
+not allocated as cache coherent or have not been flushed, set COHRNT in the
+ZDMA_CH_SRC_DSCR_WORD3 and ZDMA_CH_DST_DSCR_WORD3 registers, respectively.
+The COHRNT bit is valid only in case of LPD DMA. The FPD DMA does not support
+coherency.
+Step 7
+Enable the DMA channel to perform DMA transfers by setting the EN bit of
+ZDMA_CH_CTRL2. After enabling DMA, check for possible error conditions as described in
+Error Conditions.
+Scatter Gather Mode Programming
+DMA supports three different use cases under scatter gather mode.
+• Linear
+• Linked list
+• Hybrid
+Linear Mode Use Case
+Linear mode is used when software can find a contiguous set of memory to accommodate
+all the buffer descriptors necessary (source and destination) as an array. The flowchart in
+Figure 19-6 captures the main steps.
+Send FeedbackZynq UltraScale+ Device TRM 540
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+X-Ref Target - Figure 19-6
+Figure 19-6: Linear Mode DMA Programming Model
+Wait for Idle
+Enable DMA channel
+Disable interrupts
+(if interrupt mode)
+Source and destination
+descriptor setup
+DMA transfers
+done?
+Clear interrupt status
+Wait for DMA
+transaction to complete
+Disable DMA channel
+End
+Interrupt
+mode?
+Enable interrupts
+(if interrupt mode)
+Poll descriptor
+done status in
+ZDMA_CH_ISR
+register
+No Wait for descriptor
+done interrupt
+Release descriptors
+Fetch the
+SRC and
+DST buffer
+descriptors
+Transfer
+data to DST
+buffer
+Fetch the
+SRC buffer
+Yes
+X15370-092516
+Send FeedbackZynq UltraScale+ Device TRM 541
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Step 1
+Ensure DMA is not in a busy state by reading the STATE field of the ZDMA_CH_STATUS and
+ensuring it is not 10. In the case where the DMA is in PAUSE state, follow the steps to bring
+the DMA out from PAUSE as described in Channel Paused.
+Step 2
+a. Ensure that the bit POINT_TYPE (bit 6) of the ZDMA_CH_CTRL0 is set to 1 for
+scatter-gather mode of operation.
+b. Allocate the source buffer descriptor array in memory. Ensure that the buffer
+descriptor start address is 128-bit aligned (for the LPD DMA, 64-bit aligned is
+acceptable). In case any buffer descriptors are not allocated as cache coherent or the
+buffer descriptors are not flushed prior to enabling the DMA channel, set the
+AXCOHRNT field to 1. The address of the first buffer descriptor in an array is written
+to ZDMA_CH_SRC_START_LSB and ZDMA_CH_SRC_START_MSB.
+c. Allocate the destination buffer descriptor array in memory. Ensure that the buffer
+descriptors start address is 128-bit aligned (for the LPD DMA, 64-bit aligned is
+acceptable). In case any buffer descriptors are not allocated as cache coherent or the
+buffer descriptors are not flushed prior to enabling the DMA channel, set the
+AXCOHRNT field to 1. The address of the first buffer descriptor in an array is written
+to ZDMA_CH_DST_START_LSB and ZDMA_CH_DST_START_MSB. The AXCOHRNT bit
+is valid only in the case of LPD DMA. The FPD DMA does not support coherency at
+buffer descriptor or buffer level.
+TIP: The buffer descriptors can also be pre-allocated during initialization time and can be reused for
+each DMA data transfer. In this case, Step 2 can be skipped.
+Step 3
+a. Program each source data fragment to successively transfer into the allocated
+source buffer descriptors. The ADDR LSB and ADDR MSB fields are programmed.
+b. Program the size of each source data fragment to transfer into the respective source
+buffer descriptor. The SIZE field is programmed.
+c. Set the coherency bit if the source data buffer is not flushed or is not allocated as
+cache coherent prior to enabling the DMA channel for data transfer. The coherency
+bit is valid only in the case of LPD DMA. The FPD DMA does not support coherency
+at buffer descriptor or buffer level.
+d. Ensure that the DSCR element type is 0.
+e. Set the INTR field if an interrupt is required after data is read for transfer. Typically,
+this can be set for the buffer descriptor corresponding to the last source data
+fragment. Setting the last source descriptor for interrupt reduces the number of
+interrupts received.
+Send FeedbackZynq UltraScale+ Device TRM 542
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+f. The non-final buffer descriptor command field can be set to 00 for the next
+descriptor valid. For the final-buffer descriptor, set the command field to 10 for STOP
+after completing this descriptor.
+TIP: You can set 01 for pause after completing the descriptor if you want the DMA in a paused state
+after completing the final-buffer descriptor. The steps to come out of a paused state into a
+enabled/disabled state are described in Channel Paused.
+Step 4
+a. Program each destination buffer fragment to successively transfer into the allocated
+buffer descriptors. The ADDR LSB and ADDR MSB fields are programmed.
+b. Program the size of each destination data fragment to transfer into the respective
+destination buffer descriptor. The SIZE field is programmed.
+c. Set the coherency bit if the source data buffer is not invalidated or is not allocated
+as cache coherent prior to enabling the DMA channel for data transfer. The
+coherency bit is valid only in the case of LPD DMA. The FPD DMA does not support
+coherency at buffer descriptor or buffer level.
+d. Ensure that the DSCR element type is 0.
+e. Set the INTR field if an interrupt is required after the data is read for transfer.
+Typically, this can be set for the buffer descriptor corresponding to the last
+destination data fragment. Setting the last destination descriptor for interrupt
+reduces the number of interrupts received.
+f. The non-final buffer descriptor command field can be set to 00 for the next
+descriptor valid. For the final buffer descriptor, set the command field to 10 for STOP
+after completing this descriptor.
+TIP: You can set 01 for pause after completing the descriptor if you want the DMA in a paused state
+after completing the final-buffer descriptor. The steps to come out of a paused state into a
+enabled/disabled state are described in Channel Paused, page 550.
+Step 5
+Enable the DMA channel by writing into the control register ZDMA_CH_CTRL2. This initiates
+the data DMA transfer.
+Step 6
+Upon transfer completion, the DMA channel provides interrupt(s) to the processor
+depending upon how the INTR field of the buffer descriptor(s) are set.
+Software can use ZDMA_CH_IRQ_DST_ACCT and/or ZDMA_CH_IRQ_SRC_ACCT to decipher
+the number of processed buffer descriptors on the source and destination sides. Software
+can internally maintain counters of both the number of source and destination buffer
+Send FeedbackZynq UltraScale+ Device TRM 543
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+descriptors configured for the DMA transfers. Upon updating the ZDMA_CH_IRQ_DST_ACCT
+and/or ZDMA_CH_IRQ_SRC_ACCT with an equal count, software can infer that the DMA data
+transfer is complete. Software should count only the descriptors that are enabled for
+interrupts. For for information on handling interrupts, refer to Interrupt Handling.
+Step 7
+After the DMA transfers are done, disable the DMA channel. Refer to Channel Disabled for
+more information.
+Linked List Mode Use Case
+To facilitate DMA data transfers using the linked list mode, the following steps are
+necessary. The linked-list mode can be used when software cannot find a contiguous set of
+memory that can accommodate all the buffer descriptors necessary (source and
+destination) as an array.
+Step 1:
+Ensure that the DMA is not in a busy state by reading the STATE field of ZDMA_CH_STATUS
+and ensuring that it is not 10. In case DMA is in the PAUSE state, follow the steps to bring
+it out of the PAUSE state as described in Channel Paused.
+Step 2:
+a. Ensure the POINT_TYPE bit in ZDMA_CH_CTRL0 is set to 1.
+b. Allocate the source buffer descriptor objects in memory. Ensure that the buffer
+descriptor object address is 256-bit aligned. In case any buffer descriptors are not
+allocated as cache coherent or the buffer descriptors are not flushed prior to
+enabling DMA channel, set the AXCOHRNT field to 1. The address of the first buffer
+descriptor in a list is written to ZDMA_CH_SRC_START_LSB and
+ZDMA_CH_SRC_START_MSB.
+c. Allocate the destination buffer descriptor objects in memory. Ensure that the buffer
+descriptor object address is 256-bit aligned. In case any buffer descriptors are not
+allocated as cache coherent or the buffer descriptors are not flushed prior to
+enabling the DMA channel, set the AXCOHRNT field to 1. The address of the first
+buffer descriptor in a list is written to ZDMA_CH_DST_START_LSB and
+ZDMA_CH_DST_START_MSB. The AXCOHRNT bit is valid only in case of LPD DMA.
+The FPD DMA does not support coherency at buffer descriptor or buffer level.
+TIP: The buffer descriptors can also be pre-allocated during initialization time.
+Send FeedbackZynq UltraScale+ Device TRM 544
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Step 3:
+For each allocated source buffer descriptor object, program the following.
+a. Program the source data fragment to transfer into the source buffer descriptor
+object. The ADDR LSB and ADDR MSB fields are programmed.
+b. Program the size of each source data fragment to transfer into the source buffer
+descriptor object. The SIZE field is programmed.
+c. Set the coherency bit if the source data buffer is not flushed or is not allocated as
+cache coherent. The coherency bit is valid only in the case of LPD DMA. The
+FPD DMA does not support coherency at buffer descriptor or buffer level.
+d. Set the DSCR element type to 1.
+e. Set the INTR field if an interrupt is required after the data is read for transfer.
+Typically, this can be set for the buffer descriptor object corresponding to the last
+source data fragment. Setting the last source descriptor for interrupt reduces the
+number of interrupts received.
+f. The non-final buffer descriptor command field can be set to 00 for the next
+descriptor valid. For the final buffer descriptor, set the command field to 10 for STOP
+after completing this descriptor.
+TIP: You can set 01 for pause after completing the descriptor if you want the DMA in a paused state
+after completing the final-buffer descriptor. The steps to come out of a paused state into a
+enabled/disabled state are described in Channel Paused, page 550.
+g. Program the NEXT ADDR LSB and NEXT ADDR MSB to point to the next source buffer
+descriptor. If this is the last buffer descriptor in a linked list, these fields must be
+NULL.
+Step 4:
+For each allocated destination buffer descriptor object, program the following.
+a. Program the destination data fragment to transfer into the destination buffer
+descriptor object. The ADDR LSB and ADDR MSB fields are programmed.
+b. Program the size of each destination data fragment to transfer into each respective
+destination buffer descriptor. The SIZE field is programmed.
+c. Set the coherency bit if the destination data buffer is not flushed or is not allocated
+as cache coherent. The coherency bit is valid only in the case of LPD DMA. The
+FPD DMA does not set support coherency at buffer descriptor or buffer level.
+d. Set the DSCR element type to 1.
+e. Setting the last source descriptor for interrupt reduces the number of interrupts
+received.et the INTR field if an interrupt is required after the data is read for a
+Send FeedbackZynq UltraScale+ Device TRM 545
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+transfer. Typically, this is set for the buffer descriptor corresponding to the last
+source data fragment. Setting the last destination descriptor for interrupt reduces
+the number of interrupts received.
+f. The non-final buffer descriptor command field can be set to 00 for the next
+descriptor valid. For the final buffer descriptor, set the command field to 10 for STOP
+after completing this descriptor.
+TIP: You can set 01 for pause after completing the descriptor if you want the DMA in a paused state
+after completing the final-buffer descriptor. The steps to come out of a paused state into a
+enabled/disabled state are described in Channel Paused, page 550.
+g. Program the NEXT ADDR LSB and NEXT ADDR MSB to point to the next destination
+buffer descriptor. If this is the last buffer descriptor in a linked list, these fields must
+be NULL.
+Step 5:
+Enable the DMA channel by writing into the control register ZDMA_CH_CTRL2. This initiates
+the DMA data transfer.
+Step 6:
+Upon transfer completion, the DMA channel provides interrupt(s) to the processor
+depending upon how the INTR field of the buffer descriptor(s) are set. For for information
+on handling interrupts, refer to Interrupt Handling.
+Software can use ZDMA_CH_IRQ_DST_ACCT and/or ZDMA_CH_IRQ_SRC_ACCT to decipher
+the number of processed buffer descriptors on the source and destination sides. Software
+can internally maintain counters of both the number of source and destination buffer
+descriptors configured for the data transfer. Upon updating of the
+ZDMA_CH_IRQ_DST_ACCT and/or ZDMA_CH_IRQ_SRC_ACCT with an equal count, software
+can infer that the data transfer is complete. Software should count only those descriptors
+for which interrupts are enabled.
+Step 7
+After the DMA transfers are done, disable the DMA channel. Refer to Channel Disabled for
+more information.
+Send FeedbackZynq UltraScale+ Device TRM 546
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Interrupt Handling
+Interrupt handling is done by following these steps.
+1. Read the status from the ZDMA_CH_ISR register.
+2. If the [DMA_DONE] bit is set, mark the channel state as Idle in the software context.
+3. Check if the [DMA_PAUSE] bit is set. If yes, set the channel state to PAUSED in the
+software context.
+4. In case any other error bit is set, set the channel as IDLE in the software context.
+5. Clear the interrupt status from the ZDMA_CH_ISR register by writing back value read in
+step 1.
+DMA Programming Model for FCI
+The DMA implements one FCI per channel. An FCI interface can be independently
+controlled per channel. After each DMA transaction is done, the DMA channel clears both
+the channel EN and FCI_EN flags. Software must enable the FCI interface for each DMA
+transaction. If the FCI interface is not enabled (FCI_EN = 0), the DMA channel flushes all
+incoming credits.
+Credits are only valid when the FCI interface is enabled (FCI_EN = 1).
+• Setup channel mode (simple and scatter gather mode).
+• ZDMA_CH_{DATA, DSCR}_ATTR attribute registers.
+• Setup DMA mode:
+° Simple mode, program the DSCR registers.
+° SG mode, program the DSCR in memory and program the DSCR start address
+register.
+• Set the FCI control parameters, ZDMA_CH_FCI [EN, SIDE].
+• Set the enable bit, CH2_CTRL [EN]. This provides a trigger to the DMA channel.
+The DMA channel provides transaction acknowledgment for all valid credits received after
+the ZDMA_CH_FCI [EN] bit is set. The DMA channel clears ZDMA_CH_FCI [EN] once it is done
+with the DMA transaction. The software must enable FCI along with the channel enable for
+subsequent DMA transfers.
+Send FeedbackZynq UltraScale+ Device TRM 547
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+The suggested use-model for your applications follows.
+• SRC and DST payload addresses are aligned to programmed AXI burst length and an
+over fetch is enabled.
+• Software provides the transfer size details to the flow control slave.
+Implementation Notes
+• If the suggested use-model requirements are satisfied, attaching FCI to SRC/DST is not
+required.
+• When FCI is enabled, both the AXI read and write command use the same burst length
+SRC AXI length (ARLEN).
+• When the SRC and DST descriptor payloads are not aligned to the bus width, the
+number of read and write transactions could be different.
+• The size of the first and last transaction can be different based on the alignment of the
+read and write payload.
+• One credit means one AXI read or write transaction. The size of the transaction can vary
+based on the 4k boundary crossing and over fetch disable. The DMA channel never
+generates a transaction larger than the programmed ARLEN.
+• Read/write transactions can be controlled using more than one mechanism. A channel
+might not generate a transaction, even if it has credits, due to other channel control
+parameters.
+° Rate control counter
+° Outstanding transaction count
+FCI Attached to the SRC
+Software can enable the FCI before enabling a channel. The DMA channel uses ARLEN on
+both the SRC and DST sides.
+Number of SRC transaction = Number of DST transaction
+SRC AXI transaction size/length = DST AXI transaction size/length
+If a DMA channel is reading data from the flow controlling slave, each credit given to the
+DMA channel reads ARLEN x bus width (in bytes) worth of data. ARLEN x bus width (in
+bytes) worth of data is written to the FCI slave if the DMA channel is writing data to a slave.
+The DMA channel can accept up to 32 credits. The slave can use this to pipeline credits to
+the DMA channel. Because of the aligned address requirement, each credit is the transfer
+size of ARLEN x bus width (bytes). A slave uses this to keep track of the number of bytes
+transferred. This information is used by slave to issue credits.
+Send FeedbackZynq UltraScale+ Device TRM 548
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+DMA Channel Reading from a Flow Controlling the PL Slave
+A DMA channel reading from a flow controlling the PL slave scenario is similar to the
+suggested use model except the one-to-one correlation between SRC and DST AXI
+commands does not exist. The number of commands generated on the SRC side can be
+different than the DST. In this case, the number of transaction valid responses can be
+less/more than the number of credits used. Unless the software calculates the number of
+valid transactions required for DMA transfer, the PL slave cannot use the valid transactions.
+The DMA channel only generates read data transactions if credit is available. Once it has
+enough data to generate a write transaction, it issues a write command. The slave can
+snoop on the AXI read channel to keep track of the number of beats/bytes read by the DMA
+channel.
+DMA Channel Writing to a Flow Controlling the PL Slave
+In a DMA channel writing to a flow controlling the PL slave scenario, the software
+configures the FCI to flow control the DST. Each valid credit allows the DMA channel to
+perform one AXI write command. If you do not flow control the read/SRC when the FCI is
+configured to the flow control DST, the channel can issue multiple read transactions and
+utilize the entire common buffer. This will starve other channels. To resolve this issue,
+software configures the maximum number of entries used by the DMA channel. Once the
+DMA channel exceeds the programmed value, it will not issue more read transactions. The
+PROG_CELL_CNT of the ZDMA_CH_FCI register can be programmed in the register.
+Maximum number of occupied cells = (ARLEN + 1) << PROG_CELL_CNT
+If the software programs PROG_CELL_CNT to zero, the maximum number of entries
+occupied by the DMA channel is the same as one full AXI burst.
+Because the SRC and DST addresses are unaligned and over fetch can be disabled, the DMA
+channel might have to generate multiple read transactions to do a single write transaction.
+Because of this, it is advised to program PROG_CELL_CNT to a 1. As explained previously,
+the number of SRC and DST transfers can be different and unless the software calculates the
+number of valid transactions required for DMA transfer, the PL slave cannot use the valid
+transactions.
+The DMA channel generates write data transactions only if credits are available. The write
+command is only generated when enough credit and enough data is available to generate
+one write transaction.
+Send FeedbackZynq UltraScale+ Device TRM 549
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Programming Model for Changing DMA Channel States
+A DMA channel can be in one of the following states at any time. This section explains each
+state and how to go into a particular state.
+• Disabled
+• Enabled
+• Paused
+Channel Enabled
+The software can enable one or more channels at any time using the following enable
+sequence.
+• Setup channel mode (simple or scatter gather mode).
+• Set the ZDMA_CH_{DATA, DSCR}_ATTR attribute registers.
+• Setup DMA mode.
+° Simple mode, program the DSCR registers.
+° In scatter gather mode, program the DSCR in memory and program the DSCR start
+address register.
+• Set enable bit in the ZDMA_CH_CTRL2 register. This provides a trigger to the DMA
+channel.
+Channel Disabled
+The channel can go into a disabled state for the following reasons.
+1. Current SRC descriptor indicates CMD = STOP.
+• DMA processes the current descriptor and goes into a disable state.
+• DMA channel ensures that all the data is transferred to the DST memory location
+before going into a disable state and updating the status register.
+• This mechanism can be used to indicate the end of an operation.
+2. DMA channel is in simple DMA mode and transfer is done.
+a. Once a channel is done transferring the data indicated into the SRC/DST DSCR
+register, the channel goes into a disable state.
+b. For subsequent transfers, the software must enable the channel.
+Send FeedbackZynq UltraScale+ Device TRM 550
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+3. Software can put any paused channel into a disable state.
+a. The current channel state is pause and it has received a CONT from the APB register.
+Mode = Pause & enable = 0 and CONT = 1
+The DMA channel goes into disable mode.
+4. Any error detected on an AXI channel/descriptor programming puts the DMA channel
+into a disable state.
+Channel Paused
+The software can pause any channel by setting the scatter-gather descriptor command bits
+to PAUSE. This feature is used to pause the DMA operation and program the next set of
+descriptors.
+Current DSCR indicates CMD = Pause
+If the current descriptor command bits indicates a pause, the DMA channel completes the
+current descriptor payload to the DST locations. Once it is done with data transfer, the DMA
+channel goes into pause mode. The channel keeps the current operational state.
+Coming Out of Pause
+There are two ways to bring a channel out of pause and into active mode.
+1. Keep the current state and read the next descriptor continuously from the last
+descriptor before going into pause.
+CONT bit is set in the control register and [CONT_ADDR] = 0.
+2. Use the DSCR start address to fetch the first descriptor coming out of pause.
+CONT bit is set in the control register and [CONT_ADDR] = 1.
+Software can also put the DMA channel in disable mode from pause mode:
+Mode = Pause, enable = 0, and [CONT] = 1.
+Security
+The DMA allows software to mark each channel secure/non-secure by programming the
+LPD_SLCR_SECURE.slcr_adma and FPD_SLCR_SECURE.slcr_gdma registers for the RPU and APU
+DMA units, respectively. The secure bit field [tz] includes 8 bits to set the TrustZone security
+setting for the 8 DMA channels. If a channel is marked secure, only a secure master can
+access its DMA control and status registers. The DMA tags all the AXI transactions secure if
+a channel is marked secure.
+Send FeedbackZynq UltraScale+ Device TRM 551
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+Secure DMA channel characteristics include the following.
+• Only secure masters can access their control and status registers.
+• All AXI transactions from this channel are marked secure. They can access both secure
+and non-secure regions.
+Non-secure DMA channel characteristics include the following.
+• Both secure and non-secure masters can access their control and status registers.
+• All AXI transactions from this channel are marked non-secure. They can access only
+non-secure regions.
+Error Conditions
+DMA errors are isolated per channel and an error on one channel should not affect any
+other channel. There are multiple sources producing errors during DMA operation.
+Software Programing Error
+The DMA assumes that software programs registers and descriptors as expected. In case of
+wrong software programming, a DMA channel does not take any action for error recovery
+and DMA channel behavior is unpredictable.
+Total Transferred Bytes Overflow
+Each DMA channel maintains a counter that provides status information about the number
+of bytes transferred to a destination. This counter is updated only when a DMA channel
+receives a BRESP write transaction. This counter always indicates the correct counter (even
+under an AXI error condition). This counter value is reflected on the APB register. The total
+transferred byte counter can be cleared by software by writing to the total transferred byte
+register.
+In the case where the total transferred byte count overflows, a DMA channel indicates this
+as an interrupt. This is non-fatal error and does not affect the functionality of the DMA
+channel.
+DMA Implements Interrupt Accounting Support
+The software can selectively enable interrupt generation on each descriptor (independent
+on SRC and DST). On every descriptor done (which asked for an interrupt), the DMA
+increments a descriptor done counter. Each DMA channel implements an 8-bit interrupt
+accounting counter on the SRC and DST sides. An interrupt accounting counter overflow is
+indicated as an interrupt. Independent SRC and DST interrupts are generated. This is
+non-fatal error as it does not affect the channel functionality.
+Send FeedbackZynq UltraScale+ Device TRM 552
+UG1085 (v2.5) March 21, 2025
+Chapter 19: DMA Controller
+AXI Errors
+In case of an AXI decode/slave error on data read/write or descriptor read, the DMA
+channel performs an error recovery sequence and recovers all occupied entries in the
+common buffer. After completing the error recovery sequence, it generates an interrupt to
+indicate the type of error and disables the channel.

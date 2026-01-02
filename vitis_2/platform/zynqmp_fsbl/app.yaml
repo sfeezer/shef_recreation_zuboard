@@ -1,0 +1,3 @@
+domain_path: E:\x\shef\vitis_2\platform\zynqmp_fsbl\zynqmp_fsbl_bsp
+app_src_dir: E:\Xilinx\Vitis\2023.2\data\embeddedsw\lib\sw_apps\zynqmp_fsbl
+template: zynqmp_fsbl

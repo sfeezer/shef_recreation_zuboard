@@ -476,6 +476,45 @@ xiltimer/fast:
 	$(MAKE) $(MAKESILENT) -f libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/build.make libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/build
 .PHONY : xiltimer/fast
 
+#=============================================================================
+# Target rules for targets named xilffs
+
+# Build rule for target.
+xilffs: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 xilffs
+.PHONY : xilffs
+
+# fast build rule for target.
+xilffs/fast:
+	$(MAKE) $(MAKESILENT) -f libsrc/xilffs/src/CMakeFiles/xilffs.dir/build.make libsrc/xilffs/src/CMakeFiles/xilffs.dir/build
+.PHONY : xilffs/fast
+
+#=============================================================================
+# Target rules for targets named xilsecure
+
+# Build rule for target.
+xilsecure: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 xilsecure
+.PHONY : xilsecure
+
+# fast build rule for target.
+xilsecure/fast:
+	$(MAKE) $(MAKESILENT) -f libsrc/xilsecure/src/CMakeFiles/xilsecure.dir/build.make libsrc/xilsecure/src/CMakeFiles/xilsecure.dir/build
+.PHONY : xilsecure/fast
+
+#=============================================================================
+# Target rules for targets named xilpm
+
+# Build rule for target.
+xilpm: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 xilpm
+.PHONY : xilpm
+
+# fast build rule for target.
+xilpm/fast:
+	$(MAKE) $(MAKESILENT) -f libsrc/xilpm/src/CMakeFiles/xilpm.dir/build.make libsrc/xilpm/src/CMakeFiles/xilpm.dir/build
+.PHONY : xilpm/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -509,6 +548,9 @@ help:
 	@echo "... uartps"
 	@echo "... usbpsu"
 	@echo "... wdtps"
+	@echo "... xilffs"
+	@echo "... xilpm"
+	@echo "... xilsecure"
 	@echo "... xilstandalone"
 	@echo "... xiltimer"
 	@echo "... zdma"
