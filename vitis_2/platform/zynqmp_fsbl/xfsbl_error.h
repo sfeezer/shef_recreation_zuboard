@@ -165,6 +165,8 @@ extern "C" {
 #define XFSBL_ERROR_GT_LANE_SELECTION				(0x53U)
 #define XFSBL_ERROR_I2C_SET_SCLK                    (0x54U)
 #define XFSBL_ERROR_PMU_GLOBAL_REQ_ISO				(0x55U)
+#define XFSBL_PSU_INIT_COMPLETED                 (0x1U)
+#define XFSBL_SECURE_RST_MASK                  (0x00000001U)
 #define XFSBL_ERROR_AES_INITIALIZE             		(0x56U)
 #define XFSBL_ERROR_QSPI_MANUAL_START     			(0x57U)
 #define XFSBL_ERROR_QSPI_PRESCALER_CLK              (0x58U)

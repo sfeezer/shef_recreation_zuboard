@@ -160,6 +160,10 @@ u32 XFsbl_HookPsuInit(void)
 	Status = (u32)psu_init();
 #endif
 
+	// Write 1U to PMU GLOBAL general storage register 5 to indicate
+	// PMU Firmware that psu init is completed
+	XFsbl_Out32(PMU_GLOBAL_GLOB_GEN_STORAGE5, XFSBL_PSU_INIT_COMPLETED);
+
 	if (XFSBL_SUCCESS != Status) {
 			XFsbl_Printf(DEBUG_GENERAL,"XFSBL_PSU_INIT_FAILED\n\r");
 			/**
