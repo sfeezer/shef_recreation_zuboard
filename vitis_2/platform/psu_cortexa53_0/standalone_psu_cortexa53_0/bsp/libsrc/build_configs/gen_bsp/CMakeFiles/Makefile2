@@ -69,18 +69,21 @@ CMAKE_BINARY_DIR = E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cor
 all: libsrc/all
 all: libsrc/standalone/src/all
 all: libsrc/xiltimer/src/all
+all: libsrc/xilffs/src/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
 preinstall: libsrc/preinstall
 preinstall: libsrc/standalone/src/preinstall
 preinstall: libsrc/xiltimer/src/preinstall
+preinstall: libsrc/xilffs/src/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
 clean: libsrc/clean
 clean: libsrc/standalone/src/clean
 clean: libsrc/xiltimer/src/clean
+clean: libsrc/xilffs/src/clean
 .PHONY : clean
 
 #=============================================================================
@@ -736,6 +739,38 @@ libsrc/wdtps/src/clean: libsrc/wdtps/src/CMakeFiles/wdtps.dir/clean
 .PHONY : libsrc/wdtps/src/clean
 
 #=============================================================================
+# Directory level rules for directory libsrc/xilffs/src
+
+# Recursive "all" directory target.
+libsrc/xilffs/src/all: libsrc/xilffs/src/CMakeFiles/xilffs.dir/all
+libsrc/xilffs/src/all: libsrc/xilffs/src/include/all
+.PHONY : libsrc/xilffs/src/all
+
+# Recursive "preinstall" directory target.
+libsrc/xilffs/src/preinstall: libsrc/xilffs/src/include/preinstall
+.PHONY : libsrc/xilffs/src/preinstall
+
+# Recursive "clean" directory target.
+libsrc/xilffs/src/clean: libsrc/xilffs/src/CMakeFiles/xilffs.dir/clean
+libsrc/xilffs/src/clean: libsrc/xilffs/src/include/clean
+.PHONY : libsrc/xilffs/src/clean
+
+#=============================================================================
+# Directory level rules for directory libsrc/xilffs/src/include
+
+# Recursive "all" directory target.
+libsrc/xilffs/src/include/all:
+.PHONY : libsrc/xilffs/src/include/all
+
+# Recursive "preinstall" directory target.
+libsrc/xilffs/src/include/preinstall:
+.PHONY : libsrc/xilffs/src/include/preinstall
+
+# Recursive "clean" directory target.
+libsrc/xilffs/src/include/clean:
+.PHONY : libsrc/xilffs/src/include/clean
+
+#=============================================================================
 # Directory level rules for directory libsrc/xiltimer/src
 
 # Recursive "all" directory target.
@@ -801,25 +836,25 @@ libsrc/zdma/src/clean: libsrc/zdma/src/CMakeFiles/zdma.dir/clean
 # Target rules for target libsrc/CMakeFiles/combined.dir
 
 # All Build rule for target.
-libsrc/CMakeFiles/combined.dir/all: libsrc/axipmon/src/CMakeFiles/axipmon.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/clockps/src/CMakeFiles/clockps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/csudma/src/CMakeFiles/csudma.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/axipmon/src/CMakeFiles/axipmon.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/coresightps_dcc/src/CMakeFiles/coresightps_dcc.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/ddrcpsu/src/CMakeFiles/ddrcpsu.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/gpiops/src/CMakeFiles/gpiops.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/csudma/src/CMakeFiles/csudma.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/iicps/src/CMakeFiles/iicps.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/gpiops/src/CMakeFiles/gpiops.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/ddrcpsu/src/CMakeFiles/ddrcpsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/emacps/src/CMakeFiles/emacps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/resetps/src/CMakeFiles/resetps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/resetps/src/CMakeFiles/resetps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/spips/src/CMakeFiles/spips.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/scugic/src/CMakeFiles/scugic.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/sdps/src/CMakeFiles/sdps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/uartps/src/CMakeFiles/uartps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/ttcps/src/CMakeFiles/ttcps.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/spips/src/CMakeFiles/spips.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/ttcps/src/CMakeFiles/ttcps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/uartps/src/CMakeFiles/uartps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/zdma/src/CMakeFiles/zdma.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/wdtps/src/CMakeFiles/wdtps.dir/all
 	$(MAKE) $(MAKESILENT) -f libsrc/CMakeFiles/combined.dir/build.make libsrc/CMakeFiles/combined.dir/depend
@@ -829,7 +864,7 @@ libsrc/CMakeFiles/combined.dir/all: libsrc/wdtps/src/CMakeFiles/wdtps.dir/all
 
 # Build rule for subdir invocation for target.
 libsrc/CMakeFiles/combined.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 75
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 73
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/CMakeFiles/combined.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
 .PHONY : libsrc/CMakeFiles/combined.dir/rule
@@ -1032,12 +1067,12 @@ libsrc/gpiops/src/CMakeFiles/gpiops.dir/clean:
 libsrc/iicps/src/CMakeFiles/iicps.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/iicps/src/CMakeFiles/iicps.dir/build.make libsrc/iicps/src/CMakeFiles/iicps.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/iicps/src/CMakeFiles/iicps.dir/build.make libsrc/iicps/src/CMakeFiles/iicps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=22,23,24,25,26,27 "Built target iicps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=22,23,24,25,26 "Built target iicps"
 .PHONY : libsrc/iicps/src/CMakeFiles/iicps.dir/all
 
 # Build rule for subdir invocation for target.
 libsrc/iicps/src/CMakeFiles/iicps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 5
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/iicps/src/CMakeFiles/iicps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
 .PHONY : libsrc/iicps/src/CMakeFiles/iicps.dir/rule
@@ -1058,7 +1093,7 @@ libsrc/iicps/src/CMakeFiles/iicps.dir/clean:
 libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/build.make libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/build.make libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=28,29,30 "Built target ipipsu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=27,28,29 "Built target ipipsu"
 .PHONY : libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1084,12 +1119,12 @@ libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/clean:
 libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/build.make libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/build.make libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=31,32,33,34 "Built target qspipsu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=30,31,32,33,34 "Built target qspipsu"
 .PHONY : libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/all
 
 # Build rule for subdir invocation for target.
 libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 5
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
 .PHONY : libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/rule
@@ -1110,12 +1145,12 @@ libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/clean:
 libsrc/resetps/src/CMakeFiles/resetps.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/resetps/src/CMakeFiles/resetps.dir/build.make libsrc/resetps/src/CMakeFiles/resetps.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/resetps/src/CMakeFiles/resetps.dir/build.make libsrc/resetps/src/CMakeFiles/resetps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=35,36,37 "Built target resetps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=35,36 "Built target resetps"
 .PHONY : libsrc/resetps/src/CMakeFiles/resetps.dir/all
 
 # Build rule for subdir invocation for target.
 libsrc/resetps/src/CMakeFiles/resetps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/resetps/src/CMakeFiles/resetps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
 .PHONY : libsrc/resetps/src/CMakeFiles/resetps.dir/rule
@@ -1136,7 +1171,7 @@ libsrc/resetps/src/CMakeFiles/resetps.dir/clean:
 libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/build.make libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/build.make libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=38,39,40 "Built target rtcpsu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=37,38,39 "Built target rtcpsu"
 .PHONY : libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1162,7 +1197,7 @@ libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/clean:
 libsrc/scugic/src/CMakeFiles/scugic.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/scugic/src/CMakeFiles/scugic.dir/build.make libsrc/scugic/src/CMakeFiles/scugic.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/scugic/src/CMakeFiles/scugic.dir/build.make libsrc/scugic/src/CMakeFiles/scugic.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=41,42,43 "Built target scugic"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=40,41,42 "Built target scugic"
 .PHONY : libsrc/scugic/src/CMakeFiles/scugic.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1188,7 +1223,7 @@ libsrc/scugic/src/CMakeFiles/scugic.dir/clean:
 libsrc/sdps/src/CMakeFiles/sdps.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/sdps/src/CMakeFiles/sdps.dir/build.make libsrc/sdps/src/CMakeFiles/sdps.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/sdps/src/CMakeFiles/sdps.dir/build.make libsrc/sdps/src/CMakeFiles/sdps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=44,45,46,47 "Built target sdps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=43,44,45,46 "Built target sdps"
 .PHONY : libsrc/sdps/src/CMakeFiles/sdps.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1214,7 +1249,7 @@ libsrc/sdps/src/CMakeFiles/sdps.dir/clean:
 libsrc/spips/src/CMakeFiles/spips.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/spips/src/CMakeFiles/spips.dir/build.make libsrc/spips/src/CMakeFiles/spips.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/spips/src/CMakeFiles/spips.dir/build.make libsrc/spips/src/CMakeFiles/spips.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=48,49,50,51 "Built target spips"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=47,48,49,50 "Built target spips"
 .PHONY : libsrc/spips/src/CMakeFiles/spips.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1240,7 +1275,7 @@ libsrc/spips/src/CMakeFiles/spips.dir/clean:
 libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/build.make libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/build.make libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=52,53,54 "Built target sysmonpsu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=51,52,53 "Built target sysmonpsu"
 .PHONY : libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1266,7 +1301,7 @@ libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/clean:
 libsrc/ttcps/src/CMakeFiles/ttcps.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/ttcps/src/CMakeFiles/ttcps.dir/build.make libsrc/ttcps/src/CMakeFiles/ttcps.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/ttcps/src/CMakeFiles/ttcps.dir/build.make libsrc/ttcps/src/CMakeFiles/ttcps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=55,56,57 "Built target ttcps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=54,55,56 "Built target ttcps"
 .PHONY : libsrc/ttcps/src/CMakeFiles/ttcps.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1292,7 +1327,7 @@ libsrc/ttcps/src/CMakeFiles/ttcps.dir/clean:
 libsrc/uartps/src/CMakeFiles/uartps.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/uartps/src/CMakeFiles/uartps.dir/build.make libsrc/uartps/src/CMakeFiles/uartps.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/uartps/src/CMakeFiles/uartps.dir/build.make libsrc/uartps/src/CMakeFiles/uartps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=58,59,60,61 "Built target uartps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=57,58,59,60 "Built target uartps"
 .PHONY : libsrc/uartps/src/CMakeFiles/uartps.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1318,7 +1353,7 @@ libsrc/uartps/src/CMakeFiles/uartps.dir/clean:
 libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/build.make libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/build.make libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=62,63,64,65,66,67,68 "Built target usbpsu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=61,62,63,64,65,66,67 "Built target usbpsu"
 .PHONY : libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1344,12 +1379,12 @@ libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/clean:
 libsrc/wdtps/src/CMakeFiles/wdtps.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/wdtps/src/CMakeFiles/wdtps.dir/build.make libsrc/wdtps/src/CMakeFiles/wdtps.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/wdtps/src/CMakeFiles/wdtps.dir/build.make libsrc/wdtps/src/CMakeFiles/wdtps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=69,70,71 "Built target wdtps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=68,69 "Built target wdtps"
 .PHONY : libsrc/wdtps/src/CMakeFiles/wdtps.dir/all
 
 # Build rule for subdir invocation for target.
 libsrc/wdtps/src/CMakeFiles/wdtps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/wdtps/src/CMakeFiles/wdtps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
 .PHONY : libsrc/wdtps/src/CMakeFiles/wdtps.dir/rule
@@ -1396,12 +1431,12 @@ libsrc/zdma/src/CMakeFiles/zdma.dir/clean:
 libsrc/standalone/src/CMakeFiles/xilstandalone.dir/all:
 	$(MAKE) $(MAKESILENT) -f libsrc/standalone/src/CMakeFiles/xilstandalone.dir/build.make libsrc/standalone/src/CMakeFiles/xilstandalone.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/standalone/src/CMakeFiles/xilstandalone.dir/build.make libsrc/standalone/src/CMakeFiles/xilstandalone.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95 "Built target xilstandalone"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95 "Built target xilstandalone"
 .PHONY : libsrc/standalone/src/CMakeFiles/xilstandalone.dir/all
 
 # Build rule for subdir invocation for target.
 libsrc/standalone/src/CMakeFiles/xilstandalone.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 24
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/standalone/src/CMakeFiles/xilstandalone.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
 .PHONY : libsrc/standalone/src/CMakeFiles/xilstandalone.dir/rule
@@ -1440,6 +1475,32 @@ xiltimer: libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/rule
 libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/clean:
 	$(MAKE) $(MAKESILENT) -f libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/build.make libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/clean
 .PHONY : libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/clean
+
+#=============================================================================
+# Target rules for target libsrc/xilffs/src/CMakeFiles/xilffs.dir
+
+# All Build rule for target.
+libsrc/xilffs/src/CMakeFiles/xilffs.dir/all:
+	$(MAKE) $(MAKESILENT) -f libsrc/xilffs/src/CMakeFiles/xilffs.dir/build.make libsrc/xilffs/src/CMakeFiles/xilffs.dir/depend
+	$(MAKE) $(MAKESILENT) -f libsrc/xilffs/src/CMakeFiles/xilffs.dir/build.make libsrc/xilffs/src/CMakeFiles/xilffs.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num=70,71,72 "Built target xilffs"
+.PHONY : libsrc/xilffs/src/CMakeFiles/xilffs.dir/all
+
+# Build rule for subdir invocation for target.
+libsrc/xilffs/src/CMakeFiles/xilffs.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 libsrc/xilffs/src/CMakeFiles/xilffs.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles 0
+.PHONY : libsrc/xilffs/src/CMakeFiles/xilffs.dir/rule
+
+# Convenience name for target.
+xilffs: libsrc/xilffs/src/CMakeFiles/xilffs.dir/rule
+.PHONY : xilffs
+
+# clean rule for target.
+libsrc/xilffs/src/CMakeFiles/xilffs.dir/clean:
+	$(MAKE) $(MAKESILENT) -f libsrc/xilffs/src/CMakeFiles/xilffs.dir/build.make libsrc/xilffs/src/CMakeFiles/xilffs.dir/clean
+.PHONY : libsrc/xilffs/src/CMakeFiles/xilffs.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

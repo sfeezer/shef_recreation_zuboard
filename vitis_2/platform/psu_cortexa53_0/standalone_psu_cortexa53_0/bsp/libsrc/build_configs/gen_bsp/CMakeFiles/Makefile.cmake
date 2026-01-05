@@ -73,6 +73,10 @@ set(CMAKE_MAKEFILE_DEPENDS
   "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/uartps/src/CMakeLists.txt"
   "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/usbpsu/src/CMakeLists.txt"
   "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/wdtps/src/CMakeLists.txt"
+  "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xilffs/src/CMakeLists.txt"
+  "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xilffs/src/include/CMakeLists.txt"
+  "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xilffs/src/xilffs.cmake"
+  "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xilffs/src/xilffs_config.h.in"
   "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xiltimer/src/CMakeLists.txt"
   "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xiltimer/src/XiltimerExample.cmake"
   "E:/x/shef/vitis_2/platform/psu_cortexa53_0/standalone_psu_cortexa53_0/bsp/libsrc/xiltimer/src/core/CMakeLists.txt"
@@ -135,6 +139,9 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "libsrc/xiltimer/src/CMakeFiles/CMakeDirectoryInformation.cmake"
   "libsrc/xiltimer/src/core/CMakeFiles/CMakeDirectoryInformation.cmake"
   "libsrc/xiltimer/src/core/ttcps/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "include/xilffs_config.h"
+  "libsrc/xilffs/src/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "libsrc/xilffs/src/include/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
@@ -163,4 +170,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "libsrc/zdma/src/CMakeFiles/zdma.dir/DependInfo.cmake"
   "libsrc/standalone/src/CMakeFiles/xilstandalone.dir/DependInfo.cmake"
   "libsrc/xiltimer/src/CMakeFiles/xiltimer.dir/DependInfo.cmake"
+  "libsrc/xilffs/src/CMakeFiles/xilffs.dir/DependInfo.cmake"
   )

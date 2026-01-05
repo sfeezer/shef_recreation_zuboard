@@ -63,6 +63,20 @@
         "qemuArgsFile": "E:\\x\\shef\\vitis_2\\platform\\resources\\standalone_psu_cortexa53_0\\qemu\\qemu_args.txt",
         "pmcQemuArgsFile": "E:\\x\\shef\\vitis_2\\platform\\resources\\standalone_psu_cortexa53_0\\qemu\\pmu_args.txt",
         "isBSPGenReq": false
+      },
+      {
+        "name": "standalone_psu_cortexr5_0",
+        "displayName": "standalone_psu_cortexr5_0",
+        "processor": "psu_cortexr5_0",
+        "cpuType": "cortex-r5",
+        "cpuInstance": "psu_cortexr5_0",
+        "os": "standalone",
+        "appTemplate": "empty_application",
+        "isBootDomain": false,
+        "qemuData": "E:\\x\\shef\\vitis_2\\platform\\resources\\standalone_psu_cortexr5_0\\qemu",
+        "qemuArgsFile": "E:\\x\\shef\\vitis_2\\platform\\resources\\standalone_psu_cortexr5_0\\qemu\\qemu_args.txt",
+        "pmcQemuArgsFile": "E:\\x\\shef\\vitis_2\\platform\\resources\\standalone_psu_cortexr5_0\\qemu\\pmu_args.txt",
+        "isBSPGenReq": false
       }
     ],
     "emptyToolchainConfiguration": []

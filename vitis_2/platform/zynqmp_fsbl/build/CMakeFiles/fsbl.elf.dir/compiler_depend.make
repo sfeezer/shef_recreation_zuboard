@@ -132,7 +132,9 @@ CMakeFiles/fsbl.elf.dir/xfsbl_main.c.obj: E:/x/shef/vitis_2/platform/zynqmp_fsbl
   E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_misc.h \
   E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_main.h \
   E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_image_header.h \
-  E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_misc_drivers.h
+  E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_misc_drivers.h \
+  E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_authentication.h \
+  E:/x/shef/vitis_2/platform/zynqmp_fsbl/dev_key.h
 
 CMakeFiles/fsbl.elf.dir/xfsbl_misc.c.obj: E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_misc.c \
   E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_hw.h \
@@ -280,6 +282,8 @@ E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_tpm.h:
 E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_handoff.c:
 
 E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_bs.h:
+
+E:/x/shef/vitis_2/platform/zynqmp_fsbl/dev_key.h:
 
 E:/x/shef/vitis_2/platform/zynqmp_fsbl/xfsbl_main.h:
 

@@ -1,0 +1,18 @@
+{
+  "name": "security_kernel",
+  "type": "HOST",
+  "platform": "E:\\x\\shef\\vitis_2\\platform\\export\\platform\\platform.xpfm",
+  "domain": "standalone_psu_cortexr5_0",
+  "cpuInstance": "psu_cortexr5_0",
+  "cpuType": "cortex-r5",
+  "os": "standalone",
+  "configuration": {
+    "componentType": "HOST",
+    "hostToolchainConfigurations": []
+  },
+  "domainRealName": "standalone_psu_cortexr5_0",
+  "applicationFlow": "EMBEDDED",
+  "previousBuildStatusMap": {
+    "hw": "SUCCESS"
+  }
+}

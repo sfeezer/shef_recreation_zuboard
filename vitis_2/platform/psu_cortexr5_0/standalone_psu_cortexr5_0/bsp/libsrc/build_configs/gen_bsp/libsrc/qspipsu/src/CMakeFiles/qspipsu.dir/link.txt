@@ -1,0 +1,2 @@
+armr5-none-eabi-ar qc libqspipsu.a CMakeFiles/qspipsu.dir/xqspipsu.c.obj CMakeFiles/qspipsu.dir/xqspipsu_control.c.obj CMakeFiles/qspipsu.dir/xqspipsu_g.c.obj CMakeFiles/qspipsu.dir/xqspipsu_options.c.obj CMakeFiles/qspipsu.dir/xqspipsu_sinit.c.obj CMakeFiles/qspipsu.dir/xqspipsu_xfer.c.obj CMakeFiles/qspipsu.dir/xqspipsu_hw.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/armr5/nt/gcc-arm-none-eabi/bin/armr5-none-eabi-ranlib.exe libqspipsu.a

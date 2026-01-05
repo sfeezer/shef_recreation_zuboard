@@ -1,0 +1,27 @@
+[
+{
+  "directory": "E:/x/shef/vitis_2/runtime/build",
+  "command": "E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc.exe  -isystem E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include-fixed -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/aarch64-xilinx-elf/usr/include  -O2 -DSDT  -MMD -MP -specs=E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/Xilinx.spec -IE:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -Wall -Wextra      -O0  -g3     -U__clang__ -o CMakeFiles/runtime.elf.dir/kernel_driver.c.obj -c E:/x/shef/vitis_2/runtime/src/kernel_driver.c",
+  "file": "E:/x/shef/vitis_2/runtime/src/kernel_driver.c"
+},
+{
+  "directory": "E:/x/shef/vitis_2/runtime/build",
+  "command": "E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc.exe  -isystem E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include-fixed -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/aarch64-xilinx-elf/usr/include  -O2 -DSDT  -MMD -MP -specs=E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/Xilinx.spec -IE:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -Wall -Wextra      -O0  -g3     -U__clang__ -o CMakeFiles/runtime.elf.dir/main.c.obj -c E:/x/shef/vitis_2/runtime/src/main.c",
+  "file": "E:/x/shef/vitis_2/runtime/src/main.c"
+},
+{
+  "directory": "E:/x/shef/vitis_2/runtime/build",
+  "command": "E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc.exe  -isystem E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include-fixed -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/aarch64-xilinx-elf/usr/include  -O2 -DSDT  -MMD -MP -specs=E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/Xilinx.spec -IE:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -Wall -Wextra      -O0  -g3     -U__clang__ -o CMakeFiles/runtime.elf.dir/platform.c.obj -c E:/x/shef/vitis_2/runtime/src/platform.c",
+  "file": "E:/x/shef/vitis_2/runtime/src/platform.c"
+},
+{
+  "directory": "E:/x/shef/vitis_2/runtime/build",
+  "command": "E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc.exe  -isystem E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include-fixed -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/aarch64-xilinx-elf/usr/include  -O2 -DSDT  -MMD -MP -specs=E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/Xilinx.spec -IE:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -Wall -Wextra      -O0  -g3     -U__clang__ -o CMakeFiles/runtime.elf.dir/sd_driver.c.obj -c E:/x/shef/vitis_2/runtime/src/sd_driver.c",
+  "file": "E:/x/shef/vitis_2/runtime/src/sd_driver.c"
+},
+{
+  "directory": "E:/x/shef/vitis_2/runtime/build",
+  "command": "E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/bin/aarch64-none-elf-gcc.exe  -isystem E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/x86_64-oesdk-mingw32/usr/lib/aarch64-xilinx-elf/gcc/aarch64-xilinx-elf/12.2.0/include-fixed -isystem E:/Xilinx/Vitis/2023.2/gnu/aarch64/nt/aarch64-none/aarch64-xilinx-elf/usr/include  -O2 -DSDT  -MMD -MP -specs=E:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/Xilinx.spec -IE:/x/shef/vitis_2/platform/export/platform/sw/standalone_psu_cortexa53_0/include -Wall -Wextra      -O0  -g3     -U__clang__ -o CMakeFiles/runtime.elf.dir/uart_driver.c.obj -c E:/x/shef/vitis_2/runtime/src/uart_driver.c",
+  "file": "E:/x/shef/vitis_2/runtime/src/uart_driver.c"
+}
+]

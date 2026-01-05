@@ -1,0 +1,325 @@
+Chapter 10
+System Addresses
+Introduction
+This chapter describes the address map of the AMD Zynq™ UltraScale+™ MPSoC that can
+support a single address map configuration for up to 1 TB of physical address space. The
+Arm v8-A architecture allows physical address configuration by software.
+Global Address Map
+The global address map is composed of multiple inclusive address maps, depending on the
+address width of the interface master. The Zynq UltraScale+ MPSoC address map is 40 bits
+(the physical address space is a maximum of 40 bits).
+32-bit (4 GB) Address Map
+To maintain compatibility with 32-bit software, a lower 4 GB address map provides aperture
+for all the devices. All of the peripheral address space is allocated in the lower 4 GB, with a
+fixed address map.
+36-bit (64 GB) Address Map
+The 36-bit address map is a superset of the 32-bit address map. The address space beyond
+4 GB is allocated to the PL, the interface for PCIe, and the DDR controller. An additional
+32 GB is allocated to the DDR controller in this region.
+40-bit (1 TB) Address Map
+The 40-bit address map is a superset of the 36-bit address map. The address space beyond
+64 GB is allocated to the PL and the interface for PCIe.
+Send FeedbackZynq UltraScale+ Device TRM 210
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+System Address Map Interconnects
+Based on the required address size, a page translation table walk can use fewer steps. For
+example, a 40-bit address translation (to 4 KB pages) takes four table-walker steps. A 36-bit
+address translation takes three table-walker steps. Thus, in a 40-bit address size system,
+performance is optimized by limiting the address size to 36 bits, if a 36-bit address size is
+sufficient for the application.
+The interconnect addresses between various processing system (PS) masters to the
+translation buffer units (TBUs) of the system memory management unit (SMMU) are virtual
+addresses. The address bus (from master to SMMU) is 48 bits for the 64-bit compliant PS
+masters (APU, PCIe, SATA, DisplayPort, USB, GEM, SD, NAND, QSPI, and the CSU, LPD, and
+DMA units). The 32-bit PS masters provide a 32-bit address bus, which is zero-extended to
+48 bits. The SMMU supports a 49-bit address. For PS-masters, the 49th address bit to the
+SMMU is zero, and the address bus from the programmable logic (PL) AXI interfaces into
+the PS is 49 bits.
+Send FeedbackZynq UltraScale+ Device TRM 211
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+The global system address map is shown in Figure 10-1.
+The SMMU supports two stage translations: Stage 1 (virtual address (VA) to intermediate
+physical address (IPA)), and stage 2 (IPA to physical address). The PS master virtualization
+target is primarily a stage 2 translation (for example, a hypervisor scenario uses only
+stage 2 translations). The PL can use a stage 1 and/or a stage 2 translation. For details on
+SMMU translation, see the SMMU Architecture section in Chapter 3.
+X-Ref Target - Figure 10-1
+Figure 10-1: Global System Address Map
+M_AXI_HPM0_FPD
+M_AXI_HPM1_FPD
+DDR Memory Controller
+PCIe
+PCIe High
+CSU, PMU, TCM, OCM
+LPD Slaves
+LPD Slaves, CoreSight Ext.
+FPD Slaves
+reserved
+RPU LL port
+CoreSight STMs
+M_AXI_HPM1_FPD
+reserved
+4 MB
+12 MB
+16 MB
+16 MB
+63 MB
+1 MB
+16 MB
+128 MB
+256 MB
+224 GB
+8 GB
+224 GB
+32 GB
+256 GB
+M_AXI_HPM0_FPD
+M_AXI_HPM1_FPD 4 GB
+4 GB
+reserved 12 GB
+4 GB 0x1_0000_0000
+Quad-SPI 512 MB
+Lower PCIe 256 MB
+M_AXI_HPM0_FPD 192 MB
+VCU Slave Interface 64 MB
+DDR Memory Controller
+2048 MB
+3 GB 0xC000_0000
+2 GB 0x8000_0000
+1 GB 0x4000_0000
+0
+64 GB 0x10_0000_0000
+768 GB 0xC0_0000_0000
+512 GB 0x80_0000_0000
+32-bit 36-bit 40-bit
+reserved 256 GB
+1 TB 0x100_0000_0000
+M_AXI_HPM0_LPD 512 MB
+2.5 GB 0xA000_0000
+X15256-062322
+Send FeedbackZynq UltraScale+ Device TRM 212
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+For the stage 2 translation, the Arm v8 architecture supports a maximum of 48 bits of IPA
+address. For the stage 1 translation, the Arm v8 architecture supports a 49-bit maximum
+addressing.
+Send FeedbackZynq UltraScale+ Device TRM 213
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+System Address Map
+PL AXI Interface
+The AXI interface from the LPD to PL is assigned a fixed address space of 512 MB in the
+lower 4 GB address space. It is typically used for LPD to PL communications because it
+provides a low-latency path from the LPD masters like the RPU and the LPD DMA unit to the
+PL. The AXI interfaces from the FPD to PL are assigned multiple address ranges.
+The comprehensive system-level addresses map is shown in Table 10-1.
+Table 10-1: Top-Level System Address Map
+Slave Name Size Start Address End Address
+DDR Low 2 GB 0x0000_0000 0x7FFF_FFFF
+M_AXI_HPM0_LPD (LPD_PL) 512 MB 0x8000_0000 0x9FFF_FFFF
+VCU(1) 64 MB 0xA000_0000 0xA3FF_FFFF
+M_AXI_HPM0_FPD (HPM0) interface(1) 192 MB 0xA400_0000 0xAFFF_FFFF
+M_AXI_HPM1_FPD (HPM1) interface 256 MB 0xB000_0000 0xBFFF_FFFF
+Quad-SPI 512 MB 0xC000_0000 0xDFFF_FFFF
+PCIe Low 256 MB 0xE000_0000 0xEFFF_FFFF
+Reserved 128 MB 0xF000_0000 0xF7FF_FFFF
+STM CoreSight 16 MB 0xF800_0000 0xF8FF_FFFF
+APU GIC 1 MB 0xF900_0000 0xF90F_FFFF
+Reserved 63 MB 0xF910_0000 0xFCFF_FFFF
+FPD slaves 16 MB 0xFD00_0000 0xFDFF_FFFF
+Upper LPD slaves 16 MB 0xFE00_0000 0xFEFF_FFFF
+Lower LPD slaves 12 MB 0xFF00_0000 0xFFBF_FFFF
+CSU, PMU, TCM, OCM 4 MB 0xFFC0_0000 0xFFFF_FFFF
+Reserved 12 GB 0x0001_0000_0000 0x0003_FFFF_FFFF
+M_AXI_HPM0_FPD (HPM0) 4 GB 0x0004_0000_0000 0x0004_FFFF_FFFF
+M_AXI_HPM1_FPD (HPM1) 4 GB 0x0005_0000_0000 0x0005_FFFF_FFFF
+PCIe High 8 GB 0x0006_0000_0000 0x0007_FFFF_FFFF
+DDR High 32 GB 0x0008_0000_0000 0x000F_FFFF_FFFF
+M_AXI_HPM0_FPD (HPM0) 224 GB 0x0010_0000_0000 0x0047_FFFF_FFFF
+M_AXI_HPM1_FPD (HPM1) 224 GB 0x0048_0000_0000 0x007F_FFFF_FFFF
+PCIe High 256 GB 0x0080_0000_0000 0x00BF_FFFF_FFFF
+Send FeedbackZynq UltraScale+ Device TRM 214
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+As listed in Table 10-2, the 4 MB region is further partitioned and set aside for the
+configuration security unit (CSU: Chapter 11), platform management unit (PMU: Chapter 6),
+tightly-coupled memory in RPU (RPU: Chapter 4), and on-chip memory (OCM: Chapter 18).
+Reserved 256 GB 0x00C0_0000_0000 0x00FF_FFFF_FFFF
+Notes:
+1. The VCU is mapped by the design tools to the 64 MB address space listed in Table 10-1, but it can be configured to another
+address within an M_AXI_HPMx_FPD address range, if desired. If VCU is not mapped, the M_AXI_HPM0_FPD interface has a
+256 MB range.
+Table 10-1: Top-Level System Address Map (Cont’d)
+Slave Name Size Start Address End Address
+Table 10-2: CSU, PMU, TCM, and OCM Address Space
+Slave Name Size Start Address End Address
+CSU_RAM 32 KB 0x00FFC40000 0x00FFC47FFF
+CSU_ROM 128 KB 0x00FFC00000 0x00FFC1FFFF
+EFUSE 64 KB 0x00FFCC0000 0x00FFCCFFFF
+PMU_ROM 256 KB 0x00FFD00000 0x00FFD3FFFF
+PMU_RAM 128 KB 0x00FFDC0000 0x00FFDDFFFF
+OCM_RAM 256 KB 0x00FFFC0000 0x00FFFFFFFF
+R5_0_ATCM_SPLIT 64 KB 0x00FFE00000 0x00FFE0FFFF
+R5_0_BTCM_SPLIT 64 KB 0x00FFE20000 0x00FFE2FFFF
+R5_0_ICACHE 64 KB 0x00FFE40000 0x00FFE4FFFF
+R5_0_DCACHE 64 KB 0x00FFE50000 0x00FFE5FFFF
+R5_1_ATCM_SPLIT 64 KB 0x00FFE90000 0x00FFE9FFFF
+R5_1_BTCM_SPLIT 64 KB 0x00FFEB0000 0x00FFEBFFFF
+R5_1_ICACHE 64 KB 0x00FFEC0000 0x00FFECFFFF
+R5_1_DCACHE 64 KB 0x00FFED0000 0x00FFEDFFFF
+R5_0_ATCM_LSTEP 128 KB 0x00FFE00000 0x00FFE1FFFF
+R5_0_BTCM_LSTEP 128 KB 0x00FFE20000 0x00FFE3FFFF
+Send FeedbackZynq UltraScale+ Device TRM 215
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+The reserved address regions are listed in Table 10-3.
+System Address Register Overview
+The registers for system-level control, private bus, PS I/O peripherals, and miscellaneous PS
+functions are listed in this section.
+System-level Control Registers
+The system-level control register sets are used to control the PS behavior. The detailed
+descriptions for each register is available in the Zynq UltraScale+ MPSoC Register Reference
+(UG1087) [Ref 4]. A summary of the registers with their base addresses is shown in
+Table 10-4. Several register sets always require a secure access. All registers are accessed via
+the XPPU, which can set the access requirements for secure, read/write, and by master. For
+more information on System Software Mutexes, see System Software Mutexes on Zynq UltraScale
+[Ref 59].
+Table 10-3: Reserved Addresses
+Address Range Notes
+0xF000_0000 to 0xF7FF_FFFF 128 MB reserved
+0xF910_0000 to 0xFCFF_FFFF 63 MB reserved
+Table 10-4: System-level Register Sets
+Base Address Name Secure
+Access Description
+0xFD1A_0000 CRF_APB XMPU FPD clock and reset control.
+0xFD5C_0000 APU XMPU APU control. See Table 3-2, page 62.
+0xFD61_0000 FPD_SLCR XMPU Global SLCR for full-power domain (FPD).
+0xFD69_0000 FPD_SLCR_SECURE Yes Global SLCR for FPD TrustZone settings for PCIe, SATA, and
+other protocols.
+0xFF18_0000 IOU_SLCR XPPU IOU SLCR for MIO pin configuration.
+0xFF24_0000 IOU_SECURE_SLCR Yes IOU SLCR for AXI read/write protection configuration.
+0xFF26_0000 IOU_SCNTRS Yes Always system timestamp generator.
+0xFF41_0000 LPD_SLCR XPPU SLCR for the low-power domain (LPD).
+0xFF4B_0000 LPD_SLCR_SECURE Yes SLCR for LPD TrustZone configuration.
+0xFF5E_0000 CRL_APB XPPU LPD clock and reset control.
+0xFF9A_0000 RPU XPPU RPU control.
+0xFD6E_0000 CCI_GPV Yes CCI_GPV (CCI400, parameters)
+0xFD70_0000 FPD_GPV Yes FPD_GPV (parameters)
+Send FeedbackZynq UltraScale+ Device TRM 216
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+Private CPU Registers
+There are separate private CPU registers for the RPUs and APUs to program the interrupt
+controllers. The addresses are shown in Table 10-5. The APU_GIC is located on the AXI
+interconnect and can be made exclusively accessible to the APU by using the FPD_XMPU
+protection unit.
+Note: The generic CPU timer, L2 cache, and SCU (etc.) in the APU can only be accessed through
+co-processor instructions, they are not memory mapped.
+PS I/O Peripherals Registers
+The I/O peripheral registers are accessed through the 32-bit APB bus. The base addresses
+for both the low-power domain and the and full-power domain peripherals are listed in
+Table 10-6 and Table 10-7.
+Table 10-5: CPU Private Registers
+Register Base Address Description
+0xF900_0000 to 0xF900_1FFF GIC distributor.
+0xF900_2000 to 0xF900_2FFF GICC interface.
+0xFD6E_0000 to 0xFD6E_FFFF CCI_GPV (CCI400, parameters)
+0xFD70_0000 to 0xFD7F_FFFF FPD_GPV (parameters)
+0xFE00_0000 to 0xFE0F_FFFF IOU_GPV (parameters)
+0xFE10_0000 to 0xFE1F_FFFF LPD_GPV (parameters
+0xFD80_0000 to 0xFDFF_FFFF SMMU_GPV (SMMU500, parameters)
+Table 10-6: I/O Peripherals Register Map (LPD)
+Base Address Description
+0xFF00_0000, 0xFF01_0000 UART0, UART1
+0xFF02_0000, xFF03_0000 I2C0, I2C1
+0xFF04_0000, 0xFF05_0000 SPI0, SPI1
+0xFF06_0000, 0xFF07_0000 CAN0, CAN1
+0xFF0A_0000 GPIO
+0xFF0B_0000, 0xFF0C_0000,
+0xFF0D_0000, 0xFF0E_0000
+GEM0, GEM1, GEM2, GEM3
+0xFF0F_0000 QSPI
+0xFF10_0000 NAND(1)(2)
+0xFF16_0000, 0xFF17_0000 SD0, SD1
+0xFF99_0000 IPI message buffer memory; see Table 13-3.
+0xFF9D_0000, 0xFF9E_0000 USB0, USB1
+Send FeedbackZynq UltraScale+ Device TRM 217
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+PS System Registers
+Registers not covered in the previous sections are listed in Table 10-8.
+0xFFA5_0000, 0xFFA5_0800,
+0xFFA5_0C00(3)
+System monitor register sets (AMS, PSSYSMON,
+PLSYSMON)
+0xFFCB_0000 CSU_SWDT, system watchdog timer (csu_pmu_wdt).
+Notes:
+1. NAND cannot be accessed through AXI as a linear mode peripheral.
+2. AXI address cannot be directly translated to NAND memory address.
+3. The default address for the PL SYSMON register set is 0xFFA5_0C00, but can be changed by instantiating the
+SYSMONE4 LogiCORE and mapping it to an M_AXI_HPMx_FPD or M_AXI_HPM0_LPD interface to the PL.
+Table 10-7: I/O Peripheral Register Map (FPD)
+Base Address Description
+0xFD0C_0000 SATA registers (HBA, vendor, port-0/1 control)
+0xFD0E_0000 AXI PCIe bridge
+0xFD0E_0800 AXI PCIe ingress {0:7}
+0xFD0E_0C00 AXI PCIe egress {0:7}
+0xFD0F_0000 AXI PCIe DMA {0:7}
+0xFD3D_0000 SIOU slave access ports
+0xFD40_0000 PS GTR transceivers
+0xFD48_0000 PCIe attributes
+0xFD4A_0000 DisplayPort controller
+0xFD4B_0000 GPU
+0xFD4C_0000 DisplayPort DMA
+Table 10-6: I/O Peripherals Register Map (LPD) (Cont’d)
+Base Address Description
+Table 10-8: PS System Register Map (LPD)
+Base Address Description
+0xFF30_0000 Inter-processor interrupts (IPI)
+0xFF11_0000, 0xFF12_0000,
+0xFF13_0000, 0xFF14_0000
+TTC0, TTC1, TTC2, TTC3
+0xFF15_0000 LPD_SWDT, system watchdog timer (swdt0)
+0xFF98_0000 XPPU (Xilinx peripheral protection unit)
+0xFF9C_0000 XPPU_Sink
+0xFF9B_0000 PL_LPD (S_AXI_LPD)
+0xFFA0_0000 Arm for OCM interconnect
+0xFFA1_0000 Arm for LPD to FPD interconnect
+Send FeedbackZynq UltraScale+ Device TRM 218
+UG1085 (v2.5) March 21, 2025
+Chapter 10: System Addresses
+0xFFA6_0000 Real-time clock (RTC)
+0xFFA7_0000 OCM_XMPU
+0xFFA8_0000 LPD_DMA channels {0:7}
+0xFFC8_0000 CSU_DMA
+0xFFCA_0000 Configuration and security unit (CSU)
+0xFFCD_0000 Battery-backed RAM (BBRAM) control and data
+Table 10-8: PS System Register Map (LPD) (Cont’d)
+Base Address Description
+Table 10-9: PS System Register Map (FPD)
+Base Address Description
+0xFD00_0000 DDR_XMPU{0:5}
+0xFD07_0000 DDR controller
+0xFD08_0000 DDR PHY
+0xFD09_0000 DDR QoS control
+0xFD0B_0000 Arm for DDR
+0xFD36_0000 HPC0 (S_AXI_HPC0_FPD)
+0xFD37_0000 HPC1 (S_AXI_HPC1_FPD)
+0xFD38_0000 HP0 (S_AXI_HP0_FPD)
+0xFD39_0000 HP1 (S_AXI_HP1_FPD)
+0xFD3A_0000 HP2 (S_AXI_HP2_FPD)
+0xFD3B_0000 HP3 (S_AXI_HP3_FPD)
+0xFD49_0000 Arm for CCI
+0xFD4D_0000 FPD_SWDT, system watchdog timer (swdt1)
+0xFD50_0000 FPD_DMA channels {0:7}
+0xFD5D_0000 FPD_XMPU
+0xFD4F_0000 XMPU_Sink (FPD)
+0xFD5E_0000 CCI_REG register set wrapper: debug enables
+0xFD5F_0000 SMMU_REG (interrupts, power, and unit control)
+0xFD6E_0000 CCI_GPV (CCI400, parameters)
+0xFD70_0000 FPD_GPV (parameters)
+0xFD80_0000 SMMU_GPV (SMMU500, parameters)
+0xFE00_0000 IOU_GPV (parameters)
+0xFE10_0000 LPD_GPV (parameters

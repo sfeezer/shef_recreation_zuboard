@@ -52,20 +52,28 @@ When suggesting code changes:
 - [X] Successfully compile ported PMUFW.
 - [X] Partially Port custom FSBL source from `u96/` to `vitis/zynqmp_fsbl/`.
 - [X] Create a new, working baseline FSBL for the A53 core in a clean `vitis_2` workspace.
-- [ ] Port custom hashing and handoff logic from `u96/fsbl` into the new `vitis_2` FSBL.
+- [X] Port custom hashing and handoff logic from `u96/fsbl` into the new `vitis_2` FSBL.
 - [ ] Re-enable and integrate secure boot features into the `vitis_2` FSBL.
 - [ ] In `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c`, update hashing logic to use the correct memory addresses and size for the `hello_world` application's executable code section.
 - [ ] Demonstrate working hashing of `hello_world` code by `zynqmp_fsbl`
-- [ ] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
+- [In Progress] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
 - [ ] Successfully compile ported Security Kernel.
 - [ ] Integrate Security Kernel into the boot flow, replacing `hello_world`.
 - [ ] Full system test of the ShEF boot flow on hardware.
 
-## 7. Current Status & Next Steps (as of January 2, 2026)
-- **New Baseline:** The `vitis` workspace is deprecated. All new development should occur in the `vitis_2` workspace (`E:\x\shef\vitis_2`).
-- **PMUFW Porting Complete:** The custom PMU Firmware has been successfully ported and compiles.
-- **Working FSBL:** A clean, 64-bit FSBL for the A53 core has been successfully built in `vitis_2/platform/zynqmp_fsbl`.
-- **FSBL Configuration:**
-  - This FSBL required the `ARMA53_64` symbol to be manually defined in the compiler settings to work around a Vitis 2023.2 template issue.
-  - To fit within OCM, several features were temporarily disabled in `xfsbl_config.h`: `FSBL_NAND_EXCLUDE_VAL`, `FSBL_QSPI_EXCLUDE_VAL`, `FSBL_SECURE_EXCLUDE_VAL`, and `FSBL_BS_EXCLUDE_VAL` were all set to `1U`.
-- **Next Step:** Port the custom hashing and handoff logic from the `u96/fsbl` source files into the new, working `vitis_2/platform/zynqmp_fsbl` project.
+## 7. Current Status & Next Steps
+
+### As of January 4, 2026 (End of Day)
+- **Runtime Porting Complete:** Successfully ported the `runtime` application from the `u96` project. All compilation errors related to `xilffs` API changes have been resolved. The application now builds successfully.
+- **Security Kernel Compiled:** Resolved the linker overflow by reducing the stack size by 2KB in `lscript.ld` based on a static analysis of the code's stack usage. The `security_kernel` application now compiles and links successfully.
+- **Static Analysis Complete:** Performed a detailed static analysis of the call graphs for all major cryptographic functions (`ed25519`, `sha3`) to estimate peak stack usage. The analysis suggests the deepest stack usage is ~1.4 KB, which is well within the new `0xD00` (3328 bytes) stack size.
+- **New Plan:** The project will now shift to incremental hardware verification.
+
+### Next Steps for Tomorrow
+1.  **Create Clean Baseline:** Comment out all ShEF-specific logic in `zynqmp_fsbl/xfsbl_main.c` and `security_kernel/main.c` to create a minimal system that boots to the `runtime` application without executing any custom security code.
+2.  **Hardware Verification:** The user will build this clean baseline and execute it on the ZuBoard 1CG to confirm that the basic boot flow (FSBL -> Security Kernel -> Runtime) is functional.
+3.  **Incremental ShEF Re-Enablement:** Once the baseline is verified, begin re-enabling the commented-out ShEF functions in their natural order of execution, debugging each step on hardware as it's added. The planned order is:
+    -   Re-enable FSBL hashing of the Security Kernel.
+    -   Re-enable Security Kernel key generation and certificate request.
+    -   Re-enable PMU signing and certificate return.
+    -   Continue until the full ShEF flow is restored and functional.
