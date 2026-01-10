@@ -54,26 +54,27 @@ When suggesting code changes:
 - [X] Create a new, working baseline FSBL for the A53 core in a clean `vitis_2` workspace.
 - [X] Port custom hashing and handoff logic from `u96/fsbl` into the new `vitis_2` FSBL.
 - [ ] Re-enable and integrate secure boot features into the `vitis_2` FSBL.
-- [ ] In `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c`, update hashing logic to use the correct memory addresses and size for the `hello_world` application's executable code section.
-- [ ] Demonstrate working hashing of `hello_world` code by `zynqmp_fsbl`
-- [In Progress] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
-- [ ] Successfully compile ported Security Kernel.
-- [ ] Integrate Security Kernel into the boot flow, replacing `hello_world`.
+- [ ] In `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c`, update hashing logic to use the correct memory addresses and size for the `security_kernel` application's executable code sections.
+- [X] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
+- [X] Successfully compile ported Security Kernel.
+- [ ] Test the full system boot flow (FSBL -> Security Kernel -> Runtime) on the QEMU simulator.
 - [ ] Full system test of the ShEF boot flow on hardware.
 
 ## 7. Current Status & Next Steps
 
-### As of January 4, 2026 (End of Day)
-- **Runtime Porting Complete:** Successfully ported the `runtime` application from the `u96` project. All compilation errors related to `xilffs` API changes have been resolved. The application now builds successfully.
-- **Security Kernel Compiled:** Resolved the linker overflow by reducing the stack size by 2KB in `lscript.ld` based on a static analysis of the code's stack usage. The `security_kernel` application now compiles and links successfully.
-- **Static Analysis Complete:** Performed a detailed static analysis of the call graphs for all major cryptographic functions (`ed25519`, `sha3`) to estimate peak stack usage. The analysis suggests the deepest stack usage is ~1.4 KB, which is well within the new `0xD00` (3328 bytes) stack size.
-- **New Plan:** The project will now shift to incremental hardware verification.
+### As of January 10, 2026 (End of Day)
+- **Runtime Porting Complete:** The `runtime` application has been ported and compiles successfully.
+- **Security Kernel Compiled:** The linker overflow issue was resolved by reducing the stack size by 2KB (to 0xD00). The application now links successfully.
+- **Clean Baseline Created:** 
+    - All ShEF-specific hashing logic in `zynqmp_fsbl/xfsbl_main.c` has been commented out.
+    - All ShEF-specific logic in `security_kernel/main.c` has been commented out.
+    - All ShEF handshake logic in `runtime/src/main.c` has been commented out to prevent hanging.
+    - This creates a minimal, safe boot flow (FSBL -> Security Kernel -> Runtime) ready for initial hardware verification.
 
-### Next Steps for Tomorrow
-1.  **Create Clean Baseline:** Comment out all ShEF-specific logic in `zynqmp_fsbl/xfsbl_main.c` and `security_kernel/main.c` to create a minimal system that boots to the `runtime` application without executing any custom security code.
-2.  **Hardware Verification:** The user will build this clean baseline and execute it on the ZuBoard 1CG to confirm that the basic boot flow (FSBL -> Security Kernel -> Runtime) is functional.
-3.  **Incremental ShEF Re-Enablement:** Once the baseline is verified, begin re-enabling the commented-out ShEF functions in their natural order of execution, debugging each step on hardware as it's added. The planned order is:
-    -   Re-enable FSBL hashing of the Security Kernel.
-    -   Re-enable Security Kernel key generation and certificate request.
-    -   Re-enable PMU signing and certificate return.
-    -   Continue until the full ShEF flow is restored and functional.
+### Next Steps
+1.  **Hardware Verification:** The user will build this clean baseline and execute it on the ZuBoard 1CG to confirm that the basic boot flow functions correctly.
+2.  **Incremental ShEF Re-Enablement:** Once the baseline is verified, we will begin re-enabling the ShEF functions one by one, debugging each step on hardware:
+    -   **Step 1:** Re-enable FSBL hashing of the Security Kernel.
+    -   **Step 2:** Re-enable Security Kernel key generation and certificate request.
+    -   **Step 3:** Re-enable PMU signing and certificate return.
+    -   **Step 4:** Continue until the full ShEF flow is restored.

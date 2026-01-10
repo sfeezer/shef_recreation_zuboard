@@ -72,13 +72,14 @@ extern unsigned char kernel_cert_hash[48];
 
 int main()
 {
-	int i;
-	u32 status;
+	//int i;
+	//u32 status;
 
 
     init_platform();
     xil_printf("=====================Security Kernel=================");
 
+    /*
     //Clear shared memory
     clear_shared_memory();
 
@@ -179,6 +180,7 @@ int main()
 
     //Clear the bitstream key
     memset(bitstream_key, 0, 32);
+    */
 
     while(1);
 

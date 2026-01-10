@@ -59,7 +59,7 @@ int main()
     init_platform();
 
     sleep(5);
-    int i;
+    //int i;
 //    unsigned char nonce[32];
 //    unsigned char verifier_pk[32] = {0xa9, 0x3f, 0xf0, 0x44, 0xa6, 0x35, 0x11, 0x88,
 //    		0xda, 0x2a, 0x54, 0xb4, 0x3d, 0xd9, 0xdc, 0x8c, 0x4b, 0xd4, 0x97, 0xef,
@@ -71,6 +71,7 @@ int main()
 //    	nonce[i] = i;
 //    }
 
+    /*
     //First, wait for the remote verifier to send its nonce and PK to us
     u32 status;
     status = handle_uart_cmd();
@@ -99,6 +100,7 @@ int main()
 	Xil_DCacheDisable();
 	wait_for_kernel();
 	Xil_DCacheEnable();
+    */
 
 	//Handle commands from UART
 	sleep(1);
