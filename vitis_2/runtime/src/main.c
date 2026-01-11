@@ -56,9 +56,13 @@
 
 int main()
 {
+    xil_printf("Runtime: Entered main\r\n");
     init_platform();
+    xil_printf("Runtime: Platform initialized\r\n");
 
+    xil_printf("Runtime: Sleeping for 5 seconds...\r\n");
     sleep(5);
+    xil_printf("Runtime: Woke up\r\n");
     //int i;
 //    unsigned char nonce[32];
 //    unsigned char verifier_pk[32] = {0xa9, 0x3f, 0xf0, 0x44, 0xa6, 0x35, 0x11, 0x88,

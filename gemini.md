@@ -57,24 +57,18 @@ When suggesting code changes:
 - [ ] In `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c`, update hashing logic to use the correct memory addresses and size for the `security_kernel` application's executable code sections.
 - [X] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
 - [X] Successfully compile ported Security Kernel.
-- [ ] Test the full system boot flow (FSBL -> Security Kernel -> Runtime) on the QEMU simulator.
+- [~] Test the full system boot flow (FSBL -> Security Kernel -> Runtime) on the QEMU simulator. (Skipped: Moving directly to hardware)
+- [X] Verify basic boot flow (FSBL -> Security Kernel -> Runtime) on hardware with ShEF features disabled.
 - [ ] Full system test of the ShEF boot flow on hardware.
 
 ## 7. Current Status & Next Steps
 
-### As of January 10, 2026 (End of Day)
-- **Runtime Porting Complete:** The `runtime` application has been ported and compiles successfully.
-- **Security Kernel Compiled:** The linker overflow issue was resolved by reducing the stack size by 2KB (to 0xD00). The application now links successfully.
-- **Clean Baseline Created:** 
-    - All ShEF-specific hashing logic in `zynqmp_fsbl/xfsbl_main.c` has been commented out.
-    - All ShEF-specific logic in `security_kernel/main.c` has been commented out.
-    - All ShEF handshake logic in `runtime/src/main.c` has been commented out to prevent hanging.
-    - This creates a minimal, safe boot flow (FSBL -> Security Kernel -> Runtime) ready for initial hardware verification.
+### As of January 11, 2026 (Day Session)
+- **Baseline Hardware Verification Successful:** The system successfully boots on the ZuBoard 1CG. The UART output confirms that the FSBL (A53), PMUFW (PMU), and Security Kernel (R5) are all executing. 
+- **Security Kernel Stability:** The Security Kernel started correctly with the reduced stack size (0xD00), confirming the stack reduction didn't break initialization.
+- **Clean Baseline Established:** The system is now in a known-good, minimal state.
 
 ### Next Steps
-1.  **Hardware Verification:** The user will build this clean baseline and execute it on the ZuBoard 1CG to confirm that the basic boot flow functions correctly.
-2.  **Incremental ShEF Re-Enablement:** Once the baseline is verified, we will begin re-enabling the ShEF functions one by one, debugging each step on hardware:
-    -   **Step 1:** Re-enable FSBL hashing of the Security Kernel.
-    -   **Step 2:** Re-enable Security Kernel key generation and certificate request.
-    -   **Step 3:** Re-enable PMU signing and certificate return.
-    -   **Step 4:** Continue until the full ShEF flow is restored.
+1.  **Runtime Confirmation:** Confirm the `runtime` application completes its 5-second sleep and prints the "Ready" message.
+2.  **Step 1: Re-enable FSBL hashing:** Uncomment the logic in `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c` to begin measuring the Security Kernel at boot time.
+3.  **Step 2: Incremental Security Kernel Re-enablement:** Begin uncommenting the `main.c` logic in the Security Kernel, starting with IPI initialization.

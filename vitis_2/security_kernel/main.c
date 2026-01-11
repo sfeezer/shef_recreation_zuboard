@@ -77,7 +77,7 @@ int main()
 
 
     init_platform();
-    xil_printf("=====================Security Kernel=================");
+    xil_printf("=====================Security Kernel=================\r\n");
 
     /*
     //Clear shared memory
