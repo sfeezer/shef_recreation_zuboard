@@ -1,2 +1,2 @@
    text	   data	    bss	    dec	    hex	filename
-  79044	  22072	  21068	 122184	  1dd48	pmufw.elf
+  79044	  22072	  21060	 122176	  1dd40	pmufw.elf

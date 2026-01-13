@@ -811,25 +811,25 @@ libsrc/zdma/src/clean: libsrc/zdma/src/CMakeFiles/zdma.dir/clean
 # All Build rule for target.
 libsrc/CMakeFiles/combined.dir/all: libsrc/axipmon/src/CMakeFiles/axipmon.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/clockps/src/CMakeFiles/clockps.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/ddrcpsu/src/CMakeFiles/ddrcpsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/coresightps_dcc/src/CMakeFiles/coresightps_dcc.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/csudma/src/CMakeFiles/csudma.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/ddrcpsu/src/CMakeFiles/ddrcpsu.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/gpiops/src/CMakeFiles/gpiops.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/iicps/src/CMakeFiles/iicps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/emacps/src/CMakeFiles/emacps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/iicps/src/CMakeFiles/iicps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/resetps/src/CMakeFiles/resetps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/rtcpsu/src/CMakeFiles/rtcpsu.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/sdps/src/CMakeFiles/sdps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/ipipsu/src/CMakeFiles/ipipsu.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/qspipsu/src/CMakeFiles/qspipsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/scugic/src/CMakeFiles/scugic.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/sdps/src/CMakeFiles/sdps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/spips/src/CMakeFiles/spips.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/usbpsu/src/CMakeFiles/usbpsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/ttcps/src/CMakeFiles/ttcps.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/uartps/src/CMakeFiles/uartps.dir/all
-libsrc/CMakeFiles/combined.dir/all: libsrc/zdma/src/CMakeFiles/zdma.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/sysmonpsu/src/CMakeFiles/sysmonpsu.dir/all
 libsrc/CMakeFiles/combined.dir/all: libsrc/wdtps/src/CMakeFiles/wdtps.dir/all
+libsrc/CMakeFiles/combined.dir/all: libsrc/zdma/src/CMakeFiles/zdma.dir/all
 	$(MAKE) $(MAKESILENT) -f libsrc/CMakeFiles/combined.dir/build.make libsrc/CMakeFiles/combined.dir/depend
 	$(MAKE) $(MAKESILENT) -f libsrc/CMakeFiles/combined.dir/build.make libsrc/CMakeFiles/combined.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=E:/x/shef/vitis_2/platform/psu_cortexr5_0/standalone_psu_cortexr5_0/bsp/libsrc/build_configs/gen_bsp/CMakeFiles --progress-num= "Built target combined"
