@@ -93,14 +93,10 @@ XpbrServHndlrTbl = 0xffd07bc8;
    __sdata_end = .;
 } > PMU_RAM
 
-.sbss (NOLOAD) : {
-   . = ALIGN(4);
-   __sbss_start = .;
-   *(.sbss)
-   *(.sbss.*)
-   *(.gnu.linkonce.sb.*)
-   . = ALIGN(8);
-   __sbss_end = .;
+.srdata : {
+   __srdata_start = .;
+   KEEP (*(.srdata))
+   __srdata_end = .;
 } > PMU_RAM
 
 .tdata : {
@@ -109,6 +105,16 @@ XpbrServHndlrTbl = 0xffd07bc8;
    *(.tdata.*)
    *(.gnu.linkonce.td.*)
    __tdata_end = .;
+} > PMU_RAM
+
+.sbss (NOLOAD) : {
+   . = ALIGN(4);
+   __sbss_start = .;
+   *(.sbss)
+   *(.sbss.*)
+   *(.gnu.linkonce.sb.*)
+   . = ALIGN(8);
+   __sbss_end = .;
 } > PMU_RAM
 
 .tbss : {
@@ -133,12 +139,6 @@ XpbrServHndlrTbl = 0xffd07bc8;
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
 _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
-
-.srdata : {
-   __srdata_start = .;
-   KEEP (*(.srdata))
-   __srdata_end = .;
-} > PMU_RAM
 
 /* Generate Stack definitions */
 .stack (NOLOAD) : {

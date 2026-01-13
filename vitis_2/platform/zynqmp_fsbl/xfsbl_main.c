@@ -246,75 +246,137 @@ int main(void )
 						FsblStage = XFSBL_STAGE4;
 						EarlyHandoff = FsblStatus;
 
-// /*
-// 						// Hash the security kernel partition
-// 						u8 kernel_hash[XFSBL_HASH_TYPE_SHA3] __attribute__ ((aligned (4))) = {0};
 
-// 						u32 kernel_length;
-// 						const XFsblPs_PartitionHeader * partition_header;
-// 						PTRSIZE kernel_load_addr;
+						// // Hash the security kernel partition
+						// xil_printf("ShEF: Reached Hashing Block\r\n");
+						// u8 kernel_hash[XFSBL_HASH_TYPE_SHA3] __attribute__ ((aligned (4))) = {0};
+						// u32 Status;
 
-// 						//Partition in ATCM
-// 						partition_header = &FsblInstance.ImageHeader.PartitionHeader[4];
-// 						kernel_length = partition_header->TotalDataWordLength * 4U;
-// 						kernel_load_addr = ((PTRSIZE)(partition_header->DestinationLoadAddress)) + XFSBL_R50_HIGH_ATCM_START_ADDRESS;
+						// u32 kernel_length;
+						// const XFsblPs_PartitionHeader * partition_header;
+						// PTRSIZE kernel_load_addr;
+						
+						// // Temporary buffer in DDR for DMA access (TCM is not DMA-accessible during reset)
+						// u8* temp_buffer = (u8*)0x10000000;
 
-// 						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
-// 						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+						// //Partition 1: ATCM (Index 4)
+						// partition_header = &FsblInstance.ImageHeader.PartitionHeader[4];
+						// kernel_length = partition_header->TotalDataWordLength * 4U;
+						// //ATCM address needs offset adjustment for A53 view
+						// kernel_load_addr = ((PTRSIZE)(partition_header->DestinationLoadAddress)) + XFSBL_R50_HIGH_ATCM_START_ADDRESS;
 
-// 						XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
-// 						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+						// xil_printf("ShEF: Hashing Partition 4 (ATCM) at %016x, len: %d\r\n", kernel_load_addr, kernel_length);
+						
+						// // Copy to DDR for DMA
+						// xil_printf("ShEF: Copying to DDR buffer @ %p\r\n", temp_buffer);
+						// (void)XFsbl_MemCpy(temp_buffer, (u8*)kernel_load_addr, kernel_length);
+						
+						// // Verify copy
+						// xil_printf("ShEF: Data at DDR (first 16 bytes): ");
+						// for(int j=0; j<16; j++) xil_printf("%02x ", temp_buffer[j]);
+						// xil_printf("\r\n");
+
+						// // Flush cache to ensure DMA sees the data in physical RAM
+						// Xil_DCacheFlushRange((INTPTR)temp_buffer, kernel_length);
+
+						// xil_printf("ShEF: Explicitly Re-initializing CSU DMA\r\n");
+						// Status = XFsbl_CsuDmaInit(&CsuDma);
+						// if (Status != XST_SUCCESS) {
+						// 	xil_printf("ShEF: CSU DMA Init failed: %d\r\n", Status);
+						// }
+
+						// xil_printf("ShEF: Starting SHA3 Init\r\n");
+						// Status = XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
+						
+						// if (Status != XST_SUCCESS) {
+						// 	xil_printf("ShEF: Error! SHA3 Init failed: %d\r\n", Status);
+						// } else {
+						// 	// START THE ENGINE (Releases Reset)
+						// 	xil_printf("ShEF: Starting SHA3 Engine\r\n");
+						// 	XSecure_Sha3Start(&csu_sha3);
+
+						// 	// FORCE SSS CONFIGURATION: Route DMA (5) to SHA3 (Bits 11:8)
+						// 	// Read current SSS
+						// 	u32 current_sss = Xil_In32(0xFFCA0008);
+						// 	// Clear SHA3 source (Bits 11:8)
+						// 	current_sss &= ~(0xF00);
+						// 	// Set SHA3 source to DMA (0x5)
+						// 	current_sss |= (0x5 << 8);
+						// 	xil_printf("ShEF: Forcing SSS_CFG to %08x\r\n", current_sss);
+						// 	Xil_Out32(0xFFCA0008, current_sss);
+
+						// 	// DIAGNOSTICS
+						// 	u32 sss_cfg = Xil_In32(0xFFCA0008);
+						// 	u32 sha3_rst = Xil_In32(0xFF5E0058); // CRL_APB_RST_LPD_IOU2 (Just for reference)
+						// 	u32 dma_status = XCsuDma_ReadReg(CsuDma.Config.BaseAddress, 0x8); // Status offset
+							
+						// 	xil_printf("ShEF: DIAG - SSS_CFG: %08x, SHA3_RST: %08x, DMA_STS: %08x\r\n", sss_cfg, sha3_rst, dma_status);
+
+						// 	xil_printf("ShEF: Starting SHA3 Update (DMA)\r\n");
+						// 	Status = XSecure_Sha3Update(&csu_sha3, temp_buffer, kernel_length);
+						// 	if (Status != XST_SUCCESS) {
+						// 		xil_printf("ShEF: Error! SHA3 Update failed: %d\r\n", Status);
+						// 	} else {
+						// 		xil_printf("ShEF: SHA3 Update Done\r\n");
+						// 	}
+						// }
+
+                        // //Write the kernel hash to OCM
+						// xil_printf("ShEF: Kernel Hash (ATCM only): ");
+						// int i;
+						// for (i = 0; i < XFSBL_HASH_TYPE_SHA3; i++){
+						// 	xil_printf("%02x", kernel_hash[i]);
+						// 	Xil_Out8(OCM_SEC_BUFFER_ADDRESS + i, kernel_hash[i]);
+						// }
+						// xil_printf("\r\n");
+
+/*
+						//Partition 2: DDR (Index 5)
+						partition_header = &FsblInstance.ImageHeader.PartitionHeader[5];
+						kernel_length = partition_header ->TotalDataWordLength * 4U;
+						kernel_load_addr = ((PTRSIZE)(partition_header->DestinationLoadAddress));
+
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+
+						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+
+						//Partition 3: OCM (Index 6)
+						partition_header = &FsblInstance.ImageHeader.PartitionHeader[6];
+						kernel_length = partition_header ->TotalDataWordLength * 4U;
+						kernel_load_addr = ((PTRSIZE)(partition_header->DestinationLoadAddress));
 
 
-// 						//Partition in OCM
-// 						partition_header = &FsblInstance.ImageHeader.PartitionHeader[5];
-// 						kernel_length = partition_header ->TotalDataWordLength * 4U;
-// 						kernel_load_addr = ((PTRSIZE)(partition_header->DestinationLoadAddress));
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
+						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+
+						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+
+						Status = XSecure_Sha3Finish(&csu_sha3, kernel_hash);
+						if (Status != XST_SUCCESS) {
+							xil_printf("ShEF: Error! SHA3 Finish failed: %d\r\n", Status);
+						} else {
+							xil_printf("ShEF: SHA3 Finish Done. Total Len: %d\r\n", csu_sha3.Sha3Len);
+						}
 
 
-// 						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
-// 						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
-
-// 						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
-
-// 						//Partition in DDR
-// 						partition_header = &FsblInstance.ImageHeader.PartitionHeader[6];
-// 						kernel_length = partition_header ->TotalDataWordLength * 4U;
-// 						kernel_load_addr = ((PTRSIZE)(partition_header->DestinationLoadAddress));
+						//Generate the keygen seed using the kernel hash and the device key
+						XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
+						XSecure_Sha3Update(&csu_sha3, kernel_hash, XFSBL_HASH_TYPE_SHA3);
+						XSecure_Sha3Update(&csu_sha3, root_sk, 512);
+						XSecure_Sha3Update(&csu_sha3, root_mod, 512);
 
 
-// 						XFsbl_Printf(DEBUG_GENERAL, "Partition Address: %016x\r\n", kernel_load_addr);
-// 						XFsbl_Printf(DEBUG_GENERAL, "Partition Length: %08d\r\n", kernel_length);
+						XSecure_Sha3Finish(&csu_sha3, kernel_hash);
 
-// 						XSecure_Sha3Update(&csu_sha3, (u8*)kernel_load_addr, kernel_length);
+						XFsbl_Printf(DEBUG_GENERAL,"\r\nKeygen Seed: ");
 
-// 						XSecure_Sha3Finish(&csu_sha3, kernel_hash);
-
-// 						//Write the kernel hash to OCM
-// 						XFsbl_Printf(DEBUG_GENERAL,"Kernel Hash: ");
-// 						int i;
-// 						for (i = 0; i < XFSBL_HASH_TYPE_SHA3; i++){
-// 							XFsbl_Printf(DEBUG_GENERAL, "%02x", kernel_hash[i]);
-// 							Xil_Out8(OCM_SEC_BUFFER_ADDRESS + i, kernel_hash[i]);
-// 						}
-
-// 						//Generate the keygen seed using the kernel hash and the device key
-// 						XSecure_Sha3Initialize(&csu_sha3, &CsuDma);
-// 						XSecure_Sha3Update(&csu_sha3, kernel_hash, XFSBL_HASH_TYPE_SHA3);
-// 						XSecure_Sha3Update(&csu_sha3, root_sk, 512);
-// 						XSecure_Sha3Update(&csu_sha3, root_mod, 512);
-
-
-// 						XSecure_Sha3Finish(&csu_sha3, kernel_hash);
-
-// 						XFsbl_Printf(DEBUG_GENERAL,"\r\nKeygen Seed: ");
-
-// 						//Truncate the SHA3-384 output to SHA3-256
-// 						for (i = 0; i < 32; i++){
-// 							XFsbl_Printf(DEBUG_GENERAL, "%02x", kernel_hash[i]);
-// 							Xil_Out8(OCM_SEC_BUFFER_ADDRESS + XFSBL_HASH_TYPE_SHA3 + i, kernel_hash[i]);
-// 						}
-// */
+						//Truncate the SHA3-384 output to SHA3-256
+						for (i = 0; i < 32; i++){
+							XFsbl_Printf(DEBUG_GENERAL, "%02x", kernel_hash[i]);
+							Xil_Out8(OCM_SEC_BUFFER_ADDRESS + XFSBL_HASH_TYPE_SHA3 + i, kernel_hash[i]);
+						}
+*/
 					}
 				} /* End of else loop for Load Success */
 			} break;
