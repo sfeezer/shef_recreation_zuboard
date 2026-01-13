@@ -72,23 +72,24 @@ extern unsigned char kernel_cert_hash[48];
 
 int main()
 {
-	//int i;
-	//u32 status;
+	int i;
+	u32 status;
 
 
     init_platform();
     xil_printf("=====================Security Kernel=================\r\n");
 
-    /*
     //Clear shared memory
     clear_shared_memory();
 
     //Initialize IPIs
-    status = rpu_gic_init(&gic_inst, XPAR_XIPIPSU_0_INTERRUPTS,
+    // Hardcoded IntID 65 (IPI Ch1) because XPAR macro is broken (0x4021)
+    status = rpu_gic_init(&gic_inst, 65,
     			(Xil_ExceptionHandler)rpu_ipi_handler, &ipi_inst);
 	if(status != XST_SUCCESS){
 		return -1;
 	}
+
 	//Initialize IPI
 	status = rpu_ipi_init(&ipi_inst);
 	if(status != XST_SUCCESS){
@@ -96,7 +97,7 @@ int main()
 	}
 
 
-    print("Security Kernel Hash: ");
+    xil_printf("Security Kernel Hash: ");
 
     for (i = 0; i < KERNEL_HASH_SIZE; i++){
     	xil_printf("%02x", kernel_hash[i]);
@@ -105,6 +106,9 @@ int main()
     for (i = 0; i < 32; i++){
     	xil_printf("%02x", keygen_seed[i]);
     }
+    xil_printf("\r\n");
+    
+    /*
     xil_printf("\r\nAttest PK:");
     for (i = 0; i < 32; i++){
        xil_printf("%02x", attest_pk[i]);

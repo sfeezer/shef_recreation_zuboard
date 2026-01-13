@@ -40,6 +40,7 @@ u32 rpu_gic_init(XScuGic *intc_inst_ptr, u32 int_id, Xil_ExceptionHandler handle
 	
 	//Connect the IntID of the interrupt source and the associated handler
 	(void)XScuGic_Connect(intc_inst_ptr, int_id, handler, periph_inst_ptr);
+
 	XScuGic_Enable(intc_inst_ptr, int_id);
 
 	//Enable processor interrupts

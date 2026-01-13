@@ -63,12 +63,13 @@ When suggesting code changes:
 
 ## 7. Current Status & Next Steps
 
-### As of January 11, 2026 (Day Session)
-- **Baseline Hardware Verification Successful:** The system successfully boots on the ZuBoard 1CG. The UART output confirms that the FSBL (A53), PMUFW (PMU), and Security Kernel (R5) are all executing. 
-- **Security Kernel Stability:** The Security Kernel started correctly with the reduced stack size (0xD00), confirming the stack reduction didn't break initialization.
-- **Clean Baseline Established:** The system is now in a known-good, minimal state.
+### As of January 13, 2026 (End of Day)
+- **FSBL Hashing & KeyGen Complete:** The FSBL now correctly measures all three partitions (ATCM, DDR, OCM) of the Security Kernel and generates a KeyGen Seed. The "DDR Buffer Workaround" was removed after confirming direct TCM hashing is possible with correct initialization.
+- **Security Kernel Initialization Fix:** Resolved a hard crash in `rpu_gic_init` by hardcoding the IPI Interrupt ID to `65` (the macro `XPAR_XIPIPSU_0_INTERRUPTS` was resolving to an invalid value).
+- **Chain of Trust Verified:** Confirmed that the Security Kernel (R5) successfully reads the exact same `Kernel Hash` and `Keygen Seed` from OCM that the FSBL (A53) wrote.
+- **Runtime Functional:** The Runtime application boots and reaches its command loop.
 
 ### Next Steps
-1.  **Runtime Confirmation:** Confirm the `runtime` application completes its 5-second sleep and prints the "Ready" message.
-2.  **Step 1: Re-enable FSBL hashing:** Uncomment the logic in `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c` to begin measuring the Security Kernel at boot time.
-3.  **Step 2: Incremental Security Kernel Re-enablement:** Begin uncommenting the `main.c` logic in the Security Kernel, starting with IPI initialization.
+1.  **Test Key Generation:** Re-enable `ed25519_create_keypair` in the Security Kernel to verify the reduced stack size (0xD00) can handle the cryptographic load.
+2.  **Test Certificate Generation:** Re-enable the `get_kernel_certificate_hash` and `get_kernel_certificate_signature` functions to test the IPI communication with the PMU.
+3.  **Full System Integration:** Uncomment the final logic to allow the Runtime to trigger the attestation flow.
