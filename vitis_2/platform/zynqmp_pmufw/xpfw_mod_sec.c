@@ -44,6 +44,9 @@
 
 #define XPAR_XCSUDMA_0_DEVICE_ID 0
 
+// Extern the IPI-0 Instance Pointer from xpfw_ipi_manager.c
+extern XIpiPsu *Ipi0InstPtr;
+
 /* Exponent of private key */
 u8 root_sk[RSA_SIZE] = {
 	0x3e,0x85,0xd6,0x2d,0x32,0x6c,0xe4,0xb8,0xc0,0x77,0xbe,0x58,0x8a,0xf7,0xfc,
@@ -190,6 +193,8 @@ u8 kernel_cert_sig[RSA_SIZE];
 u8 encrypt_sig_out[RSA_SIZE];
 u32 size = RSA_SIZE;
 
+static u32 rpu_src_mask = 0U;
+
 volatile u8* bitstream_addr = NULL;
 volatile u32 bitstream_size = 0;
 
@@ -310,24 +315,25 @@ static void sec_sign_cert(void){
 
 		//Send the IPI
 		//XPfw_Printf(DEBUG_ERROR, "PMU: Sending cert\r\n");
-		status = XPfw_IpiWriteMessage(sec_ipi_mod_ptr, IPI_PMU_0_IER_RPU_0_MASK,
-				msg_buf, 8);
+		// Use Ipi0InstPtr and dynamic src_mask from RPU
+		status = XIpiPsu_WriteMessage(Ipi0InstPtr, rpu_src_mask,
+				msg_buf, 8, XIPIPSU_BUF_TYPE_MSG);
 		if(status != XST_SUCCESS){
 			XPfw_Printf(DEBUG_ERROR, "PMU: IPI Write Message Failed \r\n");
 			return;
 		}
-		status = XPfw_IpiTrigger(IPI_PMU_0_IER_RPU_0_MASK);
+		status = XIpiPsu_TriggerIpi(Ipi0InstPtr, rpu_src_mask);
 		if(status != XST_SUCCESS){
 			XPfw_Printf(DEBUG_ERROR, "PMU: IPI Trigger failed \r\n");
 			return;
 		}
-		status = XPfw_IpiPollForAck(IPI_PMU_0_IER_RPU_0_MASK, (~0));
+		status = XIpiPsu_PollForAck(Ipi0InstPtr, rpu_src_mask, (~0));
 		if(status != XST_SUCCESS){
 			XPfw_Printf(DEBUG_ERROR, "PMU: IPI Poll for Ack Failed \r\n");
 			return;
 		}
-		status = XPfw_IpiReadResponse(sec_ipi_mod_ptr, IPI_PMU_0_IER_RPU_0_MASK,
-				resp_buf, 2);
+		status = XIpiPsu_ReadMessage(Ipi0InstPtr, rpu_src_mask,
+				resp_buf, 2, XIPIPSU_BUF_TYPE_RESP);
 		if(status != XST_SUCCESS){
 			XPfw_Printf(DEBUG_ERROR, "PMU: IPI Read Response failed \r\n");
 			return;
@@ -419,16 +425,16 @@ static void sec_load_bitstream(){
         // Cast to (u8*) to fix volatile warning
         memcpy(&msg_buf[2], &bitstream_digest[bytes_sent], 16);
 
-        status = XPfw_IpiWriteMessage(sec_ipi_mod_ptr, IPI_PMU_0_IER_RPU_0_MASK, msg_buf, 8);
+        status = XIpiPsu_WriteMessage(Ipi0InstPtr, rpu_src_mask, msg_buf, 8, XIPIPSU_BUF_TYPE_MSG);
         if(status != XST_SUCCESS){ return; }
 
-        status = XPfw_IpiTrigger(IPI_PMU_0_IER_RPU_0_MASK);
+        status = XIpiPsu_TriggerIpi(Ipi0InstPtr, rpu_src_mask);
         if(status != XST_SUCCESS){ return; }
 
-        status = XPfw_IpiPollForAck(IPI_PMU_0_IER_RPU_0_MASK, (~0));
+        status = XIpiPsu_PollForAck(Ipi0InstPtr, rpu_src_mask, (~0));
         if(status != XST_SUCCESS){ return; }
 
-        status = XPfw_IpiReadResponse(sec_ipi_mod_ptr, IPI_PMU_0_IER_RPU_0_MASK, resp_buf, 2);
+        status = XIpiPsu_ReadMessage(Ipi0InstPtr, rpu_src_mask, resp_buf, 2, XIPIPSU_BUF_TYPE_RESP);
         if(status != XST_SUCCESS){ return; }
 
         if(resp_buf[1] != IPI_BITSTREAM_HASH_MASK){ return; }
@@ -446,6 +452,11 @@ static void sec_ipi_handler(const XPfw_Module_t* mod_ptr, u32 ipi_num, u32 src_m
 	u32 status;
 	u32 resp_buf[2] = {0};
 	u32 cmd;
+
+	XPfw_Printf(DEBUG_DETAILED, "PMU: IPI Received from src_mask: 0x%08x\r\n", src_mask);
+	
+	// Capture the RPU mask for asynchronous replies
+	rpu_src_mask = src_mask;
 
 	//First, check if the ipi is on the correct channel (i.e. channel 0)
 	if (ipi_num > 0){

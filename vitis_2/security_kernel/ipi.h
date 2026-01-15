@@ -5,8 +5,8 @@
 #include "xttcps.h"
 #include "xipipsu.h"
 
-#define IPI_PMU_PM_INT_MASK_SEND		XPAR_IPI1_0_IPI_BITMASK
-#define IPI_PMU_PM_INT_MASK_RECV		XPAR_IPI1_1_IPI_BITMASK
+#define IPI_PMU_PM_INT_MASK_SEND		0x00010000U
+#define IPI_PMU_PM_INT_MASK_RECV		0x00010000U
 #define IPI_MSG_LEN									8U
 #define IPI_HEADER_OFFSET						0x0U
 #define PMU_IPI_HEADER							0x1E0000 /* Sec Module ID in PMUFW */

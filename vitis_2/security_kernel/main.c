@@ -106,31 +106,12 @@ int main()
     for (i = 0; i < 32; i++){
     	xil_printf("%02x", keygen_seed[i]);
     }
-    xil_printf("\r\n");
     
-    /*
-    xil_printf("\r\nAttest PK:");
-    for (i = 0; i < 32; i++){
-       xil_printf("%02x", attest_pk[i]);
-    }
-    xil_printf("\r\nAttest SK:");
-        for (i = 0; i < 64; i++){
-           xil_printf("%02x", attest_sk[i]);
-    }
-
-
     //Generate attestation keys.
+    xil_printf("\r\nGenerating Keypair...\r\n");
     ed25519_create_keypair(attest_pk, attest_sk, keygen_seed);
-    xil_printf("\r\nKernel Hash:");
-
-    for (i = 0; i < KERNEL_HASH_SIZE; i++){
-    	xil_printf("%02x", kernel_hash[i]);
-    }
-    xil_printf("\r\nSeed:");
-    for (i = 0; i < 32; i++){
-    	xil_printf("%02x", keygen_seed[i]);
-    }
-    xil_printf("\r\nAttest PK:");
+    
+    xil_printf("Attest PK:");
     for (i = 0; i < 32; i++){
        xil_printf("%02x", attest_pk[i]);
     }
@@ -138,24 +119,27 @@ int main()
         for (i = 0; i < 64; i++){
            xil_printf("%02x", attest_sk[i]);
     }
+    xil_printf("\r\n");
 
     //Generate a certificate over the public attestation key and kernel hash
     get_kernel_certificate_hash(kernel_cert_hash, kernel_hash, attest_pk);
 
     //Instruct the PMU to sign the certificate hash
-    xil_printf("\r\nKernel Certificate Signature:");
+    xil_printf("\r\nInitial Cert Sig (Should be 0):");
 
     for (i = 0; i < 512; i++){
     	xil_printf("%02x", kernel_cert_sig[i]);
     }
 
+    xil_printf("\r\nRequesting Signature from PMU...\r\n");
     get_kernel_certificate_signature(kernel_cert_hash);
 
-    xil_printf("\r\nKernel Certificate Signature:");
+    xil_printf("\r\nReceived Kernel Certificate Signature:");
 
     for (i = 0; i < 512; i++){
     	xil_printf("%02x", kernel_cert_sig[i]);
     }
+    xil_printf("\r\n");
 
     //Block until runtime is ready, and generate an attestation for the runtime.
     //Once the precedure finishes, a shared key will be placed in session_key
@@ -184,7 +168,6 @@ int main()
 
     //Clear the bitstream key
     memset(bitstream_key, 0, 32);
-    */
 
     while(1);
 

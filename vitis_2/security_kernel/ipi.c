@@ -75,7 +75,8 @@ u32 rpu_ipi_init(XIpiPsu *ipi_inst_ptr){
 	//Enable IPI from PMU to RPU
 	//This writes 0xF0000 to the CH1 Interrupt Enable Register
 	//Enables CH3-CH6 (PMU IPI0-IPI3).
-	Xil_Out32(IPI_CH1_IER, 0xF0000U);
+	// MODIFIED: Enable PL0 (Bit 16) - Verified source of PMU IPI
+	Xil_Out32(IPI_CH1_IER, 0x00010000U);
 
 	xil_printf("RPU: rpu_ipi_init() done\r\n");
 	return status;
@@ -86,6 +87,7 @@ u32 rpu_ipi_init(XIpiPsu *ipi_inst_ptr){
 * IPI handler handles interrupts from the PMU
 */
 u32 rpu_ipi_handler(XIpiPsu *ipi_inst_ptr){
+	//xil_printf("RPU: IRQ Received!\r\n");
 	u32 reg_val;
 	u32 status = XST_FAILURE;
 	u32 ipi_buf[8];
@@ -94,8 +96,9 @@ u32 rpu_ipi_handler(XIpiPsu *ipi_inst_ptr){
 	// Check if the IPI is from PMU channel 1
 	reg_val = Xil_In32(IPI_CH1_ISR);
 	//xil_printf("RPU ISR: %x\r\n", reg_val);
+	
 	if((reg_val & (u32)IPI_PMU_PM_INT_MASK_RECV) == 0U){
-		//xil_printf("RPU: Error: Received IPI from invalid source, ISR:%x\r\n", reg_val);
+		xil_printf("RPU: Error: Received IPI from invalid source, ISR:%x\r\n", reg_val);
 		return XST_FAILURE;
 	}
 
@@ -159,6 +162,8 @@ u32 rpu_ipi_handler(XIpiPsu *ipi_inst_ptr){
  */
 int send_ipi_pmu(u32* msg_buf, u32* resp_buf, u32 len){
 	u32 status;
+
+	xil_printf("RPU: Sending IPI to PMU with Mask: %08x\r\n", IPI_PMU_PM_INT_MASK_SEND);
 
 	status = XIpiPsu_WriteMessage(&ipi_inst, IPI_PMU_PM_INT_MASK_SEND,
 			msg_buf, len, XIPIPSU_BUF_TYPE_MSG);

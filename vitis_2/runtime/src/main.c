@@ -64,21 +64,6 @@ int main()
     init_platform();
     xil_printf("Runtime: Platform initialized\r\n");
 
-    //xil_printf("Runtime: Sleeping for 5 seconds...\r\n");
-    //sleep(5);
-    //int i;
-//    unsigned char nonce[32];
-//    unsigned char verifier_pk[32] = {0xa9, 0x3f, 0xf0, 0x44, 0xa6, 0x35, 0x11, 0x88,
-//    		0xda, 0x2a, 0x54, 0xb4, 0x3d, 0xd9, 0xdc, 0x8c, 0x4b, 0xd4, 0x97, 0xef,
-//			0xbd, 0x9f, 0x28, 0x5e, 0x05, 0xc9, 0x85, 0xeb, 0x24, 0xa8, 0xc9, 0x73
-//    };
-//
-//    int i;
-//    for(i=0; i < 32; i++){
-//    	nonce[i] = i;
-//    }
-
-    /*
     //First, wait for the remote verifier to send its nonce and PK to us
     u32 status;
     status = handle_uart_cmd();
@@ -107,7 +92,6 @@ int main()
 	Xil_DCacheDisable();
 	wait_for_kernel();
 	Xil_DCacheEnable();
-    */
 
 	//Handle commands from UART
 	sleep(1);

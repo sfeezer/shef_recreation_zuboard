@@ -8,6 +8,7 @@ I am recreating the "ShEF" (Shielded Embedded Firmware) security framework.
 
 ## 2. Environment & Tooling
 - **Current Environment:** Vitis 2023.2 (Unified IDE) / Vivado 2023.2
+- **Host OS:** Windows (win32)
 - **Original Environment:** Vitis/SDK 2019.2
 - **Critical Constraint:** The original code contains outdated Xilinx drivers and definitions. 
   - *Example:* The `XFpga` and `CSUDMA` libraries have changed significantly.
@@ -63,13 +64,25 @@ When suggesting code changes:
 
 ## 7. Current Status & Next Steps
 
-### As of January 13, 2026 (End of Day)
-- **FSBL Hashing & KeyGen Complete:** The FSBL now correctly measures all three partitions (ATCM, DDR, OCM) of the Security Kernel and generates a KeyGen Seed. The "DDR Buffer Workaround" was removed after confirming direct TCM hashing is possible with correct initialization.
-- **Security Kernel Initialization Fix:** Resolved a hard crash in `rpu_gic_init` by hardcoding the IPI Interrupt ID to `65` (the macro `XPAR_XIPIPSU_0_INTERRUPTS` was resolving to an invalid value).
-- **Chain of Trust Verified:** Confirmed that the Security Kernel (R5) successfully reads the exact same `Kernel Hash` and `Keygen Seed` from OCM that the FSBL (A53) wrote.
-- **Runtime Functional:** The Runtime application boots and reaches its command loop.
+### As of January 14, 2026 (Mid-Day Session)
+- **Security Kernel Key Exchange Verified:** The full Chain of Trust is operational.
+    - **FSBL:** Correctly measures ATCM, DDR, OCM and generates KeyGen Seed.
+    - **Security Kernel:** Successfully reads Seed, generates Ed25519 Keypair.
+    - **PMUFW:** Successfully receives Certificate Hash via IPI and returns 512-byte RSA Signature.
+    - **IPI Communication Fixed:** Resolved broken IPI masks by:
+        1.  Hardcoding RPU GIC ID to 65.
+        2.  Updating RPU IER Mask to `0x10000` (PL0 alias).
+        3.  Updating PMUFW to use dynamic source mask (`0x100`) and the working IPI-0 instance for replies.
+
+**Files Modified for Key Exchange Solution:**
+*   `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c` (Hashing Logic)
+*   `vitis_2/security_kernel/main.c` (Enable KeyGen/CertSign)
+*   `vitis_2/security_kernel/ipi.c` (GIC ID 65, IER Mask)
+*   `vitis_2/security_kernel/ipi.h` (IPI Mask Macros)
+*   `vitis_2/platform/zynqmp_pmufw/xpfw_mod_sec.c` (Dynamic Mask, IPI-0 Bypass)
+*   `vitis_2/platform/zynqmp_pmufw/lscript.ld` (Stack -> 0x1400)
 
 ### Next Steps
-1.  **Test Key Generation:** Re-enable `ed25519_create_keypair` in the Security Kernel to verify the reduced stack size (0xD00) can handle the cryptographic load.
-2.  **Test Certificate Generation:** Re-enable the `get_kernel_certificate_hash` and `get_kernel_certificate_signature` functions to test the IPI communication with the PMU.
-3.  **Full System Integration:** Uncomment the final logic to allow the Runtime to trigger the attestation flow.
+1.  **Enable Runtime Attestation Trigger:** Uncomment `generate_attestation` in Security Kernel and the handshake logic in Runtime to allow Host-driven attestation.
+2.  **Optimize IPI Communication:** Compare the current RPU-PMU implementation with the partner's version to eliminate the burst of 'invalid source' (ISR:0) errors and ensure clean interrupt handling.
+3.  **Full System Test:** Verify the end-to-end flow with the Host PC.
