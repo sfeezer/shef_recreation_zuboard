@@ -20,6 +20,11 @@ I am recreating the "ShEF" (Shielded Embedded Firmware) security framework.
 - **`vitis_2/` Folder**: The active workspace as of 2026-01-01.
 - **`vitis_2/platform/zynqmp_fsbl`**: The current working baseline FSBL project.
 - **`/vitis/` Folder**: Deprecated workspace.
+- **`shef_zu1cg/` Folder**: Contains the partner's *working* ShEF Attestation code (Reference).
+  - `shef_zu1cg/zynqmp_pmufw`: Working PMUFW code.
+  - `shef_zu1cg/runtime`: Working Runtime code.
+  - `shef_zu1cg/security_kernel`: Working Security Kernel code.
+  - `shef_zu1cg/nec_shef/zynqmp_fsbl`: Working FSBL code.
 
 ### Technical Documents
 The contents of the ShEF paper have been saved to `E:x\shef\Documents.ShEF_paper.txt`. Reference this document for questions relevant to the system architecture.
@@ -40,12 +45,12 @@ Key chapters from the Zynq UltraScale+ MPSoC Technical Reference Manual (ug1085)
   3. PMUFW loads/verifies Security Kernel (R5).
   4. System hands off to FSBL (A53).
 
-## 5. Instructions for Code Generation
-When suggesting code changes:
-1. Check if the driver API has changed between 2019 and 2023.
-2. If `xparameters.h` constants (like `XPAR_...`) are missing, assume the System Device Tree (SDT) flow is used and look for the generic `_0` or `_1` indices.
-3. Ensure all pointers passed to hardware drivers (DMA/SHA) are cast to non-volatile types.
-4. When providing a suggestion, explicitly state the relevant line of code where this suggestion starts. For example: If you recommend inserting a new function in the code that begins at line 230, you'll state that the changes begin at line 230.
+## 5. Instructions for Workflow & Code Generation
+1. **Step-by-Step Confirmation:** Do not rush ahead. When a step is finished, always discuss the path forward with the user before beginning work on the next step.
+2. Check if the driver API has changed between 2019 and 2023.
+3. If `xparameters.h` constants (like `XPAR_...`) are missing, assume the System Device Tree (SDT) flow is used and look for the generic `_0` or `_1` indices.
+4. Ensure all pointers passed to hardware drivers (DMA/SHA) are cast to non-volatile types.
+5. When providing a suggestion, explicitly state the relevant line of code where this suggestion starts. For example: If you recommend inserting a new function in the code that begins at line 230, you'll state that the changes begin at line 230.
 
 ## 6. Project Milestones
 - [X] Verify basic `hello_world` functionality on ZuBoard 1CG.
@@ -64,25 +69,35 @@ When suggesting code changes:
 
 ## 7. Current Status & Next Steps
 
-### As of January 14, 2026 (Mid-Day Session)
-- **Security Kernel Key Exchange Verified:** The full Chain of Trust is operational.
-    - **FSBL:** Correctly measures ATCM, DDR, OCM and generates KeyGen Seed.
-    - **Security Kernel:** Successfully reads Seed, generates Ed25519 Keypair.
-    - **PMUFW:** Successfully receives Certificate Hash via IPI and returns 512-byte RSA Signature.
-    - **IPI Communication Fixed:** Resolved broken IPI masks by:
-        1.  Hardcoding RPU GIC ID to 65.
-        2.  Updating RPU IER Mask to `0x10000` (PL0 alias).
-        3.  Updating PMUFW to use dynamic source mask (`0x100`) and the working IPI-0 instance for replies.
+### As of January 26, 2026 (Refinement Session)
+- **Goal:** Optimize IPI communication (fix ISR:0 errors) and enable Runtime Attestation for the ShEF security framework on ZuBoard 1CG.
+- **Key Discovery (IPI Mismatch):**
+    - **Partner Reference (`shef_zu1cg`):** Uses a **Split-Channel Architecture**.
+        - Requests (RPU->PMU): `Ipi0` (Master).
+        - Responses (PMU->RPU): `Ipi1` (Triggered via `XPfw_IpiTrigger`).
+        - RPU Listen Mask: `0x20000` (PL1).
+    - **Current Implementation (`vitis_2`):** Uses a **Single-Channel Architecture**.
+        - Requests & Responses: `Ipi0`.
+        - RPU Listen Mask: `0x10000` (PL0).
+    - **Root Cause of ISR:0:** The single-channel approach likely causes race conditions or protocol mismatches where the RPU receives interrupts it cannot correctly attribute or clear using the current mask logic.
 
-**Files Modified for Key Exchange Solution:**
-*   `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c` (Hashing Logic)
-*   `vitis_2/security_kernel/main.c` (Enable KeyGen/CertSign)
-*   `vitis_2/security_kernel/ipi.c` (GIC ID 65, IER Mask)
-*   `vitis_2/security_kernel/ipi.h` (IPI Mask Macros)
-*   `vitis_2/platform/zynqmp_pmufw/xpfw_mod_sec.c` (Dynamic Mask, IPI-0 Bypass)
-*   `vitis_2/platform/zynqmp_pmufw/lscript.ld` (Stack -> 0x1400)
+### Plan: Transition to Split-Channel IPI Architecture
+We will align `vitis_2` with the stable partner reference to resolve the `ISR:0` errors.
 
-### Next Steps
-1.  **Enable Runtime Attestation Trigger:** Uncomment `generate_attestation` in Security Kernel and the handshake logic in Runtime to allow Host-driven attestation.
-2.  **Optimize IPI Communication:** Compare the current RPU-PMU implementation with the partner's version to eliminate the burst of 'invalid source' (ISR:0) errors and ensure clean interrupt handling.
-3.  **Full System Test:** Verify the end-to-end flow with the Host PC.
+1.  **Update RPU Code (`vitis_2/security_kernel/src/ipi.c` & `.h`):**
+    -   Update `IPI_IER_MASK` to include `0x20000` (PL1) or the correct combination used by the partner (`0xF0000` range).
+    -   Update the ISR handler to check and clear the `0xF0000` range (IPI-1 through IPI-4 aliases) to handle the PMU's response trigger correctly.
+    -   Ensure `IPI_BASE_ADDR` points to the correct aperture.
+
+2.  **Update PMUFW Code (`vitis_2/platform/zynqmp_pmufw/xpfw_mod_sec.c`):**
+    -   Revert the explicit `Ipi0InstPtr` bypass for responses.
+    -   Restore the use of `XPfw_IpiTrigger` (which maps to `Ipi1InstPtr` in the partner's code) to send the signature ready notification back to the RPU.
+
+3.  **Build & Verify:**
+    -   Compile PMUFW and Security Kernel.
+    -   Flash and observe UART logs to confirm the "ISR:0" error is gone and the "Signature Verified" success message persists.
+
+4.  **Enable Runtime Attestation:**
+    -   Once the IPI link is clean, uncomment `generate_attestation` in `vitis_2/security_kernel/main.c`.
+    -   Enable the corresponding handshake in `vitis_2/runtime/src/main.c`.
+    -   Test the full end-to-end flow with the Host PC script.

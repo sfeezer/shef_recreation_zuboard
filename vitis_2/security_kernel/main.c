@@ -108,7 +108,6 @@ int main()
     }
     
     //Generate attestation keys.
-    xil_printf("\r\nGenerating Keypair...\r\n");
     ed25519_create_keypair(attest_pk, attest_sk, keygen_seed);
     
     xil_printf("Attest PK:");
@@ -131,7 +130,6 @@ int main()
     	xil_printf("%02x", kernel_cert_sig[i]);
     }
 
-    xil_printf("\r\nRequesting Signature from PMU...\r\n");
     get_kernel_certificate_signature(kernel_cert_hash);
 
     xil_printf("\r\nReceived Kernel Certificate Signature:");
