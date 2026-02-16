@@ -1,0 +1,2 @@
+mb-ar qc libxilsecure.a CMakeFiles/xilsecure.dir/common/all/xsecure_rsa.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure_aes.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure_cryptochk.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure_rsa_core.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure_sha.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure_sss.c.obj CMakeFiles/xilsecure.dir/zynqmp/xsecure_utils.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/microblaze/nt/bin/mb-ranlib.exe libxilsecure.a

@@ -75,8 +75,14 @@ u32 rpu_ipi_init(XIpiPsu *ipi_inst_ptr){
 	//Enable IPI from PMU to RPU
 	//This writes 0xF0000 to the CH1 Interrupt Enable Register
 	//Enables CH3-CH6 (PMU IPI0-IPI3).
-	// MODIFIED: Enable PL0 (Bit 16) - Verified source of PMU IPI
-	Xil_Out32(IPI_CH1_IER, 0x00010000U);
+	//Aligned with Partner Reference to prevent ISR:0 errors
+	Xil_Out32(IPI_CH1_IER, 0xF0000U);
+
+	//Clear any pending IPI interrupts
+	XIpiPsu_ClearInterruptStatus(ipi_inst_ptr, XIPIPSU_ALL_MASK);
+
+	//Enable reception of IPIs from all CPUs
+	XIpiPsu_InterruptEnable(ipi_inst_ptr, XIPIPSU_ALL_MASK);
 
 	xil_printf("RPU: rpu_ipi_init() done\r\n");
 	return status;
@@ -242,7 +248,7 @@ u32 get_kernel_certificate_signature(unsigned char* cert_hash){
 		}
 
 		//Check that the expected indices match up
-		if(resp_buf[1] != ((start_index << 16) | (end_index))){
+		if(resp_buf[1] != ((u32)(start_index << 16) | (end_index))){
 			xil_printf("RPU:Error: PMU failed to ack byte indices\r\n");
 			return XST_FAILURE;
 		}

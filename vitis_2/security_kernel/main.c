@@ -84,7 +84,7 @@ int main()
 
     //Initialize IPIs
     // Hardcoded IntID 65 (IPI Ch1) because XPAR macro is broken (0x4021)
-    status = rpu_gic_init(&gic_inst, 65,
+    status = rpu_gic_init(&gic_inst, SECURITY_KERNEL_IPI_INT_ID,
     			(Xil_ExceptionHandler)rpu_ipi_handler, &ipi_inst);
 	if(status != XST_SUCCESS){
 		return -1;
@@ -125,6 +125,7 @@ int main()
 
     //Instruct the PMU to sign the certificate hash
     xil_printf("\r\nInitial Cert Sig (Should be 0):");
+    memset((void*)kernel_cert_sig, 0, 512);
 
     for (i = 0; i < 512; i++){
     	xil_printf("%02x", kernel_cert_sig[i]);

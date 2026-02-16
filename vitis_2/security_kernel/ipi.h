@@ -4,6 +4,9 @@
 #include "xscugic.h"
 #include "xttcps.h"
 #include "xipipsu.h"
+#include "xparameters.h"
+
+#define SECURITY_KERNEL_IPI_INT_ID		65
 
 #define IPI_PMU_PM_INT_MASK_SEND		0x00010000U
 #define IPI_PMU_PM_INT_MASK_RECV		0x00010000U

@@ -1,0 +1,2 @@
+armr5-none-eabi-ar qc libaxipmon.a CMakeFiles/axipmon.dir/xaxipmon.c.obj CMakeFiles/axipmon.dir/xaxipmon_g.c.obj CMakeFiles/axipmon.dir/xaxipmon_selftest.c.obj CMakeFiles/axipmon.dir/xaxipmon_sinit.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/armr5/nt/gcc-arm-none-eabi/bin/armr5-none-eabi-ranlib.exe libaxipmon.a

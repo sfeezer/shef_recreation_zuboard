@@ -100,7 +100,6 @@ u32 read_sd_bitstream(u8* load_addr){
 	//XSecure_Sha3Digest(&secure_sha3, load_addr, bitstream_size, bitstream_digest);
 
 	//xil_printf("RPU: Bitstream hash is 0x");
-	u32 i;
 	//for(i = 0; i < 48; i++){
 	//	xil_printf("%02x", bitstream_digest[i]);
 	//}

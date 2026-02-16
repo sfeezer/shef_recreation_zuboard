@@ -278,7 +278,7 @@ def verify_kernel_certificate(certificate_hash, signature):
     """
 
     #Decrypt the signature with the root public key
-    sig_int = int.from_bytes(signature, byteorder='big', signed=False)
+    sig_int = int.from_bytes(signature, byteorder='little', signed=False)
     sig_decrypted = pow(sig_int, root_pub_exp, root_mod)
 
     #Convert decrypted to bytearray
@@ -286,6 +286,14 @@ def verify_kernel_certificate(certificate_hash, signature):
 
     #The hash is contained in the last 48 bytes of the signature
     sig_decrypted_hash = sig_decrypted_string[-96:]
+
+    print("DEBUG: verify_kernel_certificate (LITTLE ENDIAN)")
+    print("  Root Modulus (First 32 chars): " + hex(root_mod)[:34])
+    print("  certificate_hash  : " + str(certificate_hash))
+    print("  sig_decrypted_hash: " + str(sig_decrypted_hash))
+    print("  sig_decrypted_full: " + str(sig_decrypted_string))
+    if len(sig_decrypted_string) > 34:
+        print("  sig_decrypted_head: " + sig_decrypted_string[:34])
 
     if(sig_decrypted_hash == certificate_hash):
         return True
@@ -346,6 +354,11 @@ def verify_attestation(attestation, nonce):
     h_obj.update(parsed_report['attest_pk'])
 
     kernel_cert_hash = h_obj.hexdigest()
+
+    print("DEBUG: verify_attestation")
+    print("  kernel_hash: " + parsed_report['kernel_hash'].hex())
+    print("  attest_pk  : " + parsed_report['attest_pk'].hex())
+    print("  calculated kernel_cert_hash: " + kernel_cert_hash)
 
     #Verify that the trusted Public Root Key signed the kernel certificate hash
     if(not verify_kernel_certificate(kernel_cert_hash, parsed_report['kernel_sig'])):

@@ -140,8 +140,6 @@ u32 handle_uart_cmd(void){
 	u8 read_buf[MAX_UART_BUFFER_SIZE];
 	u8 write_buf[MAX_UART_BUFFER_SIZE];
 	u16 read_len = 0;
-	u32 i;
-	u32 user_data;
 	u32 tmp;
 
 	//Pointer to AXI-lite bus on PL
@@ -299,7 +297,6 @@ u32 handle_uart_cmd(void){
 			case UART_CMD_PUSH_FPGA_DATA:
 				//Map the input buffers to the AXI bus
 
-				user_data = read_buf[3] << 24 | read_buf[4] << 16 | read_buf[5] << 8 | read_buf[6];
 				//xil_printf("%08x_ DEBUG: user_data \r\n", user_data);
 				accel[1] = read_buf[3] << 24 | read_buf[4] << 16 | read_buf[5] << 8 | read_buf[6];
 				accel[2] = read_buf[7] << 24 | read_buf[8] << 16 | read_buf[9] << 8 | read_buf[10];

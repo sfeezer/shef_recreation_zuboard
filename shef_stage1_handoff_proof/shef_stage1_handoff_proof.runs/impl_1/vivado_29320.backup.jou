@@ -1,0 +1,14 @@
+#-----------------------------------------------------------
+# Vivado v2023.2 (64-bit)
+# SW Build 4029153 on Fri Oct 13 20:14:34 MDT 2023
+# IP Build 4028589 on Sat Oct 14 00:45:43 MDT 2023
+# SharedData Build 4025554 on Tue Oct 10 17:18:54 MDT 2023
+# Start of session at: Sat Dec 20 14:00:04 2025
+# Process ID: 29320
+# Current directory: E:/x/shef/shef_stage1_handoff_proof/shef_stage1_handoff_proof.runs/impl_1
+# Command line: vivado.exe -log zynq_mpsoc_wrapper.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source zynq_mpsoc_wrapper.tcl -notrace
+# Log file: E:/x/shef/shef_stage1_handoff_proof/shef_stage1_handoff_proof.runs/impl_1/zynq_mpsoc_wrapper.vdi
+# Journal file: E:/x/shef/shef_stage1_handoff_proof/shef_stage1_handoff_proof.runs/impl_1\vivado.jou
+# Running On: DESKTOP-Q79VJS4, OS: Windows, CPU Frequency: 3700 MHz, CPU Physical cores: 12, Host memory: 34267 MB
+#-----------------------------------------------------------
+source zynq_mpsoc_wrapper.tcl -notrace

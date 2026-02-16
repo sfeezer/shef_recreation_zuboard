@@ -1,0 +1,2 @@
+armr5-none-eabi-ar qc libwdtps.a CMakeFiles/wdtps.dir/xwdtps_selftest.c.obj CMakeFiles/wdtps.dir/xwdtps_g.c.obj CMakeFiles/wdtps.dir/xwdtps_sinit.c.obj CMakeFiles/wdtps.dir/xwdtps.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/armr5/nt/gcc-arm-none-eabi/bin/armr5-none-eabi-ranlib.exe libwdtps.a

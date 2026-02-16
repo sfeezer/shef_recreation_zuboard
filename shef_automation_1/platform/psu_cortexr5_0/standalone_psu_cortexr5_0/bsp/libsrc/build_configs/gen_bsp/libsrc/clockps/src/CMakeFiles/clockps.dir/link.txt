@@ -1,0 +1,2 @@
+armr5-none-eabi-ar qc libclockps.a CMakeFiles/clockps.dir/xclockps_mux.c.obj CMakeFiles/clockps.dir/xclockps_divider.c.obj CMakeFiles/clockps.dir/xclockps_gate.c.obj CMakeFiles/clockps.dir/xclockps_sinit.c.obj CMakeFiles/clockps.dir/xclockps_g.c.obj CMakeFiles/clockps.dir/xclockps.c.obj CMakeFiles/clockps.dir/xclockps_fixedfactor.c.obj CMakeFiles/clockps.dir/xclockps_pll.c.obj
+E:/Xilinx/Vitis/2023.2/gnu/armr5/nt/gcc-arm-none-eabi/bin/armr5-none-eabi-ranlib.exe libclockps.a

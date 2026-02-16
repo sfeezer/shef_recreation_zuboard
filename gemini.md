@@ -1,103 +1,71 @@
-# Project Context: ShEF Port to ZuBoard 1CG
+# Project Context: ShEF Port to ZuBoard 1CG (Methodology & Automation Phase)
 
 ## 1. Project Goal
-I am recreating the "ShEF" (Shielded Embedded Firmware) security framework. 
+I am recreating and documenting the "ShEF" (Shielded Embedded Firmware) security framework for the Avnet ZuBoard 1CG.
 - **Original Hardware:** Ultra96 (ZynqMP ZU3EG)
 - **Target Hardware:** Avnet ZuBoard 1CG (ZynqMP ZU1CG)
-- **Objective:** Re-implement the secure boot flow (PMU Firmware -> Security Kernel -> Host OS) on the new board.
+- **Objective:** Establish a repeatable methodology and automation suite to recreate the secure boot flow (PMU Firmware -> Security Kernel -> Host OS) on the ZuBoard.
 
 ## 2. Environment & Tooling
 - **Current Environment:** Vitis 2023.2 (Unified IDE) / Vivado 2023.2
 - **Host OS:** Windows (win32)
 - **Original Environment:** Vitis/SDK 2019.2
-- **Critical Constraint:** The original code contains outdated Xilinx drivers and definitions. 
-  - *Example:* The `XFpga` and `CSUDMA` libraries have changed significantly.
-  - *Action:* You must identify deprecated functions in the original code and refactor them to use the modern Vitis 2023.2 APIs (e.g., `XFpga_BitStream_Load` instead of `XFpga_PL_BitSream_Load`).
+- **Automation Targets:** Vitis CLI (`vitis -i`), XSCT, Bootgen, and Python for scripting.
 
 ## 3. Directory Structure & Key Files
-- **`shef_paper.pdf`**: The original academic paper defining the security architecture. Read this for conceptual logic (e.g., "Why does the PMU load the R5?").
-- **`u96/` Folder**: Contains the *original* reference source code (Vitis 2019.2). Use this to understand the *intent* of the code.
-- **`vitis_2/` Folder**: The active workspace as of 2026-01-01.
-- **`vitis_2/platform/zynqmp_fsbl`**: The current working baseline FSBL project.
-- **`/vitis/` Folder**: Deprecated workspace.
-- **`shef_zu1cg/` Folder**: Contains the partner's *working* ShEF Attestation code (Reference).
-  - `shef_zu1cg/zynqmp_pmufw`: Working PMUFW code.
-  - `shef_zu1cg/runtime`: Working Runtime code.
-  - `shef_zu1cg/security_kernel`: Working Security Kernel code.
-  - `shef_zu1cg/nec_shef/zynqmp_fsbl`: Working FSBL code.
-
-### Technical Documents
-The contents of the ShEF paper have been saved to `E:x\shef\Documents.ShEF_paper.txt`. Reference this document for questions relevant to the system architecture.
-Key chapters from the Zynq UltraScale+ MPSoC Technical Reference Manual (ug1085) have been saved as `.txt` files in `E:\x\shef\Documents\` for efficient searching.
-- `ultrascale_TRM_CH03.txt` (Application Processing Unit)
-- `ultrascale_TRM_CH04.txt` (Real-time Processing Unit)
-- `ultrascale_TRM_CH06.txt` (Platform Management Unit)
-- `ultrascale_TRM_CH10.txt` (System Addresses)
-- `ultrascale_TRM_CH11.txt` (Boot and Configuration)
-- `ultrascale_TRM_CH12.txt` (Security)
-- `ultrascale_TRM_CH13.txt` (Interrupts)
-- `ultrascale_TRM_CH19.txt` (DMA Controller)
+- **`shef_zu1cg/` Folder**: The **Source of Truth**. Contains the partner's working ShEF implementation.
+- **`shef_source_materials/` Folder**: Clean staging area containing essential source files (.c, .h, .S, .ld) and .xsa for reproduction and automation.
+  - `pmufw/`, `fsbl/`, `security_kernel/`, `runtime/`, `host/`, `keys/`
+- **`u96/` Folder**: The *original* reference source code (Vitis 2019.2) used for legacy comparison.
+- **`Documents/`**: Contains technical documentation, including the ShEF paper and ZynqMP TRM chapters.
 
 ## 4. Key Architecture Concepts
 - **PMU as Root-of-Trust:** The PMU Firmware is modified to include RSA-4096 keys. It verifies the Security Kernel before releasing its reset.
-- **Boot Flow:** 1. BootROM loads PMUFW.
+- **Boot Flow:** 
+  1. BootROM loads PMUFW.
   2. PMUFW initializes ShEF modules.
   3. PMUFW loads/verifies Security Kernel (R5).
   4. System hands off to FSBL (A53).
+- **Split-Channel IPI:** Uses IPI-0 for master requests and IPI-1 for PMU responses to avoid race conditions and ISR errors.
 
-## 5. Instructions for Workflow & Code Generation
-1. **Step-by-Step Confirmation:** Do not rush ahead. When a step is finished, always discuss the path forward with the user before beginning work on the next step.
-2. Check if the driver API has changed between 2019 and 2023.
-3. If `xparameters.h` constants (like `XPAR_...`) are missing, assume the System Device Tree (SDT) flow is used and look for the generic `_0` or `_1` indices.
-4. Ensure all pointers passed to hardware drivers (DMA/SHA) are cast to non-volatile types.
-5. When providing a suggestion, explicitly state the relevant line of code where this suggestion starts. For example: If you recommend inserting a new function in the code that begins at line 230, you'll state that the changes begin at line 230.
+## 5. Future Automation Requirements
+- **Key Generation & Integration:** Automate the generation of RSA and Ed25519 keys, and the insertion of these keys into the PMUFW and host-side metadata.
+- **Toolchain Portability:** Automate the compilation of the `ed25519` verification utility to ensure the host script works on any new developer machine (Windows or Linux).
 
-## 6. Project Milestones
-- [X] Verify basic `hello_world` functionality on ZuBoard 1CG.
-- [X] Port PMUFW source from `u96/` to `vitis/pmufw/`.
-- [X] Successfully compile ported PMUFW.
-- [X] Partially Port custom FSBL source from `u96/` to `vitis/zynqmp_fsbl/`.
-- [X] Create a new, working baseline FSBL for the A53 core in a clean `vitis_2` workspace.
-- [X] Port custom hashing and handoff logic from `u96/fsbl` into the new `vitis_2` FSBL.
-- [ ] Re-enable and integrate secure boot features into the `vitis_2` FSBL.
-- [ ] In `vitis_2/platform/zynqmp_fsbl/xfsbl_main.c`, update hashing logic to use the correct memory addresses and size for the `security_kernel` application's executable code sections.
-- [X] Port Security Kernel source from `u96/` to a new `vitis_2/security_kernel/` project.
-- [X] Successfully compile ported Security Kernel.
-- [~] Test the full system boot flow (FSBL -> Security Kernel -> Runtime) on the QEMU simulator. (Skipped: Moving directly to hardware)
-- [X] Verify basic boot flow (FSBL -> Security Kernel -> Runtime) on hardware with ShEF features disabled.
-- [ ] Full system test of the ShEF boot flow on hardware.
+## 6. Instructions for Workflow & Code Generation
+1. **Step-by-Step Confirmation:** Do not rush ahead. When a milestone is finished, always discuss the path forward with the user before beginning work on the next step.
+2. **Reproducibility First:** Every code change or build step must be documented so it can be automated later.
+3. **Handle Hard-coding:** Identify and flag hard-coded addresses or parameters (e.g., memory offsets, key indices) for future parameterization.
+4. **Line-Specific Suggestions:** When providing a suggestion, explicitly state the relevant line of code where this suggestion starts.
+
+## 6. Project Roadmap
+
+### Milestone 1: Reproduction (Complete)
+- [X] Explore `shef_zu1cg` to identify build requirements and dependencies.
+- [X] Stage essential source files from `shef_zu1cg` into `shef_source_materials`.
+- [X] Compile all components (PMUFW, FSBL, Security Kernel, Runtime) from the staged source.
+- [X] Generate a new working `BOOT.BIN` using `bootgen`.
+- [X] Verify functionality on hardware (successful boot and attestation).
+
+### Milestone 2: Documentation & Delta Analysis (Next)
+- [ ] Compare `shef_zu1cg` code against the original `u96` source.
+- [ ] Document all necessary refactors (API changes, driver updates, address remapping).
+- [ ] Map the exact "recipe" required to port ShEF to a new ZynqMP target.
+
+### Milestone 3: Configuration Interface & Parameterization
+- [ ] Identify and flag problematic hard-coded parameters (memory offsets, IPI masks, key indices).
+- [ ] Create a central configuration header or script to manage these parameters.
+- [ ] Replace hard-coded values in the source with these parameters.
+
+### Milestone 4: Full Project Automation
+- [ ] Develop scripts to automate the generation of fresh cryptographic keys and their integration into source headers.
+- [ ] Automate the compilation of host-side tools (e.g., ed25519) from source.
+- [ ] Develop TCL/Python scripts to automate workspace creation in Vitis 2023.2.
+- [ ] Implement a one-command build process for the entire ShEF stack.
 
 ## 7. Current Status & Next Steps
 
-### As of January 26, 2026 (Refinement Session)
-- **Goal:** Optimize IPI communication (fix ISR:0 errors) and enable Runtime Attestation for the ShEF security framework on ZuBoard 1CG.
-- **Key Discovery (IPI Mismatch):**
-    - **Partner Reference (`shef_zu1cg`):** Uses a **Split-Channel Architecture**.
-        - Requests (RPU->PMU): `Ipi0` (Master).
-        - Responses (PMU->RPU): `Ipi1` (Triggered via `XPfw_IpiTrigger`).
-        - RPU Listen Mask: `0x20000` (PL1).
-    - **Current Implementation (`vitis_2`):** Uses a **Single-Channel Architecture**.
-        - Requests & Responses: `Ipi0`.
-        - RPU Listen Mask: `0x10000` (PL0).
-    - **Root Cause of ISR:0:** The single-channel approach likely causes race conditions or protocol mismatches where the RPU receives interrupts it cannot correctly attribute or clear using the current mask logic.
-
-### Plan: Transition to Split-Channel IPI Architecture
-We will align `vitis_2` with the stable partner reference to resolve the `ISR:0` errors.
-
-1.  **Update RPU Code (`vitis_2/security_kernel/src/ipi.c` & `.h`):**
-    -   Update `IPI_IER_MASK` to include `0x20000` (PL1) or the correct combination used by the partner (`0xF0000` range).
-    -   Update the ISR handler to check and clear the `0xF0000` range (IPI-1 through IPI-4 aliases) to handle the PMU's response trigger correctly.
-    -   Ensure `IPI_BASE_ADDR` points to the correct aperture.
-
-2.  **Update PMUFW Code (`vitis_2/platform/zynqmp_pmufw/xpfw_mod_sec.c`):**
-    -   Revert the explicit `Ipi0InstPtr` bypass for responses.
-    -   Restore the use of `XPfw_IpiTrigger` (which maps to `Ipi1InstPtr` in the partner's code) to send the signature ready notification back to the RPU.
-
-3.  **Build & Verify:**
-    -   Compile PMUFW and Security Kernel.
-    -   Flash and observe UART logs to confirm the "ISR:0" error is gone and the "Signature Verified" success message persists.
-
-4.  **Enable Runtime Attestation:**
-    -   Once the IPI link is clean, uncomment `generate_attestation` in `vitis_2/security_kernel/main.c`.
-    -   Enable the corresponding handshake in `vitis_2/runtime/src/main.c`.
-    -   Test the full end-to-end flow with the Host PC script.
+### As of February 9, 2026
+- **Goal:** Identify problematic hard-coded parameters for future parameterization.
+- **Status:** Milestone 1 complete. Staging area is verified and self-contained (includes host and keys).
+- **Next Step:** Deep dive into source files to flag addresses, masks, and offsets that must be parameterized.
