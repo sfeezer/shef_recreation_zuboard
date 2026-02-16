@@ -1,0 +1,1507 @@
+÷jLLC…©PU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR:þZynq MP First Stage Boot Loader 
+Release 2023.2   Jan 14 2026  -  05:37:08
+MultiBootOffset: 0x0
+Reset Mode	:	System Reset
+Platform: Silicon (4.0), Cluster ID 0x80000000
+Running on A53-0 (64-bit) Processor, Device Name: XCZUUNKNCG
+Processor Initialization Done 
+================= In Stage 2 ============ 
+SD1 Boot Mode 
+SD: rc= 0
+File name is BOOT.BIN
+Multiboot Reg : 0x0 
+Image Header Table Offset 0x8C0 
+*****Image Header Table Details******** 
+Boot Gen Ver: 0x1020000 
+No of Partitions: 0x8 
+Partition Header Address: 0x440 
+Partition Present Device: 0x0 
+Initialization Success 
+======= In Stage 3, Partition No:1 ======= 
+UnEncrypted data Length: 0x658D 
+Data word offset: 0x658D 
+Total Data word length: 0x658D 
+Destination Load Address: 0xFFDC0000 
+Execution Address: 0xFFDC0050 
+Data word offset: 0x8E00 
+Partition Attributes: 0x836 
+Partition 1 Load Success 
+======= In Stage 3, Partition No:2 ======= 
+UnEncrypted data Length: 0x247 
+Data word offset: 0x247 
+Total Data word length: 0x247 
+Destination Load Address: 0xFFDDD884 
+Execution Address: 0x0 
+Data word offset: 0xF390 
+Partition Attributes: 0x836 
+Partition 2 Load Success 
+======= In Stage 3, Partition No:3 ======= 
+UnEncrypted data Length: 0x100 
+Data word offset: 0x100 
+Total Data word length: 0x100 
+Destination Load Address: 0xFFDDF6E0 
+Execution Address: 0x0 
+Data word offset: 0xF5E0 
+Partition Attributes: 0x836 
+PMU Firmware 2023.2	Jan 14 2026   05:37:32
+PMU_ROM Version: xpbr-v8.1.0-0
+DAP_WAKE (MOD-2): Initialized.
+LEGACY PWR UP/DN/ISO (MOD-3): Initialized.
+Partition 3 Load Success 
+======= In Stage 3, Partition No:4 ======= 
+UnEncrypted data Length: 0x1DA 
+Data word offset: 0x1DA 
+Total Data word length: 0x1DA 
+Destination Load Address: 0x0 
+Execution Address: 0x3C 
+Data word offset: 0xF6E0 
+Partition Attributes: 0x51E 
+XPFW: Calling ROM PWRUP Handler..Ioie
+lizing TCM ECC
+Address 0x0FFE00000, Length 0x000010000, ECC initialized 
+Address 0x0FFE20000, Length 0x000010000, ECC initialized 
+Partition 4 Load Success 
+======= In Stage 3, Partition No:5 ======= 
+UnEncrypted data Length: 0x239D 
+Data word offset: 0x239D 
+Total Data word length: 0x239D 
+Destination Load Address: 0x100000 
+Execution Address: 0x0 
+Data word offset: 0xF8C0 
+Partition Attributes: 0x51E 
+Partition 5 Load Success 
+======= In Stage 3, Partition No:6 ======= 
+UnEncrypted data Length: 0x4C58 
+Data word offset: 0x4C58 
+Total Data word length: 0x4C58 
+Destination Load Address: 0xFFFEA000 
+Execution Address: 0x0 
+Data word offset: 0x11C60 
+Partition Attributes: 0x51E 
+Partition 6 Load Success 
+======= In Stage 3, Partition No:7 ======= 
+UnEncrypted data Length: 0x5E8C 
+Data word offset: 0x5E8C 
+Total Data word length: 0x5E8C 
+Destination Load Address: 0x0 
+Execution Address: 0x0 
+Data word offset: 0x168C0 
+Partition Attributes: 0x116 
+Partition 7 Load Success 
+All Partitions Loaded 
+Partition Address: 00000000FFE00000
+Partition Length: 00001896
+Going into Sha3Init
+Going into Sha3Update
+Leaving Sha3Update
+Partition Address: 0000000000100000
+Partition Length: 00036468
+Partition Address: 00000000FFFEA000
+Partition Length: 00078176
+Kernel Hash: 4BE8A1DC4B462D02DB890C51556DED14DAE23529B20DA3CAF89AEC7FC6E6FE87910988D5428D7C5697E29F83715CC03C
+Keygen Seed: 60B3EDC2A5F969724336F4855BB6AE06CCCC73728BB0CA6B461FB274C90CEFAF
+================= In Stage 4 ============ 
+PM Init Success
+CPU 0x500 reset release, Exec State 0x8, HandoffAddress: 3C
+XPFW: Calling ROM PWRUP Handler..R====
+ni=g Cp= H=nd=fS audies : rx0,=E=ec=St=t=: ===RPU: rpu_gic_init done
+RPU: IPI raw IntId: 0x4021, GIC IntId: 65
+RPU: rpu_ipi_init() done
+Security Kernel Hash: 4BE8A1DC4B462D02DB890C51556DED14DAE23529B20DA3CAF89AEC7FC6E6FE87910988D5428D7C5697E29F83715CC03C
+Seed:60B3EDC2A5F969724336F4855BB6AE06CCCC73728BB0CA6B461FB274C90CEFAF
+Attest PK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Attest SK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Kernel Hash:4BE8A1DC4B462D02DB890C51556DED14DAE23529B20DA3CAF89AEC7FC6E6FE87910988D5428D7C5697E29F83715CC03C
+Seed:60B3EDC2A5F969724336F4855BB6AE06CCCC73728BB0CA6B461FB274C90CEFAF
+Attest PK:7CC397B25AC4D8981B647780B982537930486CD9FA79C8878EBB7B5E4039255E
+Attest SK:38891075C568C4C8D3402557C5B0E7E580A97825C86D99693B19902E31F13443E10AC8A7FB4F11984C7620B32B8F291E6B26DEB5875FC96CF0469853C639F27B
+Kernel Certificate Signature:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPMU: Generated Kernel Certificate signature
+PMU: Generated attestation key data
+7A28D101A9BFE5E7A54E4E36BCB221E0023628340C4FC337E3CDAF5E11344CA6F7857F80D0FB56CAA027234A26E0FFB665CB6F7DD309DDB4A7E2C93C89656C5E18779B0ED3C56D7349F226EE20A05E219F7F9D7DFBBC5A451C8725FDEBC18E272332802F0D643111A100996733FDDFA160C592219472DD605030D89BFB172FD493D7C7F27EA6ADDB72E9B15CDD026B7D5EA37303F1C4538E73FC93CEE63DF82EB37F1C96918C2BF072C23786639EFDFCB420285390AF196E64DD8A138B1783C29C9BC1DCFCEFBEB6BA925129F295E036EF334787FC2DEC7BFFD689E3180AAF7C1CBBB667F268233F7DCF83F066989557374DADBA3673295773B54C040AC1CCFF9DF97B35C7DC41E085A901DE3E9A65FC0E752C7F0EC4228D0B0E94D4B30AFA973BC4C397A6264F48F6A9D07621B32B2ACDC3DF1400849D23203428E96A7581ED673B56825932F39E40188B2AD2E299C54B29003F10234C73A74B2EDF65F971663542497368E71E644BA42459515C92AEEC072D30CC7277B4F718C499744BEE2F9BFDED5BE966589E6F88CD09806FC66CC9EB3FB4B8169064BCE273FAB7369D224969A20F6AD1619C1E3CAE2F696D5288E4398188951E95E6F9C19D2C3CBBE61292EDC82DD04604E14ABE4C9F500C32C763246BB559D5237FEF9FA0EC7ECF4794719B6282FBEC4154DA8AABDFE40B49AB0BE9723CAA5191BB63D8F60E6C7974A7
+Sending Signature to RPU
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Received IPI from invalid source, ISR:20000 expected mask:10000 
+RPU ISR: 20000
+RPU: Error: Zynq MP First Stage Boot Loader 
+Release 2023.2   Jan 14 2026  -  06:00:34
+MultiBootOffset: 0x0
+Reset Mode	:	System Reset
+Platform: Silicon (4.0), Cluster ID 0x80000000
+Running on A53-0 (64-bit) Processor, Device Name: XCZUUNKNCG
+Processor Initialization Done 
+================= In Stage 2 ============ 
+SD1 Boot Mode 
+SD: rc= 0
+File name is BOOT.BIN
+Multiboot Reg : 0x0 
+Image Header Table Offset 0x8C0 
+*****Image Header Table Details******** 
+Boot Gen Ver: 0x1020000 
+No of Partitions: 0x8 
+Partition Header Address: 0x440 
+Partition Present Device: 0x0 
+Initialization Success 
+======= In Stage 3, Partition No:1 ======= 
+UnEncrypted data Length: 0x658D 
+Data word offset: 0x658D 
+Total Data word length: 0x658D 
+Destination Load Address: 0xFFDC0000 
+Execution Address: 0xFFDC0050 
+Data word offset: 0x8E00 
+Partition Attributes: 0x836 
+Partition 1 Load Success 
+======= In Stage 3, Partition No:2 ======= 
+UnEncrypted data Length: 0x247 
+Data word offset: 0x247 
+Total Data word length: 0x247 
+Destination Load Address: 0xFFDDD884 
+Execution Address: 0x0 
+Data word offset: 0xF390 
+Partition Attributes: 0x836 
+Partition 2 Load Success 
+======= In Stage 3, Partition No:3 ======= 
+UnEncrypted data Length: 0x100 
+Data word offset: 0x100 
+Total Data word length: 0x100 
+Destination Load Address: 0xFFDDF6E0 
+Execution Address: 0x0 
+Data word offset: 0xF5E0 
+Partition Attributes: 0x836 
+PMU Firmware 2023.2	Jan 14 2026   06:00:47
+PMU_ROM Version: xpbr-v8.1.0-0
+DAP_WAKE (MOD-2): Initialized.
+LEGACY PWR UP/DN/ISO (MOD-3): Initialized.
+Partition 3 Load Success 
+======= In Stage 3, Partition No:4 ======= 
+UnEncrypted data Length: 0x1DA 
+Data word offset: 0x1DA 
+Total Data word length: 0x1DA 
+Destination Load Address: 0x0 
+Execution Address: 0x3C 
+Data word offset: 0xF6E0 
+Partition Attributes: 0x51E 
+XPFW: Calling ROM PWRUP Handler..Dnne
+lizing TCM ECC
+Address 0x0FFE00000, Length 0x000010000, ECC initialized 
+Address 0x0FFE20000, Length 0x000010000, ECC initialized 
+Partition 4 Load Success 
+======= In Stage 3, Partition No:5 ======= 
+UnEncrypted data Length: 0x239D 
+Data word offset: 0x239D 
+Total Data word length: 0x239D 
+Destination Load Address: 0x100000 
+Execution Address: 0x0 
+Data word offset: 0xF8C0 
+Partition Attributes: 0x51E 
+Partition 5 Load Success 
+======= In Stage 3, Partition No:6 ======= 
+UnEncrypted data Length: 0x4C58 
+Data word offset: 0x4C58 
+Total Data word length: 0x4C58 
+Destination Load Address: 0xFFFEA000 
+Execution Address: 0x0 
+Data word offset: 0x11C60 
+Partition Attributes: 0x51E 
+Partition 6 Load Success 
+======= In Stage 3, Partition No:7 ======= 
+UnEncrypted data Length: 0x5E8C 
+Data word offset: 0x5E8C 
+Total Data word length: 0x5E8C 
+Destination Load Address: 0x0 
+Execution Address: 0x0 
+Data word offset: 0x168C0 
+Partition Attributes: 0x116 
+Partition 7 Load Success 
+All Partitions Loaded 
+Partition Address: 00000000FFE00000
+Partition Length: 00001896
+Going into Sha3Init
+Going into Sha3Update
+Leaving Sha3Update
+Partition Address: 0000000000100000
+Partition Length: 00036468
+Partition Address: 00000000FFFEA000
+Partition Length: 00078176
+Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Keygen Seed: A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+================= In Stage 4 ============ 
+PM Init Success
+CPU 0x500 reset release, Exec State 0x8, HandoffAddress: 3C
+XPFW: Calling ROM PWRUP Handler..D==e==g =p= H=n=of= Sdcreisy 0e0n lxe= =t=t=: 0====RPU: rpu_gic_init done
+RPU: IPI raw IntId: 0x4021, GIC IntId: 65
+RPU: rpu_ipi_init() done
+Security Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Attest SK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Kernel Hash:81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:652E5E6945E438D108FA832A39EA51D4F5ABB0D6D1ACA18C03EDF6527F0FC618
+Attest SK:187CCAAC5EA341859A8B46787BBABC8283EA01544F4A395C1A43D45AC84F75638E01E4F16E92D1071B314D66A019EA6803D51F774D737F2152828D5ACC4EF360
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358FPMU: Generated Kernel Certificate signature
+PMU: Generated attestation key data
+97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358F
+Sending Signature to RPU
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358FZynq MP First Stage Boot Loader 
+Release 2023.2   Jan 14 2026  -  06:00:34
+MultiBootOffset: 0x0
+Reset Mode	:	System Reset
+Platform: Silicon (4.0), Cluster ID 0x80000000
+Running on A53-0 (64-bit) Processor, Device Name: XCZUUNKNCG
+Processor Initialization Done 
+================= In Stage 2 ============ 
+SD1 Boot Mode 
+SD: rc= 0
+File name is BOOT.BIN
+Multiboot Reg : 0x0 
+Image Header Table Offset 0x8C0 
+*****Image Header Table Details******** 
+Boot Gen Ver: 0x1020000 
+No of Partitions: 0x8 
+Partition Header Address: 0x440 
+Partition Present Device: 0x0 
+Initialization Success 
+======= In Stage 3, Partition No:1 ======= 
+UnEncrypted data Length: 0x658D 
+Data word offset: 0x658D 
+Total Data word length: 0x658D 
+Destination Load Address: 0xFFDC0000 
+Execution Address: 0xFFDC0050 
+Data word offset: 0x8E00 
+Partition Attributes: 0x836 
+Partition 1 Load Success 
+======= In Stage 3, Partition No:2 ======= 
+UnEncrypted data Length: 0x247 
+Data word offset: 0x247 
+Total Data word length: 0x247 
+Destination Load Address: 0xFFDDD884 
+Execution Address: 0x0 
+Data word offset: 0xF390 
+Partition Attributes: 0x836 
+Partition 2 Load Success 
+======= In Stage 3, Partition No:3 ======= 
+UnEncrypted data Length: 0x100 
+Data word offset: 0x100 
+Total Data word length: 0x100 
+Destination Load Address: 0xFFDDF6E0 
+Execution Address: 0x0 
+Data word offset: 0xF5E0 
+Partition Attributes: 0x836 
+PMU Firmware 2023.2	Jan 14 2026   06:00:47
+PMU_ROM Version: xpbr-v8.1.0-0
+DAP_WAKE (MOD-2): Initialized.
+LEGACY PWR UP/DN/ISO (MOD-3): Initialized.
+Partition 3 Load Success 
+======= In Stage 3, Partition No:4 ======= 
+UnEncrypted data Length: 0x1DA 
+Data word offset: 0x1DA 
+Total Data word length: 0x1DA 
+Destination Load Address: 0x0 
+Execution Address: 0x3C 
+Data word offset: 0xF6E0 
+Partition Attributes: 0x51E 
+XPFW: Calling ROM PWRUP Handler..Dnnt
+lizing TCM ECC
+Address 0x0FFE00000, Length 0x000010000, ECC initialized 
+Address 0x0FFE20000, Length 0x000010000, ECC initialized 
+Partition 4 Load Success 
+======= In Stage 3, Partition No:5 ======= 
+UnEncrypted data Length: 0x239D 
+Data word offset: 0x239D 
+Total Data word length: 0x239D 
+Destination Load Address: 0x100000 
+Execution Address: 0x0 
+Data word offset: 0xF8C0 
+Partition Attributes: 0x51E 
+Partition 5 Load Success 
+======= In Stage 3, Partition No:6 ======= 
+UnEncrypted data Length: 0x4C58 
+Data word offset: 0x4C58 
+Total Data word length: 0x4C58 
+Destination Load Address: 0xFFFEA000 
+Execution Address: 0x0 
+Data word offset: 0x11C60 
+Partition Attributes: 0x51E 
+Partition 6 Load Success 
+======= In Stage 3, Partition No:7 ======= 
+UnEncrypted data Length: 0x5E8C 
+Data word offset: 0x5E8C 
+Total Data word length: 0x5E8C 
+Destination Load Address: 0x0 
+Execution Address: 0x0 
+Data word offset: 0x168C0 
+Partition Attributes: 0x116 
+Partition 7 Load Success 
+All Partitions Loaded 
+Partition Address: 00000000FFE00000
+Partition Length: 00001896
+Going into Sha3Init
+Going into Sha3Update
+Leaving Sha3Update
+Partition Address: 0000000000100000
+Partition Length: 00036468
+Partition Address: 00000000FFFEA000
+Partition Length: 00078176
+Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Keygen Seed: A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+================= In Stage 4 ============ 
+PM Init Success
+CPU 0x500 reset release, Exec State 0x8, HandoffAddress: 3C
+XPFW: Calling ROM PWRUP Handler..D====n=in= =p= =an=ofe uddte s:r0e0, =x=c =t=te= ==RPU: rpu_gic_init done
+RPU: IPI raw IntId: 0x4021, GIC IntId: 65
+RPU: rpu_ipi_init() done
+Security Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Attest SK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Kernel Hash:81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:652E5E6945E438D108FA832A39EA51D4F5ABB0D6D1ACA18C03EDF6527F0FC618
+Attest SK:187CCAAC5EA341859A8B46787BBABC8283EA01544F4A395C1A43D45AC84F75638E01E4F16E92D1071B314D66A019EA6803D51F774D737F2152828D5ACC4EF360
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358FPMU: Generated Kernel Certificate signature
+PMU: Generated attestation key data
+97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358F
+Sending Signature to RPU
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 0
+RPU: Error: Received IPI from invalid source, ISR:0 expected mask:20000 
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358FZynq MP First Stage Boot Loader 
+Release 2023.2   Jan 14 2026  -  06:00:34
+MultiBootOffset: 0x0
+Reset Mode	:	System Reset
+Platform: Silicon (4.0), Cluster ID 0x80000000
+Running on A53-0 (64-bit) Processor, Device Name: XCZUUNKNCG
+Processor Initialization Done 
+================= In Stage 2 ============ 
+SD1 Boot Mode 
+SD: rc= 0
+File name is BOOT.BIN
+Multiboot Reg : 0x0 
+Image Header Table Offset 0x8C0 
+*****Image Header Table Details******** 
+Boot Gen Ver: 0x1020000 
+No of Partitions: 0x8 
+Partition Header Address: 0x440 
+Partition Present Device: 0x0 
+Initialization Success 
+======= In Stage 3, Partition No:1 ======= 
+UnEncrypted data Length: 0x658D 
+Data word offset: 0x658D 
+Total Data word length: 0x658D 
+Destination Load Address: 0xFFDC0000 
+Execution Address: 0xFFDC0050 
+Data word offset: 0x8E00 
+Partition Attributes: 0x836 
+Partition 1 Load Success 
+======= In Stage 3, Partition No:2 ======= 
+UnEncrypted data Length: 0x247 
+Data word offset: 0x247 
+Total Data word length: 0x247 
+Destination Load Address: 0xFFDDD884 
+Execution Address: 0x0 
+Data word offset: 0xF390 
+Partition Attributes: 0x836 
+Partition 2 Load Success 
+======= In Stage 3, Partition No:3 ======= 
+UnEncrypted data Length: 0x100 
+Data word offset: 0x100 
+Total Data word length: 0x100 
+Destination Load Address: 0xFFDDF6E0 
+Execution Address: 0x0 
+Data word offset: 0xF5E0 
+Partition Attributes: 0x836 
+PMU Firmware 2023.2	Jan 14 2026   06:00:47
+PMU_ROM Version: xpbr-v8.1.0-0
+DAP_WAKE (MOD-2): Initialized.
+LEGACY PWR UP/DN/ISO (MOD-3): Initialized.
+Partition 3 Load Success 
+======= In Stage 3, Partition No:4 ======= 
+UnEncrypted data Length: 0x1DA 
+Data word offset: 0x1DA 
+Total Data word length: 0x1DA 
+Destination Load Address: 0x0 
+Execution Address: 0x3C 
+Data word offset: 0xF6E0 
+Partition Attributes: 0x51E 
+XPFW: Calling ROM PWRUP Handler..Dontalizing TCM ECC
+Address 0x0FFE00000, Length 0x000010000, ECC initialized 
+Address 0x0FFE20000, Length 0x000010000, ECC initialized 
+Partition 4 Load Success 
+======= In Stage 3, Partition No:5 ======= 
+UnEncrypted data Length: 0x239D 
+Data word offset: 0x239D 
+Total Data word length: 0x239D 
+Destination Load Address: 0x100000 
+Execution Address: 0x0 
+Data word offset: 0xF8C0 
+Partition Attributes: 0x51E 
+Partition 5 Load Success 
+======= In Stage 3, Partition No:6 ======= 
+UnEncrypted data Length: 0x4C58 
+Data word offset: 0x4C58 
+Total Data word length: 0x4C58 
+Destination Load Address: 0xFFFEA000 
+Execution Address: 0x0 
+Data word offset: 0x11C60 
+Partition Attributes: 0x51E 
+Partition 6 Load Success 
+======= In Stage 3, Partition No:7 ======= 
+UnEncrypted data Length: 0x5E8C 
+Data word offset: 0x5E8C 
+Total Data word length: 0x5E8C 
+Destination Load Address: 0x0 
+Execution Address: 0x0 
+Data word offset: 0x168C0 
+Partition Attributes: 0x116 
+Partition 7 Load Success 
+All Partitions Loaded 
+Partition Address: 00000000FFE00000
+Partition Length: 00001896
+Going into Sha3Init
+Going into Sha3Update
+Leaving Sha3Update
+Partition Address: 0000000000100000
+Partition Length: 00036468
+Partition Address: 00000000FFFEA000
+Partition Length: 00078176
+Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Keygen Seed: A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+================= In Stage 4 ============ 
+PM Init Success
+CPU 0x500 reset release, Exec State 0x8, HandoffAddress: 3C
+XPFW: Calling ROM PWRUP Handler..D==e=g C=u=H=n=off =derusi: 0x0,nEle= =tate= 0
+=====RPU: rpu_gic_init done
+RPU: IPI raw IntId: 0x4021, GIC IntId: 65
+RPU: rpu_ipi_init() done
+Security Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Attest SK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Kernel Hash:81E926009DAC16A84FD411837CAF8eAEFS2D 023gD9t7D7DA0
+F2Ew490h7Eu3004e2AA0BaB6306e6Bv82 0E3a50sBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:652E5E6945E438D108FA832A39EA51D4F5ABB0D6D1ACA18C03EDF6527F0FC618
+Attest SK:187CCAAC5EA341859A8B46787BBABC8283EA01544F4A395C1A43D45AC84F75638E01E4F16E92D1071B314D66A019EA6803D51F774D737F2152828D5ACC4EF360
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358FPMU: Generated Kernel Certificate signature
+PMU: Generated attestation key data
+97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358F
+Sending Signature to RPU
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358F   Zynq MP First Stage Boot Loader 
+Release 2023.2   Jan 14 2026  -  06:00:34
+MultiBootOffset: 0x0
+Reset Mode	:	System Reset
+Platform: Silicon (4.0), Cluster ID 0x80000000
+Running on A53-0 (64-bit) Processor, Device Name: XCZUUNKNCG
+Processor Initialization Done 
+================= In Stage 2 ============ 
+SD1 Boot Mode 
+SD: rc= 0
+File name is BOOT.BIN
+Multiboot Reg : 0x0 
+Image Header Table Offset 0x8C0 
+*****Image Header Table Details******** 
+Boot Gen Ver: 0x1020000 
+No of Partitions: 0x8 
+Partition Header Address: 0x440 
+Partition Present Device: 0x0 
+Initialization Success 
+======= In Stage 3, Partition No:1 ======= 
+UnEncrypted data Length: 0x658D 
+Data word offset: 0x658D 
+Total Data word length: 0x658D 
+Destination Load Address: 0xFFDC0000 
+Execution Address: 0xFFDC0050 
+Data word offset: 0x8E00 
+Partition Attributes: 0x836 
+Partition 1 Load Success 
+======= In Stage 3, Partition No:2 ======= 
+UnEncrypted data Length: 0x247 
+Data word offset: 0x247 
+Total Data word length: 0x247 
+Destination Load Address: 0xFFDDD884 
+Execution Address: 0x0 
+Data word offset: 0xF390 
+Partition Attributes: 0x836 
+Partition 2 Load Success 
+======= In Stage 3, Partition No:3 ======= 
+UnEncrypted data Length: 0x100 
+Data word offset: 0x100 
+Total Data word length: 0x100 
+Destination Load Address: 0xFFDDF6E0 
+Execution Address: 0x0 
+Data word offset: 0xF5E0 
+Partition Attributes: 0x836 
+PMU Firmware 2023.2	Jan 14 2026   06:00:47
+PMU_ROM Version: xpbr-v8.1.0-0
+DAP_WAKE (MOD-2): Initialized.
+LEGACY PWR UP/DN/ISO (MOD-3): Initialized.
+Partition 3 Load Success 
+======= In Stage 3, Partition No:4 ======= 
+UnEncrypted data Length: 0x1DA 
+Data word offset: 0x1DA 
+Total Data word length: 0x1DA 
+Destination Load Address: 0x0 
+Execution Address: 0x3C 
+Data word offset: 0xF6E0 
+Partition Attributes: 0x51E 
+XPFW: Calling ROM PWRUP Handler..Dnnt
+lizing TCM ECC
+Address 0x0FFE00000, Length 0x000010000, ECC initialized 
+Address 0x0FFE20000, Length 0x000010000, ECC initialized 
+Partition 4 Load Success 
+======= In Stage 3, Partition No:5 ======= 
+UnEncrypted data Length: 0x239D 
+Data word offset: 0x239D 
+Total Data word length: 0x239D 
+Destination Load Address: 0x100000 
+Execution Address: 0x0 
+Data word offset: 0xF8C0 
+Partition Attributes: 0x51E 
+Partition 5 Load Success 
+======= In Stage 3, Partition No:6 ======= 
+UnEncrypted data Length: 0x4C58 
+Data word offset: 0x4C58 
+Total Data word length: 0x4C58 
+Destination Load Address: 0xFFFEA000 
+Execution Address: 0x0 
+Data word offset: 0x11C60 
+Partition Attributes: 0x51E 
+Partition 6 Load Success 
+======= In Stage 3, Partition No:7 ======= 
+UnEncrypted data Length: 0x5E8C 
+Data word offset: 0x5E8C 
+Total Data word length: 0x5E8C 
+Destination Load Address: 0x0 
+Execution Address: 0x0 
+Data word offset: 0x168C0 
+Partition Attributes: 0x116 
+Partition 7 Load Success 
+All Partitions Loaded 
+Partition Address: 00000000FFE00000
+Partition Length: 00001896
+Going into Sha3Init
+Going into Sha3Update
+Leaving Sha3Update
+Partition Address: 0000000000100000
+Partition Length: 00036468
+Partition Address: 00000000FFFEA000
+Partition Length: 00078176
+Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Keygen Seed: A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+================= In Stage 4 ============ 
+PM Init Success
+CPU 0x500 reset release, Exec State 0x8, HandoffAddress: 3C
+XPFW: Calling ROM PWRUP Handler..D==n==n=n= C=u=Ha=d=ffeaudres : rxel E=e= S=a=e:=0==RPU: rpu_gic_init done
+RPU: IPI raw IntId: 0x4021, GIC IntId: 65
+RPU: rpu_ipi_init() done
+Security Kernel Hash: 81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Attest SK:EFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDEEFBEADDE
+Kernel Hash:81E926009DAC16A84FD4118370AF84AE962D10233D9F7D7FA06F2E349077E1300462AA0B6B630686BB82F0E3650CBBB3
+Seed:A7B9CA0890A434721B22EC12A5A1DF47051FDC3C9FE281B620E58218DDED193F
+Attest PK:652E5E6945E438D108FA832A39EA51D4F5ABB0D6D1ACA18C03EDF6527F0FC618
+Attest SK:187CCAAC5EA341859A8B46787BBABC8283EA01544F4A395C1A43D45AC84F75638E01E4F16E92D1071B314D66A019EA6803D51F774D737F2152828D5ACC4EF360
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358FPMU: Generated Kernel Certificate signature
+PMU: Generated attestation key data
+97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358F
+Sending Signature to RPU
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+RPU ISR: 20000
+
+Kernel Certificate Signature:97EF30FB1F63AAFE0F1100324E5FA9B77D8A4B1B5A9FC1AB86B1430CC04E6E561E9B189213A1927EF7ADF968985AAE134FAC80A15C5A03D7089FC1242684CDA9EBEB0336E53B20CDB7D5E66F6A3E92D450DCBB55664476EA465D491833BC87C39EED0ED6E81F357D4003EED2B8B0F27646AC3CB59FAF1417FAB66E05A9F31C81A2619C15FE5708E77B7971A2A19399B3EE00BE298EE707829B3A429D9BAD22816BC68F0E33D411AB0EFAFE74B9295303EF3EDA75C256B9CC33CF2FAD46A86E9577D9545941FCC295DA2721AF8217E1891B907BFD1196B055900B659DFD92FBAA9543D4ED63349794CEFC5D1F8A3AEC6716AE7FB0F2A7D1EFD15315A24C551089088D3CAC88FE7E9F852BD13C23E4A9D8C61985BBFA549606BE05F222CACC4B0239B0A90E62A413A3325DBFBDD830D64D49D4AD3089C83FAE0D76902E47544D9D23A4A0B88458410FCCFCFCF99D392531822DB099152A3F6E878D08285EDB1D1042B79A372E08E5024F73A3261D494AB2F20A98D918B0D94CB9CAE882EC46ED26D5B2993350F8CE13C96B82347399A8C9606CE389166F8A65ED8163ECF1BD0AFA3E57ED89080379486EB1F7338040BFA63F827C537D88516D2E4F3A2FAD9224947A9DF5822B098DB9A50A708C5BBBD324E364CB5AE7C78E5A7165BECEAE9CA0A316C18D9DAA4AE9229EEC84C3268576CEA7C3533ACB77DDF1F3A6CEEDAE26358F
