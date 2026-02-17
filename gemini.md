@@ -47,15 +47,16 @@ I am recreating and documenting the "ShEF" (Shielded Embedded Firmware) security
 - [X] Generate a new working `BOOT.BIN` using `bootgen`.
 - [X] Verify functionality on hardware (successful boot and attestation).
 
-### Milestone 2: Documentation & Delta Analysis (Next)
-- [ ] Compare `shef_zu1cg` code against the original `u96` source.
-- [ ] Document all necessary refactors (API changes, driver updates, address remapping).
-- [ ] Map the exact "recipe" required to port ShEF to a new ZynqMP target.
+### Milestone 2: Documentation & Delta Analysis (Complete)
+- [X] Compare `shef_zu1cg` code against the original `u96` source.
+- [X] Document all necessary refactors (RSA API shifts, IPI interrupt ID mapping, memory expansions).
+- [X] Map the exact "recipe" required to port ShEF to a new ZynqMP target (documented in COMPARISON_REPORT.txt).
 
-### Milestone 3: Configuration Interface & Parameterization
-- [ ] Identify and flag problematic hard-coded parameters (memory offsets, IPI masks, key indices).
-- [ ] Create a central configuration header or script to manage these parameters.
-- [ ] Replace hard-coded values in the source with these parameters.
+### Milestone 3: Configuration Interface & Parameterization (In Progress)
+- [X] Identify and flag problematic hard-coded parameters (memory offsets, IPI masks, key indices).
+- [X] Create a central configuration header (`shef_config.h`) and bridge (`shef_env.h`) to manage parameters.
+- [X] Replace hard-coded values in the embedded source (PMUFW, FSBL, Security Kernel, Runtime) with macros.
+- [ ] Synchronize the host-side Python script with the new configuration system.
 
 ### Milestone 4: Full Project Automation
 - [ ] Develop scripts to automate the generation of fresh cryptographic keys and their integration into source headers.
@@ -65,7 +66,20 @@ I am recreating and documenting the "ShEF" (Shielded Embedded Firmware) security
 
 ## 7. Current Status & Next Steps
 
-### As of February 9, 2026
-- **Goal:** Identify problematic hard-coded parameters for future parameterization.
-- **Status:** Milestone 1 complete. Staging area is verified and self-contained (includes host and keys).
-- **Next Step:** Deep dive into source files to flag addresses, masks, and offsets that must be parameterized.
+### As of February 16, 2026
+
+- **Goal:** Complete parameterization and bridge headers.
+
+- **Status:** 
+
+    - Milestone 2 & 3: Refactoring complete for all embedded components (FSBL, PMUFW, Security Kernel, Runtime).
+
+    - Toggle system (`USE_SHEF_FIXED_CONFIG`) implemented and verified.
+
+    - Hardware Test: Security Kernel executes and generates real signatures using centralized keys.
+
+- **Next Step:** 
+
+    - Refactor `host.py` to use a shared Python-based configuration file (`shef_config.py`) to resolve key mismatches.
+
+    - Begin Milestone 4 (Automation).

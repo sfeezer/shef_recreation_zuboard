@@ -134,7 +134,9 @@ CMakeFiles/fsbl.elf.dir/xfsbl_main.c.obj: E:/x/shef/shef_automation_1/platform/z
   E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_image_header.h \
   E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_misc_drivers.h \
   E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_authentication.h \
-  E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/dev_key.h
+  E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/dev_key.h \
+  E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/shef_env.h \
+  E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/shef_config.h
 
 CMakeFiles/fsbl.elf.dir/xfsbl_misc.c.obj: E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_misc.c \
   E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_hw.h \
@@ -320,6 +322,10 @@ E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_usb.h:
 E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_ddr_init.h:
 
 E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_tpm.h:
+
+E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/shef_env.h:
+
+E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/shef_config.h:
 
 E:/x/shef/shef_automation_1/platform/zynqmp_fsbl/xfsbl_misc.c:
 

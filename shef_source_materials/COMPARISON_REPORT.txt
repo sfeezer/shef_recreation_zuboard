@@ -65,10 +65,41 @@ Below is a proposed template for `shef_config.h`. Once implemented, this file wi
 #endif /* SHEF_CONFIG_H_ */
 ```
 
-### Next Steps for Milestone 3
-1. **Refactor PMUFW:** Replace hard-coded values in `xpfw_mod_sec.c` with `SHEF_` macros.
-2. **Refactor Security Kernel:** Replace values in `security_kernel.h` and `ipi.h`.
-3. **Refactor Host/Runtime:** Ensure the Python script and A53 runtime use matching values.
+### Refactor Log (Sandbox Changes)
+The following files in `shef_source_materials_SANDBOX` have been refactored to support the `shef_env.h` bridge:
+
+1. **`security_kernel\security_kernel.h`**:
+    - Included `shef_env.h`.
+    - Replaced `SHARED_MEM_BASE` with `SHEF_SHARED_MEM_BASE`.
+    - Wrapped `XSECURE_AES_KEY` and `XSECURE_IV` in `USE_SHEF_FIXED_CONFIG` toggle.
+    - Replaced peripheral bases (ADMA, CSU, PMU_GLOBAL, GPIO) with `SHEF_` macros.
+
+2. **`security_kernel\ipi.h`**:
+    - Included `shef_env.h`.
+    - Replaced `IPI_PMU_PM_INT_MASK_SEND` with `SHEF_IPI_PMU_MASK_IPI0`.
+    - Replaced `IPI_PMU_PM_INT_MASK_RECV` with `SHEF_IPI_PMU_MASK_IPI1`.
+    - Replaced `PMU_IPI_HEADER` with `SHEF_MODULE_ID_PMU`.
+
+3. **`pmufw\xpfw_mod_sec.c`**:
+    - Included `shef_env.h`.
+    - Wrapped `root_mod` definition in `USE_SHEF_FIXED_CONFIG` toggle using `SHEF_ROOT_PK_MOD`.
+    - Replaced `root_pk` exponent with `SHEF_ROOT_PK_EXP`.
+
+4. **`runtime\kernel_driver.h`**:
+    - Included `shef_env.h`.
+    - Replaced `SHARED_MEM_BASE` with `SHEF_SHARED_MEM_BASE`.
+    - Replaced `FPGA_AXI_BASE_ADDR` with `SHEF_FPGA_AXI_BASE`.
+
+5. **`security_kernel\shef_env.h` (New)**: The environment bridge header.
+6. **`security_kernel\shef_config.h` (New)**: The known-working hard-coded configuration.
+
+### Host-Side Synchronization Issues
+**Finding:** During verification, the host script (`host.py`) failed to verify the attestation report because it was using an outdated RSA key (`0xdde2...`) while the firmware was correctly using the verified ZuBoard key (`0xc036...`).
+
+**Remediation Plan:**
+- Extract the verified keys into a `shef_config.py` file.
+- Modify `host.py` to import parameters from this config file rather than hard-coding them.
+- This ensures that a single update to the key generator (Milestone 4) will update both the hardware and the host script simultaneously.
 
 ### Cryptographic Keys (Critical for Automation)
 - **PMUFW `root_pk`:** Hard-coded RSA-4096 public key in `xpfw_mod_sec.c`.
