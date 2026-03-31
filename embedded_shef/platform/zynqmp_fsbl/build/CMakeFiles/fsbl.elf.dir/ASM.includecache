@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+E:/x/shef/embedded_shef/platform/zynqmp_fsbl/xfsbl_exit.S
+
+E:/x/shef/embedded_shef/platform/zynqmp_fsbl/xfsbl_translation_table_a53_64.S
+xparameters.h
+E:/x/shef/embedded_shef/platform/zynqmp_fsbl/xparameters.h
+xparameters.h
+E:/x/shef/embedded_shef/platform/zynqmp_fsbl/xparameters.h
+

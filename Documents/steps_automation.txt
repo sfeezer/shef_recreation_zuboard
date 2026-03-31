@@ -1,0 +1,200 @@
+cmd /c "E:\Xilinx\Vitis\2023.2\settings64.bat && set" | Foreach-Object {
+    if ($_ -match "^(.*?)=(.*)$") {
+        Set-Item -Path "Env:\$($matches[1])" -Value $matches[2]
+    }
+}
+
+vitis -i
+
+import vitis
+client = vitis.create_client()
+
+client.set_workspace(path="../embedded_shef")
+
+platform = client.create_platform_component(name="platform", hw="./nec_shef.xsa", os="standalone", cpu="psu_cortexa53_0")
+
+standalone_psu_cortexr5_0 = platform.add_domain(cpu="psu_cortexr5_0", os="standalone", name="standalone_psu_cortexr5_0")
+
+domain_a53 = platform.get_domain(name="standalone_psu_cortexa53_0")
+
+domain_a53.set_lib("xilffs")
+
+domain_r5 = platform.get_domain(name="standalone_psu_cortexr5_0")
+
+domain_r5.set_lib("xilsecure")
+
+domain_r5.set_lib("xilpm")
+
+domain_pmu = platform.add_domain(name="standalone_psu_pmu_0", cpu="psu_pmu_0", os="standalone")
+
+platform.build()
+
+xpfm_path = "../embedded_shef/platform/export/platform/platform.xpfm"
+
+pmufw_app = client.create_app_component(
+    name="shef_pmufw", 
+    platform=xpfm_path,
+    domain="standalone_psu_pmu_0",
+    template="zynqmp_pmufw"
+)
+
+runtime_app = client.create_app_component(
+    name="runtime",
+    platform=xpfm_path,
+    domain="standalone_psu_cortexa53_0",
+    template="empty_application"
+)
+
+security_kernel_app = client.create_app_component(
+    name="security_kernel",
+    platform=xpfm_path,
+    domain="standalone_psu_cortexr5_0",
+    template="empty_application"
+)
+
+import shutil
+import os
+
+
+src_base = "."
+dest_base = os.path.join("..", "embedded_shef")
+
+# 2. Define specific source directories
+src_runtime = os.path.join(src_base, "runtime")
+src_kernel = os.path.join(src_base, "security_kernel")
+src_pmufw = os.path.join(src_base, "pmufw")
+src_fsbl = os.path.join(src_base, "fsbl")
+src_include = os.path.join(src_base, "include")
+
+# 3. Define specific destination directories
+dest_runtime = os.path.join(dest_base, "runtime", "src")
+dest_kernel = os.path.join(dest_base, "security_kernel", "src")
+dest_pmufw = os.path.join(dest_base, "shef_pmufw", "src")
+dest_fsbl = os.path.join(dest_base, "platform", "zynqmp_fsbl") 
+
+# 4. Map application sources to their destinations
+copy_map = {
+    src_runtime: dest_runtime,
+    src_kernel: dest_kernel,
+    src_pmufw: dest_pmufw,
+    src_fsbl: dest_fsbl
+}
+
+print("Starting file swaps using relative paths...")
+
+# 5. Copy the main application files
+for src, dest in copy_map.items():
+    print(f"Copying '{os.path.basename(src)}' to '{dest}'...")
+    shutil.copytree(src, dest, dirs_exist_ok=True)
+
+# 6. Copy the shared 'include' files into all four destinations
+print("Distributing shared include files...")
+destinations = [dest_runtime, dest_kernel, dest_pmufw, dest_fsbl]
+
+for dest in destinations:
+    shutil.copytree(src_include, dest, dirs_exist_ok=True)
+
+runtime_app.set_app_config(
+    key='USER_COMPILE_DEFINITIONS', 
+    values=['USE_SHEF_FIXED_CONFIG'] 
+)
+
+security_kernel_app.set_app_config(
+    key='USER_COMPILE_DEFINITIONS', 
+    values=['USE_SHEF_FIXED_CONFIG'] 
+)
+
+security_kernel_app.set_app_config(
+    key='USER_COMPILE_OPTIMIZATION_LEVEL', 
+    values=['-Os'] 
+)
+
+# Add the flag to the PMU Firmware application
+pmufw_app.set_app_config(
+    key='USER_COMPILE_DEFINITIONS', 
+    values=['USE_SHEF_FIXED_CONFIG'] 
+)
+
+
+# Define the path to the FSBL's custom CMake settings file
+fsbl_cmake_path = os.path.join("..", "embedded_shef", "platform", "zynqmp_fsbl", "UserConfig.cmake")
+
+# Ensure the Settings directory exists before writing to it
+os.makedirs(os.path.dirname(fsbl_cmake_path), exist_ok=True)
+
+import re
+
+# Define the path to the platform's auto-generated FSBL CMake config
+# Adjust the relative path if your script is running from a different directory
+fsbl_cmake_path = os.path.join("..", "embedded_shef", "platform", "zynqmp_fsbl", "UserConfig.cmake")
+
+# Read the existing auto-generated file
+with open(fsbl_cmake_path, 'r') as f:
+    content = f.read()
+
+# Check if we've already added the flag to avoid duplicate injections
+if "USE_SHEF_FIXED_CONFIG" not in content:
+    # Use regex to find the USER_COMPILE_DEFINITIONS block and replace the empty "" with our flag
+    # This safely preserves the formatting and parentheses exactly as Vitis expects
+    updated_content = re.sub(
+        r'(set\(USER_COMPILE_DEFINITIONS\s*)""(\s*\))',
+        r'\1"USE_SHEF_FIXED_CONFIG"\2',
+        content
+    )
+    
+    # Write the modified content back to the file
+    with open(fsbl_cmake_path, 'w') as f:
+        f.write(updated_content)
+    
+    print("Successfully injected USE_SHEF_FIXED_CONFIG into the FSBL UserConfig.cmake")
+else:
+    print("Flag is already present in the FSBL UserConfig.cmake")
+
+platform.build()
+
+runtime_app.build()
+
+security_kernel_app.build()
+
+pmufw_app.build()
+
+
+^ WORKING
+V TESTING
+
+
+import subprocess
+
+print("Preparing to generate BOOT.BIN...")
+
+# 1. Define the BIF content dynamically using our exact relative paths
+# Stepping up into embedded_shef to grab the compiled .elf files
+bif_content = """//arch = zynqmp; split = false; format = BIN
+the_ROM_image:
+{
+    [bootloader, destination_cpu = a53-0] ../embedded_shef/platform/zynqmp_fsbl/build/fsbl.elf
+    [destination_cpu = pmu] ../embedded_shef/shef_pmufw/build/shef_pmufw.elf
+    [destination_cpu = r5-0] ../embedded_shef/security_kernel/build/security_kernel.elf
+    [destination_cpu = a53-0] ../embedded_shef/runtime/build/runtime.elf
+}
+"""
+bif_filename = "package.bif"
+with open(bif_filename, "w") as f:
+    f.write(bif_content)
+
+cmd_string = "bootgen.bat -arch zynqmp -image package.bif -w -o ../embedded_shef/BOOT.BIN"
+
+print(f"Executing: {cmd_string}")
+
+result = subprocess.run(cmd_string, shell=True, capture_output=True, text=True)
+
+# 4. Print output and check for success
+print(result.stdout)
+if result.stderr:
+    print("Standard Error Output:")
+    print(result.stderr)
+
+if os.path.exists("../embedded_shef/BOOT.BIN"):
+    print("SUCCESS! BOOT.BIN is physically present in the target directory.")
+else:
+    print("FAILURE: BOOT.BIN was not created. Check the output above for missing file path errors.")

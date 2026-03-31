@@ -52,34 +52,28 @@ I am recreating and documenting the "ShEF" (Shielded Embedded Firmware) security
 - [X] Document all necessary refactors (RSA API shifts, IPI interrupt ID mapping, memory expansions).
 - [X] Map the exact "recipe" required to port ShEF to a new ZynqMP target (documented in COMPARISON_REPORT.txt).
 
-### Milestone 3: Configuration Interface & Parameterization (In Progress)
+### Milestone 3: Configuration Interface & Parameterization (Complete)
 - [X] Identify and flag problematic hard-coded parameters (memory offsets, IPI masks, key indices).
 - [X] Create a central configuration header (`shef_config.h`) and bridge (`shef_env.h`) to manage parameters.
 - [X] Replace hard-coded values in the embedded source (PMUFW, FSBL, Security Kernel, Runtime) with macros.
-- [ ] Synchronize the host-side Python script with the new configuration system.
+- [X] Synchronize/Identify host-side script keys for future synchronization.
 
 ### Milestone 4: Full Project Automation
+- [ ] Develop TCL/Python scripts to automate workspace creation in Vitis 2023.2. **(IMMEDIATE PRIORITY)**
 - [ ] Develop scripts to automate the generation of fresh cryptographic keys and their integration into source headers.
 - [ ] Automate the compilation of host-side tools (e.g., ed25519) from source.
-- [ ] Develop TCL/Python scripts to automate workspace creation in Vitis 2023.2.
 - [ ] Implement a one-command build process for the entire ShEF stack.
 
 ## 7. Current Status & Next Steps
 
-### As of February 16, 2026
+### As of March 29, 2026
 
-- **Goal:** Complete parameterization and bridge headers.
+- **Goal:** Shift focus to Vitis Workspace Automation.
 
 - **Status:** 
 
-    - Milestone 2 & 3: Refactoring complete for all embedded components (FSBL, PMUFW, Security Kernel, Runtime).
-
-    - Toggle system (`USE_SHEF_FIXED_CONFIG`) implemented and verified.
-
-    - Hardware Test: Security Kernel executes and generates real signatures using centralized keys.
+    - Milestone 3: COMPLETE. All hard-coded keys (RSA SK, Modulus, Certificate Template) and system parameters are now centralized in `shef_config.h`. Verified successful boot and functionality with the new macro-driven configuration.
 
 - **Next Step:** 
 
-    - Refactor `host.py` to use a shared Python-based configuration file (`shef_config.py`) to resolve key mismatches.
-
-    - Begin Milestone 4 (Automation).
+    - Research and develop Vitis Unified CLI (`vitis -i`) scripts to automate the creation of the ShEF platform and application components from the sandbox source.

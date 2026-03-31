@@ -1,0 +1,18 @@
+{
+  "name": "zynqmp_pmufw",
+  "type": "HOST",
+  "platform": "E:\\x\\shef\\shef_automation_3\\platform\\export\\platform\\platform.xpfm",
+  "domain": "standalone_psu_pmu_0",
+  "cpuInstance": "psu_pmu_0",
+  "cpuType": "psu_pmu",
+  "os": "standalone",
+  "configuration": {
+    "componentType": "HOST",
+    "hostToolchainConfigurations": []
+  },
+  "domainRealName": "standalone_psu_pmu_0",
+  "applicationFlow": "EMBEDDED",
+  "previousBuildStatusMap": {
+    "hw": "SUCCESS"
+  }
+}

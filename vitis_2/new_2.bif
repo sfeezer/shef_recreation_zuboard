@@ -1,8 +1,0 @@
-//arch = zynqmp; split = false; format = BIN
-the_ROM_image:
-{
-	[bootloader, destination_cpu = a53-0]E:\x\shef\vitis_2\platform\zynqmp_fsbl\build\fsbl.elf
-	[destination_cpu = pmu]E:\x\shef\vitis_2\platform\zynqmp_pmufw\build\pmufw.elf
-	[destination_cpu = r5-0]E:\x\shef\vitis_2\security_kernel\build\security_kernel.elf
-	[destination_cpu = a53-0]E:\x\shef\vitis_2\runtime\build\runtime.elf
-}

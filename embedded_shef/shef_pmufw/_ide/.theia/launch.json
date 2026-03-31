@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "tcf-debug",
+      "request": "launch",
+      "name": "shef_pmufw_app_hw_1",
+      "debugType": "baremetal-zu",
+      "attachToRunningTargetOptions": {
+        "targetSetupMode": "standalone",
+        "executeScript": true,
+        "scriptPath": ""
+      },
+      "autoAttachProcessChildren": false,
+      "target": {
+        "targetConnectionId": "Local",
+        "peersIniPath": "../../../.peers.ini",
+        "context": "ZUPlus"
+      },
+      "targetSetup": {
+        "resetSystem": true,
+        "programDevice": true,
+        "enableRPUSplitMode": false,
+        "resetAPU": false,
+        "resetRPU": false,
+        "bitstreamFile": "${workspaceFolder}\\shef_pmufw\\_ide\\bitstream\\nec_shef.bit",
+        "zuInitialization": {
+          "isFsbl": true,
+          "usingFSBL": {
+            "initWithFSBL": true,
+            "fsblFile": "E:\\x\\shef\\shef_vitis_source\\..\\embedded_shef\\platform\\export\\platform\\sw\\boot\\fsbl.elf",
+            "fsblExitSymbol": "XFsbl_Exit"
+          },
+          "usingPsuInit": {
+            "runPsuInit": true,
+            "plPowerup": false,
+            "psuInitTclFile": "${workspaceFolder}\\shef_pmufw\\_ide\\psinit\\nec_decoder_shield.tcl"
+          }
+        },
+        "downloadElf": [
+          {
+            "core": "psu_pmu_0",
+            "resetProcessor": true,
+            "elfFile": "${workspaceFolder}\\shef_pmufw\\build\\shef_pmufw.elf",
+            "stopAtEntry": false
+          }
+        ],
+        "crossTriggerBreakpoints": {
+          "isSelected": false,
+          "breakpoints": []
+        }
+      },
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ]
+}
